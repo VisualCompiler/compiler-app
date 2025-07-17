@@ -16,7 +16,10 @@ function App() {
           <Routes>
             {/* Pass a JSX element to the `element` prop */}
             <Route path="/" element={<HomeScreen />} />
-            <Route path="/playground" element={<PlaygroundScreen />} />
+            <Route
+              path="/playground/:folderId/:fileId"
+              element={<PlaygroundScreen />}
+            />
           </Routes>
         </BrowserRouter>
       </PlaygroundProvider>

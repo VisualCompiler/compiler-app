@@ -72,11 +72,73 @@ export const PlaygroundProvider = ({ children }) => {
     localStorage.setItem('data', JSON.stringify(updatedFolderList))
     setFolders(updatedFolderList)
   }
+  // delete specific file given an ID
+  const deleteFile = (folderId, fileId) => {
+    const copiedFolders = [...folders]
+    for (let i = 0; i < copiedFolders.length; i++) {
+      if (folderId === copiedFolders[i].id) {
+        const files = [...copiedFolders[i].files]
+        copiedFolders[i].files = files.filter((file) => {
+          return file.id !== fileId
+        })
+        break
+      }
+    }
+    localStorage.setItem('data', JSON.stringify(copiedFolders))
+    setFolders(copiedFolders)
+  }
+
+  // create a new playground card (new file in existing folder)
+  const createPlaygroundCard = (folderId, fileTitle) => {
+    const copiedFolders = [...folders]
+    for (let i = 0; i < copiedFolders.length; i++) {
+      if (copiedFolders[i].id === folderId) {
+        copiedFolders[i].files.push({
+          id: v4(),
+          title: fileTitle,
+          code: defaultCode,
+        })
+        break
+      }
+    }
+    localStorage.setItem('data', JSON.stringify(copiedFolders))
+    setFolders(copiedFolders)
+  }
+
+  // get code that is saved in the file with fileId
+  const getCode = (fileId, folderId) => {
+    const folder = folders.find((f) => f.id === folderId)
+    if (!folder) return ''
+
+    const file = folder.files.find((f) => f.id === fileId)
+    return file?.code || ''
+  }
+
+  // save the new code to file with fileId
+  const saveCode = (folderId, fileId, newCode) => {
+    const copiedFolders = [...folders]
+    for (let i = 0; i < copiedFolders.length; i++) {
+      if (copiedFolders[i].id === folderId) {
+        const files = copiedFolders[i].files
+        for (let j = 0; j < files.length; j++) {
+          if (files[j].id === fileId) {
+            files[j].code = newCode
+            break
+          }
+        }
+      }
+    }
+    localStorage.setItem('data', JSON.stringify(copiedFolders))
+    setFolders(copiedFolders)
+  }
 
   const playgroundFeatures = {
     folders,
     createNewPlayground,
     deleteFolder,
+    deleteFile,
+    createPlaygroundCard,
+    getCode,
   }
 
   return (

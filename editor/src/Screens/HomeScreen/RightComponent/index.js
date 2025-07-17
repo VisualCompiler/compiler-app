@@ -1,11 +1,20 @@
 import { useContext } from 'react'
 import './index.scss'
 import { PlaygroundContext } from '../../../Providers/PlaygroundProvider'
+import { modalConstants, ModalContext } from '../../../Providers/ModalProvider'
+import { useNavigate } from 'react-router-dom'
 
-const Folder = ({ folderTitle, cards, id }) => {
-  const { deleteFolder } = useContext(PlaygroundContext)
+const Folder = ({ folderTitle, cards, folderId }) => {
+  const { deleteFolder, deleteFile } = useContext(PlaygroundContext)
+  const { openModal, setModalPayload } = useContext(ModalContext)
+  const navigate = useNavigate()
   const onDeleteFolder = () => {
-    deleteFolder(id)
+    deleteFolder(folderId)
+  }
+
+  const openCreateCardModal = () => {
+    setModalPayload(folderId)
+    openModal(modalConstants.CREATE_CARD)
   }
   return (
     <div className="folder-container">
@@ -21,7 +30,7 @@ const Folder = ({ folderTitle, cards, id }) => {
             </span>
           </button>
 
-          <button>
+          <button onClick={openCreateCardModal}>
             <span class="material-symbols-outlined">add</span>
           </button>
           <button>
@@ -33,18 +42,26 @@ const Folder = ({ folderTitle, cards, id }) => {
       </div>
       <div className="card-container">
         {cards?.map((file, index) => {
+          const onDeleteFile = () => {
+            deleteFile(folderId, file.id)
+          }
+          const navigateToPlayground = () => {
+            navigate(`/playground/${folderId}/${file.id}`)
+          }
           return (
-            <div className="card" key={index}>
+            <div className="card" key={index} onClick={navigateToPlayground}>
               <img src="code_blocks.png" />
               <div className="card-title">
                 <span>{file?.title}</span>
               </div>
               <div className="card-element">
                 <button>
-                  <span class="material-symbols-outlined">edit</span>
-                </button>
-                <button>
-                  <span class="material-symbols-outlined">delete</span>
+                  <span
+                    class="material-symbols-outlined"
+                    onClick={onDeleteFile}
+                  >
+                    delete
+                  </span>
                 </button>
               </div>
             </div>
@@ -68,7 +85,8 @@ export const RightComponent = () => {
           <Folder
             folderTitle={folder?.title}
             cards={folder?.files}
-            id={folder?.id}
+            folderId={folder?.id}
+            fileId={folder?.files.id}
             key={index}
           />
         )
