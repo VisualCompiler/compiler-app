@@ -8,24 +8,37 @@ export const CreatePlaygroundModal = () => {
   const playgroundFeatures = useContext(PlaygroundContext)
 
   const closeModal = () => {
-    modalFeatures.closeModal()
+    modalFeatures?.closeModal()
   }
 
-  const onSubmitModal = (e) => {
-    e.preventDefault()
-    const folderName = e.target.folderName.value
-    const fileName = e.target.fileName.value
-    playgroundFeatures.createNewPlayground({
-      folderName,
-      fileName,
-    })
-    closeModal()
+  interface PlaygroundFormElements extends HTMLFormControlsCollection {
+    folderName: HTMLInputElement;
+    fileName: HTMLInputElement;
   }
+
+  interface PlaygroundForm extends HTMLFormElement {
+    readonly elements: PlaygroundFormElements;
+  }
+
+  interface OnSubmitModalEvent extends React.FormEvent<PlaygroundForm> {}
+
+  const onSubmitModal = (e: OnSubmitModalEvent) => {
+    e.preventDefault();
+    const folderName = e.currentTarget.folderName.value;
+    const fileName = e.currentTarget.fileName.value;
+    if (playgroundFeatures) {
+      playgroundFeatures.createNewPlayground({
+        folderName,
+        fileName,
+      });
+    }
+    closeModal();
+  };
 
   return (
     <div className="modal-container">
       <form className="modal-body" onSubmit={onSubmitModal}>
-        <span onClick={closeModal} class="material-symbols-outlined">
+        <span onClick={closeModal} className="material-symbols-outlined">
           close
         </span>
         <h1>Create new Playground</h1>

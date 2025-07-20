@@ -3,19 +3,20 @@ import { PlaygroundContext } from '../PlaygroundProvider'
 import { ModalContext } from '../ModalProvider'
 
 export const CreateCardModal = () => {
-  const { closeModal, modalPayload } = useContext(ModalContext)
-  const { createPlaygroundCard } = useContext(PlaygroundContext)
+  const { closeModal, modalPayload } = useContext(ModalContext)!
+  const { createPlaygroundCard } = useContext(PlaygroundContext)!
 
-  const onSubmitModal = (e) => {
+  const onSubmitModal = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const title = e.target.fileName.value
+    const form = e.target as HTMLFormElement
+    const title = (form.fileName as HTMLInputElement).value
     createPlaygroundCard(modalPayload, title)
     closeModal()
   }
   return (
     <div className="modal-container">
       <form className="modal-body" onSubmit={onSubmitModal}>
-        <span onClick={closeModal} class="material-symbols-outlined">
+        <span onClick={closeModal} className="material-symbols-outlined">
           close
         </span>
         <h1>Create new Playground</h1>

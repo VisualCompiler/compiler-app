@@ -7,10 +7,10 @@ export const Modal = () => {
   const modalFeatures = useContext(ModalContext)
   return (
     <>
-      {modalFeatures.activeModal === modalConstants.CREATE_PLAYGROUND && (
+      {modalFeatures && modalFeatures.activeModal === modalConstants.CREATE_PLAYGROUND && (
         <CreatePlaygroundModal />
       )}
-      {modalFeatures.activeModal === modalConstants.CREATE_CARD && (
+      {modalFeatures && modalFeatures.activeModal === modalConstants.CREATE_CARD && (
         <CreateCardModal />
       )}
     </>
