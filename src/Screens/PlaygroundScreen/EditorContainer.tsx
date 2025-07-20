@@ -26,14 +26,21 @@ import { cpp } from '@codemirror/lang-cpp'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { PlaygroundContext } from '../../Providers/PlaygroundProvider'
 
-export const EditorContainer = ({ fileId, folderId }) => {
-  const { getCode } = useContext(PlaygroundContext)
-  const [code, setCode] = useState(() => {
+interface EditorContainerProps {
+  fileId: string
+  folderId: string
+}
+
+export const EditorContainer: React.FC<EditorContainerProps> = ({ fileId, folderId }) => {
+  const { getCode } = useContext(PlaygroundContext) as { getCode: (fileId: string, folderId: string) => string }
+  const [code] = useState<string>(() => {
     return getCode(fileId, folderId)
   })
-  const editor = useRef()
+  const editor = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (!editor.current) return
+
     const state = EditorState.create({
       doc: code,
       extensions: [
@@ -47,7 +54,7 @@ export const EditorContainer = ({ fileId, folderId }) => {
         syntaxHighlighting(defaultHighlightStyle),
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         oneDark,
-        cpp({ dialect: 'c99' }),
+        cpp(),
       ],
     })
 

@@ -3,8 +3,12 @@ import { useParams } from 'react-router-dom'
 import { EditorContainer } from './EditorContainer'
 
 export const PlaygroundScreen = () => {
-  const params = useParams()
-  const { folderId, fileId } = params
+  const { folderId, fileId } = useParams()
+
+  if (!folderId || !fileId) {
+    return <div>Missing folder or file ID</div>
+  }
+
   return (
     <div className="playground-container">
       <div className="header"></div>
