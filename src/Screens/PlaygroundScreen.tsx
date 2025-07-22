@@ -1,4 +1,7 @@
 import { useParams } from 'react-router-dom'
+import { useState } from "react"
+import { Maximize2, Minimize2 } from "lucide-react"
+
 import { EditorContainer } from '../components/EditorContainer'
 import { ModeToggle } from '@/components/mode-toggle'
 import {
@@ -13,6 +16,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { Button } from "@/components/ui/button"
 
 export const PlaygroundScreen = () => {
   const { folderId, fileId } = useParams()
@@ -22,6 +26,8 @@ export const PlaygroundScreen = () => {
     {title: 'Intermediate Representation (IR)', description: 'Generating the Intermediate Representation (IR) with optimizations'},
     {title: 'Generated Code (WASM)', description: 'Translating the IR to WASM'},
   ]
+  const [isLeftFull, setIsLeftFull] = useState(false)
+  const [isRightFull, setIsRightFull] = useState(false)
 
   if (!folderId || !fileId) {
     return <div>Missing folder or file ID</div>
@@ -38,6 +44,14 @@ export const PlaygroundScreen = () => {
       className="gap-2"
     >
       <ResizablePanel minSize={3}>
+        <Button
+          onClick={() => setIsLeftFull(!isLeftFull)}
+          size="icon"
+          variant="ghost"
+          className="absolute top-1 right-1 z-10"
+        >
+          {isLeftFull ? <Minimize2 /> : <Maximize2 />}
+        </Button>
         <EditorContainer fileId={fileId} folderId={folderId} />
       </ResizablePanel>
       <ResizableHandle />
@@ -52,13 +66,19 @@ export const PlaygroundScreen = () => {
                 <p className="text-center text-sm text-muted-foreground mb-1">
                   {compilationSteps[index].description}
                 </p>
-                <ResizablePanel className='border rounded-md h-[calc(100vh-120px)]'>
-                  
+                <ResizablePanel className='relative border rounded-md h-[calc(100vh-120px)]'>
+                  <Button
+                    onClick={() => setIsRightFull(!isRightFull)}
+                    size="icon"
+                    variant="ghost"
+                    className="absolute top-2 right-2 z-10"
+                  >
+                    {isRightFull ? <Minimize2 /> : <Maximize2 />}
+                  </Button>
                 </ResizablePanel>
               </CarouselItem>
               ))}
           </CarouselContent>
-          
           <CarouselPrevious />
           <CarouselNext />
         </Carousel>

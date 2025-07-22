@@ -23,7 +23,7 @@ function ResizablePanelGroup({
 function ResizablePanel({
   ...props
 }: React.ComponentProps<typeof ResizablePrimitive.Panel>) {
-  return <ResizablePrimitive.Panel className="rounded-md border" data-slot="resizable-panel" {...props} />
+  return <ResizablePrimitive.Panel className="rounded-md border relative" data-slot="resizable-panel" {...props} />
 }
 
 function ResizableHandle({
