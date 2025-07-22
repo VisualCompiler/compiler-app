@@ -25,7 +25,6 @@ import {
 import { cpp } from '@codemirror/lang-cpp'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { PlaygroundContext } from '../Providers/PlaygroundProvider'
-import { Panel } from './Panel'
 
 interface EditorContainerProps {
   fileId: string
@@ -68,8 +67,6 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({ fileId, folder
   }, [code])
 
   return (
-    <Panel>
-      <div ref={editor}></div>
-    </Panel>
+    <div ref={editor}></div>
   )
 }
