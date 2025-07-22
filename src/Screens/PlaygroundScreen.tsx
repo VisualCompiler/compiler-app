@@ -1,7 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useState } from "react"
 import { Maximize2, Minimize2 } from "lucide-react"
-
 import { EditorContainer } from '../components/EditorContainer'
 import { ModeToggle } from '@/components/mode-toggle'
 import {
@@ -17,9 +16,11 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { Button } from "@/components/ui/button"
+import { useNavigate } from 'react-router-dom'
 
 export const PlaygroundScreen = () => {
   const { folderId, fileId } = useParams()
+  const navigate = useNavigate()
   const compilationSteps = [
     {title: 'Token List', description: 'Building a token list from the source code'},
     {title: 'Abstract Syntax Tree (AST)', description: 'Building the Abstract Syntax Tree (AST)'},
@@ -35,8 +36,14 @@ export const PlaygroundScreen = () => {
 
   return (
   <div className='flex flex-col m-2'>
-    <div className="header pl-4 text-lg font-semibold flex justify-between">
-      Visual Compiler
+    <div className="header pl-2 flex justify-between bg-transparent mb-2">  
+      <Button 
+        onClick={() => navigate('/')}
+        variant="ghost" 
+        className="text-lg font-semibold"
+      >
+        Visual Compiler
+      </Button>
       <span><ModeToggle /></span>
     </div>
     <ResizablePanelGroup
