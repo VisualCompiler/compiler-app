@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom'
 import { EditorContainer } from '../components/EditorContainer'
 import Split from 'react-split'
 import { Panel } from '../components/Panel'
+import { ModeToggle } from '@/components/mode-toggle'
 
 export const PlaygroundScreen = () => {
   const { folderId, fileId } = useParams()
@@ -14,10 +15,11 @@ export const PlaygroundScreen = () => {
     <div>
       <div className="header p-4 text-white text-lg font-semibold bg-gray-800">
         Visual Compiler
+        <ModeToggle />
       </div>
       <div className="flex-1">
         <Split
-          className="split flex h-[calc(100vh-86px)] m-3 gap-0.5"
+          className="split flex h-[calc(100vh-100px)] m-3 gap-0.5"
           sizes={[50, 50]}
           minSize={150}
           gutterSize={6}

@@ -5,25 +5,28 @@ import { HomeScreen } from './Screens/HomeScreen'
 import { PlaygroundScreen } from './Screens/PlaygroundScreen'
 import { PlaygroundProvider } from './Providers/PlaygroundProvider'
 import { ModalProvider } from './Providers/ModalProvider'
+import { ThemeProvider } from 'next-themes'
 
 function App() {
   return (
     //
-    <ModalProvider>
-      <PlaygroundProvider>
-        <BrowserRouter>
-          {/* Use <Routes> to wrap all individual routes */}
-          <Routes>
-            {/* Pass a JSX element to the `element` prop */}
-            <Route path="/" element={<HomeScreen />} />
-            <Route
-              path="/playground/:folderId/:fileId"
-              element={<PlaygroundScreen />}
-            />
-          </Routes>
-        </BrowserRouter>
-      </PlaygroundProvider>
-    </ModalProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <ModalProvider>
+        <PlaygroundProvider>
+          <BrowserRouter>
+            {/* Use <Routes> to wrap all individual routes */}
+            <Routes>
+              {/* Pass a JSX element to the `element` prop */}
+              <Route path="/" element={<HomeScreen />} />
+              <Route
+                path="/playground/:folderId/:fileId"
+                element={<PlaygroundScreen />}
+              />
+            </Routes>
+          </BrowserRouter>
+        </PlaygroundProvider>
+      </ModalProvider>
+    </ThemeProvider>
   )
 }
 
