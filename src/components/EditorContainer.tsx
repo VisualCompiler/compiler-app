@@ -24,7 +24,8 @@ import {
 } from '@codemirror/commands'
 import { cpp } from '@codemirror/lang-cpp'
 import { oneDark } from '@codemirror/theme-one-dark'
-import { PlaygroundContext } from '../../Providers/PlaygroundProvider'
+import { PlaygroundContext } from '../Providers/PlaygroundProvider'
+import { Panel } from './Panel'
 
 interface EditorContainerProps {
   fileId: string
@@ -67,8 +68,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({ fileId, folder
   }, [code])
 
   return (
-    <div className="root-editor-container">
-      <div className="editor-body" ref={editor}></div>
-    </div>
+    <Panel>
+      <div ref={editor}></div>
+    </Panel>
   )
 }

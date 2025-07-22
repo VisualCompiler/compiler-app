@@ -1,11 +1,11 @@
 import { useContext } from 'react'
-import { Modal } from '../../Providers/Modals/Modal'
-import './index.scss'
-import { RightComponent } from './RightComponent'
+import { Modal } from '../Providers/Modals/Modal'
+import { RightComponent } from '../components/RightComponent/RightComponent'
+import { Button } from '../components/ui/button'
 import {
   modalConstants,
   ModalContext,
-} from '../../Providers/ModalProvider'
+} from '../Providers/ModalProvider'
 
 export const HomeScreen: React.FC = () => {
   const modalFeatures = useContext(ModalContext)
@@ -19,10 +19,10 @@ export const HomeScreen: React.FC = () => {
           <img src="/VC.png" />
           <h1>Visualize Your Code</h1>
           <h2>Understand the Compilation Steps</h2>
-          <button onClick={openPlaygroundModal}>
+          <Button onClick={openPlaygroundModal}>
             <span className="material-symbols-outlined">add</span>
             <span>Start Coding</span>
-          </button>
+          </Button>
         </div>
       </div>
       <RightComponent />

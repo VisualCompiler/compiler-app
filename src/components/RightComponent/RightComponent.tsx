@@ -1,8 +1,9 @@
 import { useContext } from 'react'
 import './index.scss'
-import { PlaygroundContext } from '../../../Providers/PlaygroundProvider'
-import { modalConstants, ModalContext } from '../../../Providers/ModalProvider'
+import { PlaygroundContext } from '../../Providers/PlaygroundProvider'
+import { modalConstants, ModalContext } from '../../Providers/ModalProvider'
 import { useNavigate } from 'react-router-dom'
+import { Button } from '../ui/button'
 
 type FileType = {
   id: string;
@@ -24,10 +25,10 @@ const Folder: React.FC<FolderProps> = ({ folderTitle, cards, folderId }) => {
   const setModalPayload = modalContext?.setModalPayload
   const navigate = useNavigate()
   const openCreateCardModal = () => {
-    setModalPayload && setModalPayload(folderId)
-    openModal && openModal(modalConstants.CREATE_CARD)
+    if (setModalPayload) setModalPayload(folderId)
+    if (openModal) openModal(modalConstants.CREATE_CARD)
   }
-  const onDeleteFolder = () => {
+  function onDeleteFolder() {
     if (deleteFolder) {
       deleteFolder(folderId)
     }
@@ -40,20 +41,20 @@ const Folder: React.FC<FolderProps> = ({ folderTitle, cards, folderId }) => {
           <span>{folderTitle}</span>
         </div>
         <div className="folder-header-item">
-          <button>
+          <Button>
             <span className="material-symbols-outlined" onClick={onDeleteFolder}>
               delete
             </span>
-          </button>
+          </Button>
 
-          <button onClick={openCreateCardModal}>
+          <Button onClick={openCreateCardModal}>
             <span className="material-symbols-outlined">add</span>
-          </button>
-          <button>
+          </Button>
+          <Button>
             <span className="material-symbols-outlined">
               arrow_drop_down_circle
             </span>
-          </button>
+          </Button>
         </div>
       </div>
       <div className="card-container">
@@ -73,14 +74,14 @@ const Folder: React.FC<FolderProps> = ({ folderTitle, cards, folderId }) => {
                 <span>{file?.title}</span>
               </div>
               <div className="card-element">
-                <button>
+                <Button>
                   <span
                     className="material-symbols-outlined"
                     onClick={onDeleteFile}
                   >
                     delete
                   </span>
-                </button>
+                </Button>
               </div>
             </div>
           )
