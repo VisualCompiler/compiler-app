@@ -32,7 +32,7 @@ export const PlaygroundScreen = () => {
   ]
   const [isLeftFull, setIsLeftFull] = useState(false)
   const [isRightFull, setIsRightFull] = useState(false)
-  const dummyText = Array(20).fill(`Lorem ipsum dolor sit amet consectetur...`).join("\n\n")
+  const dummyText = Array(500).fill(`Lorem ipsum dolor sit amet consectetur...`).join("\n\n")
 
 
   if (!folderId || !fileId) {
