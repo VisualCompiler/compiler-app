@@ -24,7 +24,7 @@ function ResizablePanel({
   className,
   ...props
 }: React.ComponentProps<typeof ResizablePrimitive.Panel>) {
-  return <ResizablePrimitive.Panel className={cn("rounded-md relative", className)} data-slot="resizable-panel" {...props} />
+  return <ResizablePrimitive.Panel className={cn("border rounded-md relative", className)} data-slot="resizable-panel" {...props} />
 }
 
 function ResizableHandle({

@@ -1,10 +1,10 @@
-import { useParams } from 'react-router-dom'
 import { useState } from "react"
-import { Maximize2, Minimize2 } from "lucide-react"
-import { Terminal } from "lucide-react"
-import { Play } from "lucide-react"
-import { EditorContainer } from '../components/EditorContainer'
+import { useParams, useNavigate } from 'react-router-dom'
+import { Terminal, Play } from "lucide-react"
+import { EditorContainer } from '@/components/EditorContainer'
+import { ExpandToggleButton } from '@/components/ExpandToggleButton'
 import { ModeToggle } from '@/components/mode-toggle'
+import { Header } from '@/components/Header'
 import {
   ResizableHandle,
   ResizablePanel,
@@ -13,13 +13,13 @@ import {
 import {
   Carousel,
   CarouselContent,
-  CarouselItem,
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { Button } from "@/components/ui/button"
-import { useNavigate } from 'react-router-dom'
 import { Separator } from "@/components/ui/separator"
+import { CompilationStep } from "@/components/CompilationStep"
+
 
 export const PlaygroundScreen = () => {
   const { folderId, fileId } = useParams()
@@ -32,93 +32,45 @@ export const PlaygroundScreen = () => {
   ]
   const [isLeftFull, setIsLeftFull] = useState(false)
   const [isRightFull, setIsRightFull] = useState(false)
+  const dummyText = Array(20).fill(`Lorem ipsum dolor sit amet consectetur...`).join("\n\n")
+
 
   if (!folderId || !fileId) {
     return <div>Missing folder or file ID</div>
   }
 
   return (
-  <div className='flex flex-col p-4 h-screen'>
-    <div className="header pl-2 flex justify-between bg-transparent mb-2">  
-      <Button 
-        onClick={() => navigate('/')}
-        variant="ghost" 
-        className="text-2xl font-semibold"
-      >
+  <div className='flex flex-col h-screen'>
+    <Header>
+      <Button onClick={() => navigate('/')} variant="ghost" className="text-2xl font-semibold" aria-label="Back to Home Screen">
         Visual Compiler
       </Button>
       <span><ModeToggle /></span>
-    </div>
-    <ResizablePanelGroup direction='vertical'>
-      <ResizablePanel defaultSize={20}>
+    </Header>
+    <ResizablePanelGroup direction='vertical' className='p-4'>
+      <ResizablePanel defaultSize={20} className="border-none">
         <ResizablePanelGroup direction="horizontal">
-        <ResizablePanel minSize={3} className='bg-secondary/50 border'>
-          <div className='h-11'>
+        <ResizablePanel minSize={3} className='bg-secondary/50'>
+          <Header className='h-11'>
             <span className='text-lg font-semibold top-2 left-2 absolute'>Code Editor</span>
-            <Button variant={'outline'} className='bg-gradient-to-r from-chart-1 to-chart-2 opacity-80 hover:opacity-100 right-10 absolute m-1'>
+            <Button variant={'blueGreenGradient'} className='right-10 absolute' aria-label="Compile Code">
               <Play className='w-2' /><h2 className=''>Compile</h2>
             </Button>
-            <Button
-              onClick={() => setIsLeftFull(!isLeftFull)}
-              size="icon"
-              variant="ghost"
-              className="absolute top-1 right-1 z-10"
-            >
-              {isLeftFull ? <Minimize2 /> : <Maximize2 />}
-            </Button>
-          </div>
+            <ExpandToggleButton expanded={isLeftFull} onToggle={() => setIsLeftFull(!isLeftFull)}/>
+          </Header>
           <Separator />
           <EditorContainer fileId={fileId} folderId={folderId} />
         </ResizablePanel>
         <ResizableHandle />
-        <ResizablePanel className="flex flex-col justify-center p-1">
+        <ResizablePanel className="flex flex-col justify-center p-3">
+          <ExpandToggleButton expanded={isRightFull} onToggle={() => setIsRightFull(!isRightFull)} />
           <Carousel className="ml-11 mr-11 h-full">
             <CarouselContent>
-              {Array.from({ length: 4 }).map((_, index) => (
-                <CarouselItem key={index}>
-                  <h2 className="text-center text-xl font-semibold tracking-tight text-balance">
-                    Step {index + 1}: {compilationSteps[index].title}
-                  </h2>
-                  <p className="text-center text-sm text-muted-foreground mb-1">
-                    {compilationSteps[index].description}
-                  </p>
-                  <div className='border relative bg-secondary/20 overflow-scroll rounded-md p-3'>
-                    <Button
-                      onClick={() => setIsRightFull(!isRightFull)}
-                      size="icon"
-                      variant="ghost"
-                      className="absolute top-1 right-1 z-10"
-                    >
-                      {isRightFull ? <Minimize2 /> : <Maximize2 />}
-                    </Button>
-                    <div className="flex items-center justify-center">
-                      Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-
-Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-
-Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-
-Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-
-Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-
-Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-
-Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-
-Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-
-Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-
-Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-
-Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-
-Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-                    </div>
-                  </div>
-                </CarouselItem>
-                ))}
+              {compilationSteps.map((step, index) => (
+                <CompilationStep index={index} title={step.title}description={step.description}>
+                  {dummyText}
+                </CompilationStep>
+              ))}
             </CarouselContent>
             <CarouselPrevious />
             <CarouselNext />
@@ -127,8 +79,8 @@ Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapi
       </ResizablePanelGroup>
       </ResizablePanel>
       <ResizableHandle />
-      <ResizablePanel defaultSize={40} className='border bg-secondary/20'>
-          <Terminal className='m-2'/>
+      <ResizablePanel defaultSize={10} className='bg-secondary/30'>
+        <Terminal className='m-2'/>
         <Separator />
       </ResizablePanel>
     </ResizablePanelGroup>
