@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useState } from "react"
 import { Maximize2, Minimize2 } from "lucide-react"
 import { Terminal } from "lucide-react"
+import { Play } from "lucide-react"
 import { EditorContainer } from '../components/EditorContainer'
 import { ModeToggle } from '@/components/mode-toggle'
 import {
@@ -54,6 +55,9 @@ export const PlaygroundScreen = () => {
         <ResizablePanel minSize={3} className='bg-secondary/50 border'>
           <div className='h-11'>
             <span className='text-lg font-semibold top-2 left-2 absolute'>Code Editor</span>
+            <Button variant={'outline'} className='bg-gradient-to-r from-chart-1 to-chart-2 opacity-80 hover:opacity-100 right-10 absolute m-1'>
+              <Play className='w-2' /><h2 className=''>Compile</h2>
+            </Button>
             <Button
               onClick={() => setIsLeftFull(!isLeftFull)}
               size="icon"
