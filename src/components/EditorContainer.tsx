@@ -24,7 +24,6 @@ import {
 } from '@codemirror/commands'
 import { cpp } from '@codemirror/lang-cpp'
 import { oneDark } from '@codemirror/theme-one-dark'
-
 import { PlaygroundContext } from '../Providers/PlaygroundProvider'
 
 interface EditorContainerProps {
