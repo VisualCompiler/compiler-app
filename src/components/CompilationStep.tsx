@@ -1,5 +1,4 @@
 import { CarouselItem } from './ui/carousel'
-
 interface CompilationStepProps {
   index: number
   title: string
