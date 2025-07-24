@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Terminal, Play } from 'lucide-react'
 import { EditorContainer } from '@/components/EditorContainer'
@@ -44,6 +44,13 @@ export const PlaygroundScreen = () => {
   ]
   const [isLeftFull, setIsLeftFull] = useState(false)
   const [isRightFull, setIsRightFull] = useState(false)
+
+  // to prevent that both are full at the same time
+  useEffect(() => {
+    if (isLeftFull) setIsRightFull(false)
+    if (isRightFull) setIsLeftFull(false)
+  }, [isLeftFull, isRightFull])
+
   const dummyText = Array(500)
     .fill(`Lorem ipsum dolor sit amet consectetur...`)
     .join('\n\n')
@@ -67,10 +74,18 @@ export const PlaygroundScreen = () => {
           <ModeToggle />
         </span>
       </Header>
+
       <ResizablePanelGroup direction="vertical" className="p-4">
         <ResizablePanel defaultSize={20} className="border-none">
-          <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel minSize={3} className="bg-secondary/50 flex-shrink">
+          <ResizablePanelGroup direction="horizontal" className="h-full">
+            <ResizablePanel
+              defaultSize={isRightFull ? 0 : isLeftFull ? 100 : 50}
+              minSize={isLeftFull ? 100 : 20}
+              className="flex flex-col"
+              style={{
+                display: isRightFull ? 'none' : 'flex', // hide if right is full
+              }}
+            >
               <Header className="h-11 sticky top-0 z-10 bg-secondary/30">
                 <span className="text-lg font-semibold top-2 left-2 absolute">
                   Code Editor
@@ -91,8 +106,18 @@ export const PlaygroundScreen = () => {
               <Separator />
               <EditorContainer fileId={fileId} folderId={folderId} />
             </ResizablePanel>
+
+            {/* Handle only shown when both panels visible */}
+            {!isLeftFull && !isRightFull && <ResizableHandle />}
             <ResizableHandle />
-            <ResizablePanel className="flex flex-col justify-center p-3">
+            <ResizablePanel
+              defaultSize={isLeftFull ? 0 : isRightFull ? 100 : 50}
+              minSize={isRightFull ? 100 : 20}
+              className="flex flex-col"
+              style={{
+                display: isLeftFull ? 'none' : 'flex',
+              }}
+            >
               <ExpandToggleButton
                 expanded={isRightFull}
                 onToggle={() => setIsRightFull(!isRightFull)}

@@ -1,11 +1,9 @@
 import { useContext } from 'react'
 import { Modal } from '../Providers/Modals/Modal'
-import { RightComponent } from '../components/RightComponent/RightComponent'
+import { FolderComponent } from '../components/FolderComponent/FolderComponent'
 import { Button } from '../components/ui/button'
-import {
-  modalConstants,
-  ModalContext,
-} from '../Providers/ModalProvider'
+import { modalConstants, ModalContext } from '../Providers/ModalProvider'
+import { Header } from '@/components/Header'
 
 export const HomeScreen: React.FC = () => {
   const modalFeatures = useContext(ModalContext)
@@ -13,19 +11,20 @@ export const HomeScreen: React.FC = () => {
     modalFeatures?.openModal(modalConstants.CREATE_PLAYGROUND)
   }
   return (
-    <div className="home-container">
-      <div className="left-container">
-        <div className="items-container">
-          <img src="/VC.png" />
-          <h1>Visualize Your Code</h1>
-          <h2>Understand the Compilation Steps</h2>
-          <Button onClick={openPlaygroundModal}>
-            <span className="material-symbols-outlined">add</span>
-            <span>Start Coding</span>
-          </Button>
-        </div>
-      </div>
-      <RightComponent />
+    <div className="">
+      <Header className="bg-[#f4f4f4]">
+        <h1 className="text-[#09090b] font-bold text-xl font-[Press Start 2P]">
+          Visualize Your Code
+        </h1>
+        <h2 className="text-[#09090b] font-bold text-xl">
+          Understand the Compilation Steps
+        </h2>
+        <Button onClick={openPlaygroundModal}>
+          <span className="material-symbols-outlined">add</span>
+          <span>Start Coding</span>
+        </Button>
+      </Header>
+      <FolderComponent />
       <Modal />
     </div>
   )

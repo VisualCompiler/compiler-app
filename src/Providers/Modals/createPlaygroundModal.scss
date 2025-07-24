@@ -22,15 +22,16 @@
       justify-content: space-between;
       align-items: center;
       input {
-        border-radius: 5px;
+        border-radius: 5px gray;
         padding: 5px;
       }
       button {
         border-radius: 15px;
         border: none;
-        background-color: white;
+        background-color: rgb(211, 211, 211);
         width: 30%;
         padding: 10px;
+        box-sizing: border-box;
         cursor: pointer;
         transition-duration: 0.5s;
       }
