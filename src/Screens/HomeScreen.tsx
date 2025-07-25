@@ -4,6 +4,7 @@ import { FolderComponent } from '../components/FolderComponent/FolderComponent'
 import { Button } from '../components/ui/button'
 import { modalConstants, ModalContext } from '../Providers/ModalProvider'
 import { Header } from '@/components/Header'
+import { Separator } from '@/components/ui/separator'
 
 export const HomeScreen: React.FC = () => {
   const modalFeatures = useContext(ModalContext)
@@ -12,18 +13,15 @@ export const HomeScreen: React.FC = () => {
   }
   return (
     <div className="">
-      <Header className="bg-[#f4f4f4]">
-        <h1 className="text-[#09090b] font-bold text-xl font-[Press Start 2P]">
-          Visualize Your Code
-        </h1>
-        <h2 className="text-[#09090b] font-bold text-xl">
-          Understand the Compilation Steps
-        </h2>
+      <Header>
+        <h1 className="">Visualize Your Code</h1>
+        <h2>Understand the Compilation Steps</h2>
         <Button onClick={openPlaygroundModal}>
           <span className="material-symbols-outlined">add</span>
           <span>Start Coding</span>
         </Button>
       </Header>
+      <Separator />
       <FolderComponent />
       <Modal />
     </div>

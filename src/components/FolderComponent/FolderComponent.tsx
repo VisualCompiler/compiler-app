@@ -1,5 +1,4 @@
 import { useContext, useState } from 'react'
-import './index.scss'
 import { PlaygroundContext } from '../../Providers/PlaygroundProvider'
 import { modalConstants, ModalContext } from '../../Providers/ModalProvider'
 import { useNavigate } from 'react-router-dom'
@@ -41,57 +40,58 @@ const Folder: React.FC<FolderProps> = ({ folderTitle, cards, folderId }) => {
   }
 
   return (
-    <div className="folder-container">
-      <div className="folder-header">
-        <div className="folder-header-item">
+    <div className="mt-6">
+      <div className="flex justify-between py-2 border-b border-[#09090b] ">
+        <div className="flex items-center gap-1">
           <span className="material-symbols-outlined">folder_code</span>
           <span>{folderTitle}</span>
         </div>
-        <div className="folder-header-item">
-          <Button>
-            <span
-              className="material-symbols-outlined"
-              onClick={onDeleteFolder}
-            >
-              delete
-            </span>
+        <div className="flex items-center gap-1">
+          <Button className="p-1  hover:shadow-md" onClick={onDeleteFolder}>
+            <span className="material-symbols-outlined">delete</span>
           </Button>
-
-          <Button onClick={openCreateCardModal}>
+          <Button className="p-1 hover:shadow-md" onClick={openCreateCardModal}>
             <span className="material-symbols-outlined">add</span>
           </Button>
-          <Button onClick={toggleExpand}>
+          <Button className="p-1 hover:shadow-md" onClick={toggleExpand}>
             <span
-              className={`material-symbols-outlined ${
+              className={`material-symbols-outlined transition-transform duration-300 ${
                 isExpanded ? 'rotate-180' : ''
               }`}
-              style={{ transition: 'transform 0.3s ease' }}
             >
               arrow_drop_down_circle
             </span>
           </Button>
         </div>
       </div>
+
       {isExpanded && (
-        <div className="card-container">
+        <div className="p-5 flex flex-wrap gap-5 ">
           {cards?.map((file, index) => {
             const onDeleteFile = (e: React.MouseEvent) => {
               e.stopPropagation()
-              if (deleteFile) {
-                deleteFile(folderId, file.id)
-              }
+              if (deleteFile) deleteFile(folderId, file.id)
             }
+
             const navigateToPlayground = () => {
               navigate(`/playground/${folderId}/${file.id}`)
             }
+
             return (
-              <div className="card" key={index} onClick={navigateToPlayground}>
-                <img src="/code_blocks.png" alt="code" />
-                <div className="card-title">
+              <div
+                key={index}
+                onClick={navigateToPlayground}
+                className="flex w-[32%] gap-2 rounded-lg shadow-md justify-between items-center p-3 cursor-pointer transition duration-500 hover:shadow-xl  hover:outline-4 hover:outline-[#fe7743] border border-gray-300"
+              >
+                <span className="material-symbols-outlined">folder_code</span>
+                <div className="flex flex-col  ">
                   <span>{file?.title}</span>
                 </div>
-                <div className="card-element">
-                  <Button onClick={onDeleteFile}>
+                <div className="flex">
+                  <Button
+                    onClick={onDeleteFile}
+                    className="hover:bg-[#fe7743] hover:shadow-md"
+                  >
                     <span className="material-symbols-outlined">delete</span>
                   </Button>
                 </div>
@@ -109,8 +109,8 @@ export const FolderComponent = () => {
   const folders = playgroundContext?.folders
   console.log(folders)
   return (
-    <div className="right-container">
-      <div className="header">
+    <div className="h-screen overflow-y-scroll p-5">
+      <div className="flex justify-between py-2 border-b-2">
         <h1>Playground</h1>
       </div>
       {folders?.map((folder, index) => {

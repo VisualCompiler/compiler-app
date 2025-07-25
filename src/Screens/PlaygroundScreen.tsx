@@ -110,10 +110,11 @@ export const PlaygroundScreen = () => {
             {/* Handle only shown when both panels visible */}
             {!isLeftFull && !isRightFull && <ResizableHandle />}
             <ResizableHandle />
+
             <ResizablePanel
               defaultSize={isLeftFull ? 0 : isRightFull ? 100 : 50}
               minSize={isRightFull ? 100 : 20}
-              className="flex flex-col"
+              className="flex flex-col p-3"
               style={{
                 display: isLeftFull ? 'none' : 'flex',
               }}
@@ -122,7 +123,7 @@ export const PlaygroundScreen = () => {
                 expanded={isRightFull}
                 onToggle={() => setIsRightFull(!isRightFull)}
               />
-              <Carousel className="ml-11 mr-11 h-full ">
+              <Carousel className="ml-11 mr-11 h-full">
                 <CarouselContent>
                   {compilationSteps.map((step, index) => (
                     <CompilationStep
