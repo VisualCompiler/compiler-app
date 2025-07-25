@@ -20,7 +20,7 @@ export const CompilationStep = ({
       {description}
     </p>
     <div
-      className="bg-secondary/30 p-5 max-h-90 overflow-auto
+      className="bg-secondary/30 p-5 max-h-100 overflow-auto
   [&::-webkit-scrollbar]:w-2
 [&::-webkit-scrollbar]:p-0.5
   [&::-webkit-scrollbar-track]:rounded-full

@@ -142,7 +142,7 @@ export const PlaygroundScreen = () => {
           </ResizablePanelGroup>
         </ResizablePanel>
         <ResizableHandle />
-        <ResizablePanel defaultSize={10} className="bg-secondary/30">
+        <ResizablePanel defaultSize={5} className="bg-secondary/30">
           <Terminal className="m-2" />
           <Separator />
         </ResizablePanel>
