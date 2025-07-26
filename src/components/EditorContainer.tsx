@@ -37,8 +37,9 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   fileId,
   folderId,
 }) => {
-  const { getCode } = useContext(PlaygroundContext) as {
+  const { getCode, saveCode } = useContext(PlaygroundContext) as {
     getCode: (fileId: string, folderId: string) => string
+    saveCode: (folderId: string, fileId: string, newCode: string) => void
   }
   const [code] = useState<string>(() => {
     return getCode(fileId, folderId)
@@ -79,6 +80,14 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
     const view = new EditorView({
       state,
       parent: editor.current,
+      dispatch: (tr) => {
+        view.update([tr])
+
+        if (tr.docChanged) {
+          const updatedCode = view.state.doc.toString()
+          saveCode(folderId, fileId, updatedCode)
+        }
+      },
     })
 
     return () => view.destroy()
