@@ -44,7 +44,9 @@ const Folder: React.FC<FolderProps> = ({ folderTitle, cards, folderId }) => {
       <div className="flex justify-between py-2 border-b border-[#09090b] ">
         <div className="flex items-center gap-1">
           <span className="material-symbols-outlined">folder_code</span>
-          <span>{folderTitle}</span>
+          <span onClick={toggleExpand} className="hover:cursor-pointer">
+            {folderTitle}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <Button className="p-1  hover:shadow-md" onClick={onDeleteFolder}>
