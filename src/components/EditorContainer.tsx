@@ -75,7 +75,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   return (
     <div
       ref={editor}
-      className="bg-secondary/50  max-h-90 overflow-auto
+      className="bg-secondary/50  h-full w-full overflow-auto
   [&::-webkit-scrollbar]:w-2
   [&::-webkit-scrollbar-track]:rounded-full
   [&::-webkit-scrollbar-track]:bg-gray-100

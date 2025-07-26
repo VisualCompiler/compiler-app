@@ -44,6 +44,7 @@ export const PlaygroundScreen = () => {
   ]
   const [isLeftFull, setIsLeftFull] = useState(false)
   const [isRightFull, setIsRightFull] = useState(false)
+  const isAnyPanelFull = isLeftFull || isRightFull
 
   // to prevent that both are full at the same time
   useEffect(() => {
@@ -81,7 +82,7 @@ export const PlaygroundScreen = () => {
             <ResizablePanel
               defaultSize={isRightFull ? 0 : isLeftFull ? 100 : 50}
               minSize={isLeftFull ? 100 : 20}
-              className="flex flex-col"
+              className="flex flex-col h-full"
               style={{
                 display: isRightFull ? 'none' : 'flex', // hide if right is full
               }}
@@ -141,11 +142,15 @@ export const PlaygroundScreen = () => {
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
-        <ResizableHandle />
-        <ResizablePanel defaultSize={5} className="bg-secondary/30">
-          <Terminal className="m-2" />
-          <Separator />
-        </ResizablePanel>
+        {!isAnyPanelFull && (
+          <>
+            <ResizableHandle />
+            <ResizablePanel defaultSize={5} className="bg-secondary/30">
+              <Terminal className="m-2" />
+              <Separator />
+            </ResizablePanel>
+          </>
+        )}
       </ResizablePanelGroup>
     </div>
   )
