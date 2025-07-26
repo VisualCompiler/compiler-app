@@ -2,6 +2,8 @@ import './EditorContainer.scss'
 import React, { useRef, useEffect, useState, useContext } from 'react'
 
 import { EditorState } from '@codemirror/state'
+import { autocompletion } from '@codemirror/autocomplete'
+import { foldGutter } from '@codemirror/language'
 import {
   EditorView,
   keymap,
@@ -55,7 +57,17 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         drawSelection(),
         indentOnInput(),
         bracketMatching(),
+        autocompletion(),
+        foldGutter(),
         highlightActiveLine(),
+        EditorView.theme({
+          '&': { height: '100%' }, // make the editor take full height of its parent
+          '.cm-content': { padding: '16px' }, // padding inside the editor
+          '.cm-scroller': {
+            fontFamily: 'Fira Code, monospace',
+            fontSize: '14px',
+          },
+        }),
 
         syntaxHighlighting(defaultHighlightStyle),
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
@@ -75,14 +87,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   return (
     <div
       ref={editor}
-      className="bg-secondary/50  h-full w-full overflow-auto
-  [&::-webkit-scrollbar]:w-2
-  [&::-webkit-scrollbar-track]:rounded-full
-  [&::-webkit-scrollbar-track]:bg-gray-100
-  [&::-webkit-scrollbar-thumb]:rounded-full
-  [&::-webkit-scrollbar-thumb]:bg-gray-300
-  dark:[&::-webkit-scrollbar-track]:bg-neutral-700
-  dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500"
+      className="bg-secondary/50  h-full w-full overflow-auto"
     ></div>
   )
 }

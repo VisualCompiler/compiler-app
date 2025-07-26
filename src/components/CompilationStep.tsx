@@ -16,7 +16,7 @@ export const CompilationStep = ({
     <h2 className="text-center text-xl font-semibold tracking-tight text-balance">
       Step {index + 1}: {title}
     </h2>
-    <p className="text-center text-sm text-muted-foreground mb-1">
+    <p className="text-center text-sm text-muted-foreground mb-1 max-h-100">
       {description}
     </p>
     <div
