@@ -16,16 +16,21 @@ export interface FolderType {
 
 export interface PlaygroundContextType {
   folders: FolderType[]
-  createNewPlayground: (newPlayground: { folderName: string; fileName: string }) => void
+  createNewPlayground: (newPlayground: {
+    folderName: string
+    fileName: string
+  }) => void
   deleteFolder: (id: string) => void
   deleteFile: (folderId: string, fileId: string) => void
   createPlaygroundCard: (folderId: string, fileTitle: string) => void
   getCode: (fileId: string, folderId: string) => string
+  saveCode: (folderId: string, fileId: string, newCode: string) => void
 }
 
-
 // traverses data between children
-export const PlaygroundContext = createContext<PlaygroundContextType | undefined>(undefined)
+export const PlaygroundContext = createContext<
+  PlaygroundContextType | undefined
+>(undefined)
 
 const defaultCode = `#include<stdio.h>
             int main() {
@@ -52,7 +57,9 @@ interface PlaygroundProviderProps {
   children: ReactNode
 }
 
-export const PlaygroundProvider: React.FC<PlaygroundProviderProps> = ({ children }) => {
+export const PlaygroundProvider: React.FC<PlaygroundProviderProps> = ({
+  children,
+}) => {
   const [folders, setFolders] = useState(() => {
     const localData = localStorage.getItem('data')
     if (localData) {
@@ -72,7 +79,15 @@ export const PlaygroundProvider: React.FC<PlaygroundProviderProps> = ({ children
     title: string
     files: FileType[]
 
-    constructor({ id, title, files }: { id: string; title: string; files: FileType[] }) {
+    constructor({
+      id,
+      title,
+      files,
+    }: {
+      id: string
+      title: string
+      files: FileType[]
+    }) {
       this.id = id
       this.title = title
       this.files = files
@@ -80,20 +95,25 @@ export const PlaygroundProvider: React.FC<PlaygroundProviderProps> = ({ children
   }
 
   // update existing folders and files, save it in local storage
-  const createNewPlayground = (newPlayground: { folderName: string; fileName: string }) => {
+  const createNewPlayground = (newPlayground: {
+    folderName: string
+    fileName: string
+  }) => {
     const { folderName, fileName } = newPlayground
     const newFolders = [...folders]
-    newFolders.push(new FolderItem({
-      id: v4(),
-      title: folderName,
-      files: [
-        {
-          id: v4(),
-          title: fileName,
-          code: defaultCode,
-        },
-      ],
-    }))
+    newFolders.push(
+      new FolderItem({
+        id: v4(),
+        title: folderName,
+        files: [
+          {
+            id: v4(),
+            title: fileName,
+            code: defaultCode,
+          },
+        ],
+      })
+    )
     localStorage.setItem('data', JSON.stringify(newFolders))
     setFolders(newFolders)
   }
@@ -101,7 +121,9 @@ export const PlaygroundProvider: React.FC<PlaygroundProviderProps> = ({ children
   // based on given folder ID, delete it from folders and localstorage
   // remove it through filtering the id and return list without it
   const deleteFolder = (id: string) => {
-    const updatedFolderList = folders.filter((folderItem: FolderItem) => folderItem.id !== id)
+    const updatedFolderList = folders.filter(
+      (folderItem: FolderItem) => folderItem.id !== id
+    )
     localStorage.setItem('data', JSON.stringify(updatedFolderList))
     setFolders(updatedFolderList)
   }
@@ -140,7 +162,7 @@ export const PlaygroundProvider: React.FC<PlaygroundProviderProps> = ({ children
   }
 
   // get code that is saved in the file with fileId
-  const getCode = (fileId:string, folderId:string) => {
+  const getCode = (fileId: string, folderId: string) => {
     const folder = folders.find((f: FolderItem) => f.id === folderId)
     if (!folder) return ''
 
@@ -149,7 +171,7 @@ export const PlaygroundProvider: React.FC<PlaygroundProviderProps> = ({ children
   }
 
   // save the new code to file with fileId
-  /* const saveCode = (folderId:string, fileId:string, newCode:string) => {
+  const saveCode = (folderId: string, fileId: string, newCode: string) => {
     const copiedFolders = [...folders]
     for (let i = 0; i < copiedFolders.length; i++) {
       if (copiedFolders[i].id === folderId) {
@@ -164,7 +186,7 @@ export const PlaygroundProvider: React.FC<PlaygroundProviderProps> = ({ children
     }
     localStorage.setItem('data', JSON.stringify(copiedFolders))
     setFolders(copiedFolders)
-  } */
+  }
 
   const playgroundFeatures = {
     folders,
@@ -173,6 +195,7 @@ export const PlaygroundProvider: React.FC<PlaygroundProviderProps> = ({ children
     deleteFile,
     createPlaygroundCard,
     getCode,
+    saveCode,
   }
 
   return (
