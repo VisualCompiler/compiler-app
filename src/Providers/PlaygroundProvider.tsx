@@ -32,6 +32,12 @@ export const PlaygroundContext = createContext<
   PlaygroundContextType | undefined
 >(undefined)
 
+const rootFolder: FolderType = {
+  id: 'root',
+  title: 'root',
+  files: [],
+}
+
 const defaultCode = `#include<stdio.h>
             int main() {
                 printf("Hello World\\n");
@@ -50,6 +56,7 @@ const initialData = [
         code: defaultCode,
       },
     ],
+    rootFolder,
   },
 ]
 
@@ -101,6 +108,7 @@ export const PlaygroundProvider: React.FC<PlaygroundProviderProps> = ({
   }) => {
     const { folderName, fileName } = newPlayground
     const newFolders = [...folders]
+
     newFolders.push(
       new FolderItem({
         id: v4(),

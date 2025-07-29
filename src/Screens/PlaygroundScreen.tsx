@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Terminal, Play } from 'lucide-react'
+import { Terminal, Play, Save } from 'lucide-react'
 import { EditorContainer } from '@/components/EditorContainer'
 import { ExpandToggleButton } from '@/components/ExpandToggleButton'
 import { ModeToggle } from '@/components/mode-toggle'
@@ -19,10 +19,23 @@ import {
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { CompilationStep } from '@/components/CompilationStep'
+import { PlaygroundContext } from '@/Providers/PlaygroundProvider'
+import { usePlayground } from '@/Hooks/usePlayground'
+import { Modal } from '../Providers/Modals/Modal'
+import { modalConstants, ModalContext } from '../Providers/ModalProvider'
 
 export const PlaygroundScreen = () => {
   const { folderId, fileId } = useParams()
   const navigate = useNavigate()
+
+  const [code, setCode] = useState<string>('')
+  const [isUnsaved, setIsUnsaved] = useState(false)
+  const { getCode, saveCode, folders } = usePlayground()
+  const modalFeatures = useContext(ModalContext)
+  const SaveCardModal = () => {
+    modalFeatures?.openModal(modalConstants.SAVE_CARD)
+  }
+
   const compilationSteps = [
     {
       title: 'Token List',
@@ -46,6 +59,13 @@ export const PlaygroundScreen = () => {
   const [isRightFull, setIsRightFull] = useState(false)
   const isAnyPanelFull = isLeftFull || isRightFull
 
+  useEffect(() => {
+    if (folderId && fileId) {
+      const code = getCode(fileId, folderId)
+      setCode(code)
+    }
+  }, [folderId, fileId, getCode])
+
   // to prevent that both are full at the same time
   useEffect(() => {
     if (isLeftFull) setIsRightFull(false)
@@ -56,15 +76,11 @@ export const PlaygroundScreen = () => {
     .fill(`Lorem ipsum dolor sit amet consectetur...`)
     .join('\n\n')
 
-  if (!folderId || !fileId) {
-    return <div>Missing folder or file ID</div>
-  }
-
   return (
     <div className="flex flex-col h-screen">
       <Header>
         <Button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/Home')}
           variant="ghost"
           className="text-2xl font-semibold"
           aria-label="Back to Home Screen"
@@ -74,6 +90,14 @@ export const PlaygroundScreen = () => {
         <span>
           <ModeToggle />
         </span>
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Save File"
+          onClick={SaveCardModal}
+        >
+          <Save className="w-2" />
+        </Button>
       </Header>
 
       <ResizablePanelGroup direction="vertical" className="p-4">
@@ -152,6 +176,7 @@ export const PlaygroundScreen = () => {
           </>
         )}
       </ResizablePanelGroup>
+      <Modal />
     </div>
   )
 }

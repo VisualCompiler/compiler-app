@@ -12,11 +12,14 @@ interface ModalProviderProps {
   children: ReactNode
 }
 
-export const ModalContext = createContext<ModalContextType | undefined>(undefined)
+export const ModalContext = createContext<ModalContextType | undefined>(
+  undefined
+)
 
 export const modalConstants = {
   CREATE_PLAYGROUND: 'CREATE_PLAYGROUND',
   CREATE_CARD: 'CREATE_PLAYGROUND_CARD',
+  SAVE_CARD: 'SAVE_CARD',
 }
 
 export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {
