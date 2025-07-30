@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react'
+import { useState, useEffect, useContext, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Terminal, Play, Save } from 'lucide-react'
 import { EditorContainer } from '@/components/EditorContainer'
@@ -19,7 +19,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { CompilationStep } from '@/components/CompilationStep'
-import { PlaygroundContext } from '@/Providers/PlaygroundProvider'
 import { usePlayground } from '@/Hooks/usePlayground'
 import { Modal } from '../Providers/Modals/Modal'
 import { modalConstants, ModalContext } from '../Providers/ModalProvider'
@@ -30,10 +29,30 @@ export const PlaygroundScreen = () => {
 
   const [code, setCode] = useState<string>('')
   const [isUnsaved, setIsUnsaved] = useState(false)
-  const { getCode, saveCode, folders } = usePlayground()
+  const { getCode, saveCode } = usePlayground()
   const modalFeatures = useContext(ModalContext)
+
   const SaveCardModal = () => {
+    // Pass the current code to the modal
+    modalFeatures?.setModalPayload(code)
     modalFeatures?.openModal(modalConstants.SAVE_CARD)
+  }
+  // This function updates the component's local state
+  const handleCodeChange = useCallback((newCode: string) => {
+    setCode(newCode)
+    setIsUnsaved(true)
+  }, [])
+
+  const handleSave = () => {
+    // Case 1: This is an existing file that we need to save
+    if (folderId && fileId) {
+      saveCode(folderId, fileId, code)
+      setIsUnsaved(false)
+    } else {
+      // Case 2: This is a new, unsaved file. Open the modal to get a name/location.
+      modalFeatures?.setModalPayload(code)
+      modalFeatures?.openModal(modalConstants.SAVE_CARD)
+    }
   }
 
   const compilationSteps = [
@@ -63,6 +82,8 @@ export const PlaygroundScreen = () => {
     if (folderId && fileId) {
       const code = getCode(fileId, folderId)
       setCode(code)
+      // When a file is loaded, it is considered saved
+      setIsUnsaved(false)
     }
   }, [folderId, fileId, getCode])
 
@@ -94,7 +115,7 @@ export const PlaygroundScreen = () => {
           variant="outline"
           size="icon"
           aria-label="Save File"
-          onClick={SaveCardModal}
+          onClick={handleSave}
         >
           <Save className="w-2" />
         </Button>
@@ -129,7 +150,7 @@ export const PlaygroundScreen = () => {
                 />
               </Header>
               <Separator />
-              <EditorContainer fileId={fileId} folderId={folderId} />
+              <EditorContainer value={code} onChange={handleCodeChange} />
             </ResizablePanel>
 
             {/* Handle only shown when both panels visible */}

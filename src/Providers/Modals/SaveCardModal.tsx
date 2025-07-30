@@ -7,12 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@radix-ui/react-separator'
 
 export const SaveCardModal = () => {
   const modalFeatures = useContext(ModalContext)
   const playgroundFeatures = useContext(PlaygroundContext)
+  const code = modalFeatures?.modalPayload
 
   const [open, setOpen] = useState(true)
   const [selectedFolderId, setSelectedFolderId] = useState<string>('root')
@@ -35,11 +34,12 @@ export const SaveCardModal = () => {
     const fileName = e.currentTarget.fileName.value
     const folderName = e.currentTarget.folderName.value
     if (!folderName) {
-      playgroundFeatures?.createPlaygroundCard(selectedFolderId, fileName)
+      playgroundFeatures?.createPlaygroundCard(selectedFolderId, fileName, code)
     } else {
-      playgroundFeatures.createNewPlayground({
+      playgroundFeatures?.saveNewPlayground({
         folderName,
         fileName,
+        code,
       })
     }
     closeModal()
