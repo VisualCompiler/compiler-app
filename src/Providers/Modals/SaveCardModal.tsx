@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@radix-ui/react-separator'
 
 export const SaveCardModal = () => {
   const modalFeatures = useContext(ModalContext)
@@ -55,6 +56,16 @@ export const SaveCardModal = () => {
 
         <form onSubmit={onSubmitModal} className="space-y-4 mt-4">
           <div className="flex flex-col space-y-1">
+            <label htmlFor="fileName">Enter File name:</label>
+            <input
+              name="fileName"
+              id="fileName"
+              required
+              className="border rounded px-2 py-1"
+            />
+          </div>
+
+          <div className="flex flex-col space-y-1">
             <label htmlFor="folderSelect">Choose Folder:</label>
             <select
               id="folderSelect"
@@ -76,16 +87,6 @@ export const SaveCardModal = () => {
             <input
               name="folderName"
               id="folderName"
-              className="border rounded px-2 py-1"
-            />
-          </div>
-
-          <div className="flex flex-col space-y-1">
-            <label htmlFor="fileName">Enter File name:</label>
-            <input
-              name="fileName"
-              id="fileName"
-              required
               className="border rounded px-2 py-1"
             />
           </div>

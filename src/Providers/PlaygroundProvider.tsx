@@ -32,12 +32,6 @@ export const PlaygroundContext = createContext<
   PlaygroundContextType | undefined
 >(undefined)
 
-const rootFolder: FolderType = {
-  id: 'root',
-  title: 'root',
-  files: [],
-}
-
 const defaultCode = `#include<stdio.h>
             int main() {
                 printf("Hello World\\n");
@@ -47,8 +41,8 @@ const defaultCode = `#include<stdio.h>
 // preview some initial data (folder, file)
 const initialData = [
   {
-    id: v4(),
-    title: 'Hello World',
+    id: 'root',
+    title: '-',
     files: [
       {
         id: v4(),
@@ -56,7 +50,6 @@ const initialData = [
         code: defaultCode,
       },
     ],
-    rootFolder,
   },
 ]
 
