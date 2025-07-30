@@ -108,7 +108,7 @@ export const PlaygroundScreen = () => {
         >
           Visual Compiler
         </Button>
-        <span>
+        <span className="right-12 absolute">
           <ModeToggle />
         </span>
         <Button
