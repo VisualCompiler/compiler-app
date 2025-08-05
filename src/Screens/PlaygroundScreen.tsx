@@ -128,7 +128,6 @@ export const PlaygroundScreen = () => {
 
             {/* Handle only shown when both panels visible */}
             {!isLeftFull && !isRightFull && <ResizableHandle />}
-            <ResizableHandle />
 
             <ResizablePanel
               defaultSize={isLeftFull ? 0 : isRightFull ? 100 : 50}
