@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Terminal, Play } from 'lucide-react'
+import { Terminal, Play, Save } from 'lucide-react'
 import { EditorContainer } from '@/components/EditorContainer'
 import { ExpandToggleButton } from '@/components/ExpandToggleButton'
 import { ModeToggle } from '@/components/mode-toggle'
@@ -19,10 +19,42 @@ import {
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { CompilationStep } from '@/components/CompilationStep'
+import { usePlayground } from '@/Hooks/usePlayground'
+import { Modal } from '../Providers/Modals/Modal'
+import { modalConstants, ModalContext } from '../Providers/ModalProvider'
 
 export const PlaygroundScreen = () => {
   const { folderId, fileId } = useParams()
   const navigate = useNavigate()
+
+  const [code, setCode] = useState<string>('')
+  const [isUnsaved, setIsUnsaved] = useState(false)
+  const { getCode, saveCode } = usePlayground()
+  const modalFeatures = useContext(ModalContext)
+
+  const SaveCardModal = () => {
+    // Pass the current code to the modal
+    modalFeatures?.setModalPayload(code)
+    modalFeatures?.openModal(modalConstants.SAVE_CARD)
+  }
+  // This function updates the component's local state
+  const handleCodeChange = useCallback((newCode: string) => {
+    setCode(newCode)
+    setIsUnsaved(true)
+  }, [])
+
+  const handleSave = () => {
+    // Case 1: This is an existing file that we need to save
+    if (folderId && fileId) {
+      saveCode(folderId, fileId, code)
+      setIsUnsaved(false)
+    } else {
+      // Case 2: This is a new, unsaved file. Open the modal to get a name/location.
+      modalFeatures?.setModalPayload(code)
+      modalFeatures?.openModal(modalConstants.SAVE_CARD)
+    }
+  }
+
   const compilationSteps = [
     {
       title: 'Token List',
@@ -46,6 +78,15 @@ export const PlaygroundScreen = () => {
   const [isRightFull, setIsRightFull] = useState(false)
   const isAnyPanelFull = isLeftFull || isRightFull
 
+  useEffect(() => {
+    if (folderId && fileId) {
+      const code = getCode(fileId, folderId)
+      setCode(code)
+      // When a file is loaded, it is considered saved
+      setIsUnsaved(false)
+    }
+  }, [folderId, fileId, getCode])
+
   // to prevent that both are full at the same time
   useEffect(() => {
     if (isLeftFull) setIsRightFull(false)
@@ -56,24 +97,28 @@ export const PlaygroundScreen = () => {
     .fill(`Lorem ipsum dolor sit amet consectetur...`)
     .join('\n\n')
 
-  if (!folderId || !fileId) {
-    return <div>Missing folder or file ID</div>
-  }
-
   return (
     <div className="flex flex-col h-screen">
       <Header>
         <Button
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/Home')}
           variant="ghost"
           className="text-2xl font-semibold"
           aria-label="Back to Home Screen"
         >
           Visual Compiler
         </Button>
-        <span>
+        <span className="right-12 absolute">
           <ModeToggle />
         </span>
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Save File"
+          onClick={handleSave}
+        >
+          <Save className="w-2" />
+        </Button>
       </Header>
 
       <ResizablePanelGroup direction="vertical" className="p-4">
@@ -105,7 +150,7 @@ export const PlaygroundScreen = () => {
                 />
               </Header>
               <Separator />
-              <EditorContainer fileId={fileId} folderId={folderId} />
+              <EditorContainer value={code} onChange={handleCodeChange} />
             </ResizablePanel>
 
             {/* Handle only shown when both panels visible */}
@@ -152,6 +197,7 @@ export const PlaygroundScreen = () => {
           </>
         )}
       </ResizablePanelGroup>
+      <Modal />
     </div>
   )
 }

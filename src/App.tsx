@@ -10,18 +10,22 @@ import { ThemeProvider } from 'next-themes'
 function App() {
   return (
     //
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
       <ModalProvider>
         <PlaygroundProvider>
           <BrowserRouter>
-            {/* Use <Routes> to wrap all individual routes */}
             <Routes>
-              {/* Pass a JSX element to the `element` prop */}
-              <Route path="/" element={<HomeScreen />} />
+              <Route path="/" element={<PlaygroundScreen />} />
               <Route
                 path="/playground/:folderId/:fileId"
                 element={<PlaygroundScreen />}
               />
+              <Route path="/Home" element={<HomeScreen />} />
             </Routes>
           </BrowserRouter>
         </PlaygroundProvider>

@@ -1,6 +1,6 @@
-import './EditorContainer.scss'
-import React, { useRef, useEffect, useState, useContext } from 'react'
+// src/components/EditorContainer.tsx
 
+import React, { useRef, useEffect } from 'react'
 import { EditorState } from '@codemirror/state'
 import { autocompletion } from '@codemirror/autocomplete'
 import { foldGutter } from '@codemirror/language'
@@ -26,31 +26,26 @@ import {
 } from '@codemirror/commands'
 import { cpp } from '@codemirror/lang-cpp'
 import { oneDark } from '@codemirror/theme-one-dark'
-import { PlaygroundContext } from '../Providers/PlaygroundProvider'
 
+// Define the new props interface
 interface EditorContainerProps {
-  fileId: string
-  folderId: string
+  value: string
+  onChange: (value: string) => void
 }
 
 export const EditorContainer: React.FC<EditorContainerProps> = ({
-  fileId,
-  folderId,
+  value,
+  onChange,
 }) => {
-  const { getCode, saveCode } = useContext(PlaygroundContext) as {
-    getCode: (fileId: string, folderId: string) => string
-    saveCode: (folderId: string, fileId: string, newCode: string) => void
-  }
-  const [code] = useState<string>(() => {
-    return getCode(fileId, folderId)
-  })
-  const editor = useRef<HTMLDivElement>(null)
+  const editorRef = useRef<HTMLDivElement>(null)
+  const viewRef = useRef<EditorView | null>(null)
 
+  // This effect sets up the editor once
   useEffect(() => {
-    if (!editor.current) return
+    if (!editorRef.current) return
 
     const state = EditorState.create({
-      doc: code,
+      doc: value,
       extensions: [
         lineNumbers(),
         highlightSpecialChars(),
@@ -61,42 +56,56 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         autocompletion(),
         foldGutter(),
         highlightActiveLine(),
+        syntaxHighlighting(defaultHighlightStyle),
+        keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
+        oneDark,
+        cpp(),
+        // Listen for updates and call the onChange prop
+        EditorView.updateListener.of((update) => {
+          if (update.docChanged) {
+            onChange(update.state.doc.toString())
+          }
+        }),
         EditorView.theme({
-          '&': { height: '100%' }, // make the editor take full height of its parent
-          '.cm-content': { padding: '16px' }, // padding inside the editor
+          '&': { height: '100%' },
           '.cm-scroller': {
             fontFamily: 'Fira Code, monospace',
             fontSize: '14px',
           },
         }),
-
-        syntaxHighlighting(defaultHighlightStyle),
-        keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
-        oneDark,
-        cpp(),
       ],
     })
 
-    const view = new EditorView({
-      state,
-      parent: editor.current,
-      dispatch: (tr) => {
-        view.update([tr])
+    const view = new EditorView({ state, parent: editorRef.current })
+    viewRef.current = view
 
-        if (tr.docChanged) {
-          const updatedCode = view.state.doc.toString()
-          saveCode(folderId, fileId, updatedCode)
-        }
-      },
-    })
+    return () => {
+      view.destroy()
+      viewRef.current = null
+    }
+  }, [onChange]) // Only re-run if the onChange callback changes
 
-    return () => view.destroy()
-  }, [code])
+  // This effect synchronizes the editor when the parents value prop changes
+  useEffect(() => {
+    const view = viewRef.current
+    if (view) {
+      const currentCodeInEditor = view.state.doc.toString()
+      if (value !== currentCodeInEditor) {
+        view.dispatch({
+          changes: {
+            from: 0,
+            to: currentCodeInEditor.length,
+            insert: value,
+          },
+        })
+      }
+    }
+  }, [value])
 
   return (
     <div
-      ref={editor}
-      className="bg-secondary/50  h-full w-full overflow-auto"
+      ref={editorRef}
+      className="bg-secondary/50 h-full w-full overflow-auto"
     ></div>
   )
 }
