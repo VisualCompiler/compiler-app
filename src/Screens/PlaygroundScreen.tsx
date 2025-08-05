@@ -105,8 +105,9 @@ export const PlaygroundScreen = () => {
                 <span className="text-lg font-semibold top-2 left-2 absolute">
                   Code Editor
                 </span>
+                <Separator orientation='vertical' className="right-10 absolute" />
                 <Button
-                  variant={'blueGreenGradient'}
+                  variant={'ghost'}
                   className="right-10 absolute"
                   aria-label="Compile Code"
                 >
