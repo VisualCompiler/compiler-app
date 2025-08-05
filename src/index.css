@@ -117,6 +117,27 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  *::-webkit-scrollbar {
+    height: 0.5rem;
+  }
+
+  *::-webkit-scrollbar-track {
+    background-color: #f3f4f6;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border-radius: 9rem;
+    background-color: #d1d5db;
+  }
+
+  .dark *::-webkit-scrollbar-track {
+    background-color: #3f3f46;
+  }
+
+  .dark *::-webkit-scrollbar-thumb {
+    background-color: #737373;
+  }
 }
 
 .token-keyword {
