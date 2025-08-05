@@ -1,3 +1,4 @@
+import { TokenListContent } from "@/Screens/CompilationSteps/TokenListContent"
 import { useState } from "react"
 
 export const useCompilationSteps = () => {
@@ -5,7 +6,7 @@ export const useCompilationSteps = () => {
     {
       title: 'Token List',
       description: 'Building a token list from the source code',
-      content: <></>,
+      content: <TokenListContent />,
     },
     {
       title: 'Abstract Syntax Tree (AST)',
