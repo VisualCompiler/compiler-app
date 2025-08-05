@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Terminal, Play, Save } from 'lucide-react'
+import { Terminal, Play, Save, ChevronLeft, ChevronRight } from 'lucide-react'
 import { EditorContainer } from '@/components/EditorContainer'
 import { ExpandToggleButton } from '@/components/ExpandToggleButton'
 import { ModeToggle } from '@/components/mode-toggle'
@@ -10,33 +10,23 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable'
-import {
-  Carousel,
-  CarouselContent,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { CompilationStep } from '@/components/CompilationStep'
+import { CompilationStep } from '@/Screens/CompilationSteps/CompilationStep'
 import { usePlayground } from '@/Hooks/usePlayground'
 import { Modal } from '../Providers/Modals/Modal'
 import { modalConstants, ModalContext } from '../Providers/ModalProvider'
+import { useCompilationSteps } from '@/Hooks/useCompilationSteps'
 
 export const PlaygroundScreen = () => {
   const { folderId, fileId } = useParams()
   const navigate = useNavigate()
 
   const [code, setCode] = useState<string>('')
-  const [isUnsaved, setIsUnsaved] = useState(false)
+  const [, setIsUnsaved] = useState(false)
   const { getCode, saveCode } = usePlayground()
   const modalFeatures = useContext(ModalContext)
 
-  const SaveCardModal = () => {
-    // Pass the current code to the modal
-    modalFeatures?.setModalPayload(code)
-    modalFeatures?.openModal(modalConstants.SAVE_CARD)
-  }
   // This function updates the component's local state
   const handleCodeChange = useCallback((newCode: string) => {
     setCode(newCode)
@@ -55,25 +45,8 @@ export const PlaygroundScreen = () => {
     }
   }
 
-  const compilationSteps = [
-    {
-      title: 'Token List',
-      description: 'Building a token list from the source code',
-    },
-    {
-      title: 'Abstract Syntax Tree (AST)',
-      description: 'Building the Abstract Syntax Tree (AST)',
-    },
-    {
-      title: 'Intermediate Representation (IR)',
-      description:
-        'Generating the Intermediate Representation (IR) with optimizations',
-    },
-    {
-      title: 'Generated Code (WASM)',
-      description: 'Translating the IR to WASM',
-    },
-  ]
+  const { currentStep, index, next, prev } = useCompilationSteps()
+  
   const [isLeftFull, setIsLeftFull] = useState(false)
   const [isRightFull, setIsRightFull] = useState(false)
   const isAnyPanelFull = isLeftFull || isRightFull
@@ -92,10 +65,6 @@ export const PlaygroundScreen = () => {
     if (isLeftFull) setIsRightFull(false)
     if (isRightFull) setIsLeftFull(false)
   }, [isLeftFull, isRightFull])
-
-  const dummyText = Array(500)
-    .fill(`Lorem ipsum dolor sit amet consectetur...`)
-    .join('\n\n')
 
   return (
     <div className="flex flex-col h-screen">
@@ -160,7 +129,7 @@ export const PlaygroundScreen = () => {
             <ResizablePanel
               defaultSize={isLeftFull ? 0 : isRightFull ? 100 : 50}
               minSize={isRightFull ? 100 : 20}
-              className="flex flex-col p-3 h-full"
+              className="flex flex-col"
               style={{
                 display: isLeftFull ? 'none' : 'flex',
               }}
@@ -169,21 +138,25 @@ export const PlaygroundScreen = () => {
                 expanded={isRightFull}
                 onToggle={() => setIsRightFull(!isRightFull)}
               />
-              <Carousel className="ml-11 mr-11">
-                <CarouselContent className="h-full">
-                  {compilationSteps.map((step, index) => (
-                    <CompilationStep
-                      index={index}
-                      title={step.title}
-                      description={step.description}
-                    >
-                      {dummyText}
-                    </CompilationStep>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
+              <div className="flex flex-col h-full">
+                <CompilationStep {...currentStep} index={index} />
+              </div>
+              <div className="flex w-full">
+                <Button
+                  variant="outline"
+                  onClick={prev}
+                  className="flex-1 text-xl py-2 rounded-none"
+                >
+                  <ChevronLeft />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={next}
+                  className="flex-1 text-xl py-2 rounded-none"
+                >
+                  <ChevronRight />
+                </Button>
+              </div>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>

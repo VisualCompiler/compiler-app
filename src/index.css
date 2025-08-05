@@ -118,3 +118,23 @@
     @apply bg-background text-foreground;
   }
 }
+
+.token-keyword {
+  @apply text-primary;
+}
+
+.token-identifier {
+  @apply text-chart-2;
+}
+
+.token-int {
+  @apply text-chart-3;
+}
+
+.token-symbol {
+  @apply text-chart-4;
+}
+
+.token-eof {
+  @apply text-muted-foreground;
+}

@@ -30,7 +30,6 @@ const buttonVariants = cva(
   }
 )
 
-// 👇 FIX: forwardRef is now used here
 const Button = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<"button"> &
