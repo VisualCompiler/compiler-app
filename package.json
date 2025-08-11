@@ -71,7 +71,8 @@
     "dev": "vite",
     "lint": "eslint .",
     "preview": "vite preview",
-    "build": "tsc -b && vite build"
+    "build": "tsc -b && vite build",
+    "copy-kotlin": "node scripts/copy-kotlin.js"
   },
   "eslintConfig": {
     "extends": [
