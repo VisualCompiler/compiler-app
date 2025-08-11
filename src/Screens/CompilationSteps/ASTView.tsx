@@ -3,7 +3,6 @@ import { useMemo } from 'react'
 import ReactFlow, {
   Background,
   Controls,
-  MiniMap,
   type Node,
   type Edge,
   useNodesState,
@@ -14,71 +13,98 @@ const nodeTypes = {
   astNode: ASTNodeComponent
 }
 
-type ASTNode = {
-  id: string
-  label: string
-  type: string
-  children?: ASTNode[]
-}
 
-const generateGraph = (root: ASTNode): { nodes: Node[]; edges: Edge[] } => {
+const generateGraph = (root: any): { nodes: Node[]; edges: Edge[] } => {
   const nodes: Node[] = []
   const edges: Edge[] = []
+  let nodeIdCounter = 0
 
-  const walk = (node: ASTNode, x = 0, y = 0, parentId?: string) => {
+  const walk = (node: any, x = 0, y = 0, parentId?: string) => {
+    if (!node || typeof node !== 'object') {
+      return;
+    }
+
+    const nodeId = node.id || `node-${nodeIdCounter++}`
+    const nodeType = node.type || node.label || 'Unknown'
+    const nodeLabel = node.label || node.type || 'Unknown'
+
     nodes.push({
-      id: node.id,
-      data: { label: `${node.type}(${node.label})`, type: node.type },
+      id: nodeId,
+      data: { label: `${nodeType}(${nodeLabel})`, type: nodeType },
       position: { x, y },
       type: 'astNode'
     })
 
     if (parentId) {
       edges.push({
-        id: `${parentId}-${node.id}`,
+        id: `${parentId}-${nodeId}`,
         source: parentId,
-        target: node.id
+        target: nodeId
       })
     }
 
     const spacing = 150
-    node.children?.forEach((child, index) => {
-      const childX = x + (index - (node.children!.length - 1) / 2) * spacing
-      const childY = y + spacing
-      walk(child, childX, childY, node.id)
-    })
+
+    if (node.children && typeof node.children === 'object') {
+      const childEntries = Object.entries(node.children)
+      
+      childEntries.forEach(([, value]: [string, any], index: number) => {
+        let childNode: any = null
+        
+        // Handle JSON string children
+        if (typeof value === 'string') {
+          try {
+            childNode = JSON.parse(value)
+          } catch (error) {
+            console.error('Failed to parse child JSON:', error)
+            return
+          }
+        } else if (typeof value === 'object') {
+          childNode = value
+        }
+        
+        if (childNode) {
+          const childX = x + (index - (childEntries.length - 1) / 2) * spacing
+          const childY = y + spacing
+          walk(childNode, childX, childY, nodeId)
+        }
+      })
+    }
   }
 
-  walk(root)
+  try {
+    walk(root)
+  } catch (error) {
+    console.error('Error generating graph:', error)
+  }
+  
   return { nodes, edges }
 }
 
-const sampleAST: ASTNode = {
-  // Example for demostration purposes
-  id: '1',
-  type: 'Function',
-  label: "'main', body",
-  children: [
-    {
-      id: '2',
-      type: 'Return',
-      label: 'exp',
-      children: [
-        {
-          id: '3',
-          type: 'Constant',
-          label: '42'
-        }
-      ]
-    }
-  ]
+interface ASTViewerProps {
+  ast: any;
 }
 
-export const ASTViewer = () => {
-  const { nodes, edges } = useMemo(() => generateGraph(sampleAST), [])
+export const ASTViewer: React.FC<ASTViewerProps> = ({ ast }) => {
+  const graphAST = useMemo(() => {return ast}, [ast]);
+
+  const { nodes, edges } = useMemo(() => {
+    if (!graphAST) {
+      return { nodes: [], edges: [] };
+    }
+    return generateGraph(graphAST);
+  }, [graphAST]);
 
   const [flowNodes, , onNodesChange] = useNodesState(nodes)
   const [flowEdges, , onEdgesChange] = useEdgesState(edges)
+
+  if (!ast) {
+    return (
+      <div className='w-full h-full flex items-center justify-center'>
+        <p className='text-muted-foreground'>No AST data available</p>
+      </div>
+    );
+  }
 
   return (
     <div className='w-full h-full'>
@@ -92,7 +118,6 @@ export const ASTViewer = () => {
         fitView
       >
         <Background />
-        <MiniMap nodeColor={'grey'} />
         <Controls />
       </ReactFlow>
     </div>
