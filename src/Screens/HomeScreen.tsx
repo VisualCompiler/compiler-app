@@ -1,6 +1,6 @@
 import { useContext } from 'react'
 import { Modal } from '../Providers/Modals/Modal'
-import { FolderComponent } from '../components/FolderComponent/FolderComponent'
+import { FolderComponent } from '../components/FolderComponent'
 import { Button } from '../components/ui/button'
 import { modalConstants, ModalContext } from '../Providers/ModalProvider'
 import { Header } from '@/components/Header'

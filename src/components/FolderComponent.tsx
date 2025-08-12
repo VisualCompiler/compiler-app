@@ -1,8 +1,8 @@
 import { useContext, useState } from 'react'
-import { PlaygroundContext } from '../../Providers/PlaygroundProvider'
-import { modalConstants, ModalContext } from '../../Providers/ModalProvider'
+import { PlaygroundContext } from '../Providers/PlaygroundProvider'
+import { modalConstants, ModalContext } from '../Providers/ModalProvider'
 import { useNavigate } from 'react-router-dom'
-import { Button } from '../ui/button'
+import { Button } from './ui/button'
 
 type FileType = {
   id: string
