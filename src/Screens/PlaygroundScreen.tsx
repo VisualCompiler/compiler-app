@@ -24,6 +24,9 @@ export const PlaygroundScreen = () => {
 
   const [code, setCode] = useState<string>('')
   const [, setIsUnsaved] = useState(false)
+  const [isCompiling, setIsCompiling] = useState(false)
+  const [compiledCode, setCompiledCode] = useState<string>('')
+  
   const { getCode, saveCode } = usePlayground()
   const modalFeatures = useContext(ModalContext)
 
@@ -45,7 +48,15 @@ export const PlaygroundScreen = () => {
     }
   }
 
-  const { currentStep, index, next, prev } = useCompilationSteps()
+  const handleCompile = () => {
+    setIsCompiling(true)
+    setCompiledCode(code)
+    setTimeout(() => {
+      setIsCompiling(false)
+    }, 200) // TODO: make the delay dynamic based on the compilation time
+  }
+
+  const { currentStep, index, next, prev } = useCompilationSteps(compiledCode)
 
   const [isLeftFull, setIsLeftFull] = useState(false)
   const [isRightFull, setIsRightFull] = useState(false)
@@ -101,7 +112,7 @@ export const PlaygroundScreen = () => {
                 display: isRightFull ? 'none' : 'flex' // hide if right is full
               }}
             >
-              <Header className='h-11 sticky top-0 z-10 bg-secondary/30'>
+              <Header className='h-11 sticky top-0 z-10 bg-secondary/30 overflow-clip'>
                 <span className='text-lg font-semibold top-2 left-2 absolute'>
                   Code Editor
                 </span>
@@ -111,11 +122,13 @@ export const PlaygroundScreen = () => {
                 />
                 <Button
                   variant={'ghost'}
-                  className='right-12 absolute'
+                  className='right-12 top-1 absolute'
                   aria-label='Compile Code'
+                  onClick={handleCompile}
+                  disabled={isCompiling}
                 >
                   <Play className='w-2' />
-                  <h2 className=''>Compile</h2>
+                  <h2 className=''>{isCompiling ? 'Compiling...' : 'Compile'}</h2>
                 </Button>
                 <ExpandToggleButton
                   expanded={isLeftFull}
