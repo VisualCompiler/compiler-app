@@ -41,12 +41,6 @@ export const PlaygroundContext = createContext<
   PlaygroundContextType | undefined
 >(undefined)
 
-const defaultCode = `#include<stdio.h>
-            int main() {
-                printf("Hello World\\n");
-            return 0;
-            }`
-
 // preview some initial data (folder, file)
 const initialData = [
   {

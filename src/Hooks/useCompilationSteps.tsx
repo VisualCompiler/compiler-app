@@ -1,48 +1,111 @@
 import { AssemblyView } from '@/Screens/CompilationSteps/AssemblyView';
 import { ASTViewer } from '@/Screens/CompilationSteps/ASTView'
 import { TokenListContent } from '@/Screens/CompilationSteps/TokenListView'
-import { useState, useMemo } from 'react'
+import { useState, useCallback } from 'react'
+import { XCircle, AlertTriangle, AlertCircle } from 'lucide-react';
+import type { 
+  ErrorType, 
+  CompilationStage, 
+  CompilationError, 
+  CompilationOutput, 
+  CompilationResult 
+} from '../../public/kotlin/CompilerLogic';
 
 declare global {
   interface Window {
     CompilerLogic: {
-      JsonExport: new () => { exportCompilationResults(code: string): string[] };
+      CompilerExport: new () => { exportCompilationResults(code: string): string };
+      ErrorType: typeof ErrorType;
+      CompilationStage: typeof CompilationStage;
     }
   }
 }
 
-export const useCompilationSteps = (sourceCode: string) => {
-  const compilationResult = useMemo(() => {
-    if (!sourceCode) {
-      console.log('No source code provided');
-      return { tokens: [], ast: null, asmCode: '' };
-    }
-    
-    if (!window.CompilerLogic?.JsonExport) {
-      console.log('CompilerLogic not available yet:', window.CompilerLogic);
-      return { tokens: [], ast: null, asmCode: '' };
-    }
-    
-    try {
-      const jsonExport = new window.CompilerLogic.JsonExport();
-      const results = jsonExport.exportCompilationResults(sourceCode);
+// Unified error handling function
+const getErrorInfo = (errorType: ErrorType) => {
+  switch (errorType) {
+    case window.CompilerLogic?.ErrorType?.SYNTAX:
+      return {
+        icon: <XCircle className="h-3 w-3 text-red-500" />,
+        label: 'Syntax Error'
+      };
+    case window.CompilerLogic?.ErrorType?.LEXICAL:
+      return {
+        icon: <AlertTriangle className="h-3 w-3 text-red-500" />,
+        label: 'Lexical Error'
+      };
+    case window.CompilerLogic?.ErrorType?.CODE_GENERATION:
+      return {
+        icon: <AlertCircle className="h-3 w-3 text-red-500" />,
+        label: 'Code Generation Error'
+      };
+    case window.CompilerLogic?.ErrorType?.RUNTIME:
+      return {
+        icon: <AlertCircle className="h-3 w-3 text-red-500" />,
+        label: 'Runtime Error'
+      };
+    case window.CompilerLogic?.ErrorType?.GENERAL:
+    default:
+      return {
+        icon: <AlertCircle className="h-3 w-3 text-gray-500" />,
+        label: 'Compilation Error'
+      };
+  }
+};
 
-      // results[0] = lexer.toJsonString() (tokens as JSON)
-      // results[1] = ast.toJsonString() (AST as JSON)
-      // results[2] = asm.toAsm(0) (assembly code as string)
-      
-      const tokens = results[0] ? JSON.parse(results[0]) : [];
-      const ast = results[1] ? JSON.parse(results[1]) : null;
-      const asmCode = results[2] || '';
-      
-      console.log('Parsed compilation results:', { tokens, ast, asmCode });
-      
-      return { tokens, ast, asmCode };
-    } catch (error) {
-      console.error('Error during compilation:', error);
-      return { tokens: [], ast: null, asmCode: '' };
+export const useCompilationSteps = () => {
+  const [compilationResult, setCompilationResult] = useState<{
+    tokens: any[];
+    ast: any;
+    asmCode: string;
+    errors: CompilationError[];
+    stageOutputs: CompilationOutput[];
+    hasCompiled: boolean;
+  }>({
+    tokens: [],
+    ast: null,
+    asmCode: '',
+    errors: [],
+    stageOutputs: [],
+    hasCompiled: false
+  });
+
+  const compileCode = useCallback((sourceCode: string) => {
+    if (!sourceCode.trim()) {
+      setCompilationResult({
+        tokens: [],
+        ast: null,
+        asmCode: '',
+        errors: [],
+        stageOutputs: [],
+        hasCompiled: true 
+      });
+      return;
     }
-  }, [sourceCode]);
+
+    const compilerExport = new window.CompilerLogic.CompilerExport();
+    const resultJson = compilerExport.exportCompilationResults(sourceCode);
+    const result: CompilationResult = JSON.parse(resultJson);
+
+    // Extract data from each stage
+    const lexerOutput = result.outputs.find(o => o.stage === window.CompilerLogic?.CompilationStage?.LEXER);
+    const parserOutput = result.outputs.find(o => o.stage === window.CompilerLogic?.CompilationStage?.PARSER);
+    const codeGenOutput = result.outputs.find(o => o.stage === window.CompilerLogic?.CompilationStage?.CODE_GENERATOR);
+
+    const tokens = (lexerOutput as any)?.tokens ? JSON.parse((lexerOutput as any).tokens) : [];
+    const ast = (parserOutput as any)?.ast ? JSON.parse((parserOutput as any).ast) : null;
+    const asmCode = (codeGenOutput as any)?.assembly || '';
+    
+    setCompilationResult({
+      tokens,
+      ast,
+      asmCode,
+      errors: result.overallErrors,
+      stageOutputs: result.outputs,
+      hasCompiled: true
+    });
+  }
+  , []);
 
   const steps = [
     {
@@ -68,6 +131,11 @@ export const useCompilationSteps = (sourceCode: string) => {
     currentStep: steps[index],
     index,
     next: () => setIndex(i => (i + 1) % steps.length),
-    prev: () => setIndex(i => (i === 0 ? steps.length - 1 : i - 1))
+    prev: () => setIndex(i => (i === 0 ? steps.length - 1 : i - 1)),
+    errors: compilationResult.errors,
+    stageOutputs: compilationResult.stageOutputs,
+    hasCompiled: compilationResult.hasCompiled,
+    compileCode,
+    getErrorInfo 
   }
 }

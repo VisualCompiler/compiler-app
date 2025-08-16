@@ -1,10 +1,11 @@
 import { useState, useEffect, useContext, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Terminal, Play, Save, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Play, Save, ChevronLeft, ChevronRight } from 'lucide-react'
 import { EditorContainer } from '@/components/EditorContainer'
 import { ExpandToggleButton } from '@/components/ExpandToggleButton'
 import { ModeToggle } from '@/components/mode-toggle'
 import { Header } from '@/components/Header'
+import { Console } from '@/Screens/CompilationSteps/Console'
 import {
   ResizableHandle,
   ResizablePanel,
@@ -23,12 +24,14 @@ export const PlaygroundScreen = () => {
   const navigate = useNavigate()
 
   const [code, setCode] = useState<string>('')
+  const [sourceCode, setSourceCode] = useState<string>('')
   const [, setIsUnsaved] = useState(false)
   const [isCompiling, setIsCompiling] = useState(false)
-  const [compiledCode, setCompiledCode] = useState<string>('')
   
   const { getCode, saveCode } = usePlayground()
   const modalFeatures = useContext(ModalContext)
+
+  const { currentStep, index, next, prev, errors, hasCompiled, compileCode, getErrorInfo } = useCompilationSteps()
 
   // This function updates the component's local state
   const handleCodeChange = useCallback((newCode: string) => {
@@ -50,13 +53,12 @@ export const PlaygroundScreen = () => {
 
   const handleCompile = () => {
     setIsCompiling(true)
-    setCompiledCode(code)
+    setSourceCode(code)
+    compileCode(code)
     setTimeout(() => {
       setIsCompiling(false)
     }, 200) // TODO: make the delay dynamic based on the compilation time
   }
-
-  const { currentStep, index, next, prev } = useCompilationSteps(compiledCode)
 
   const [isLeftFull, setIsLeftFull] = useState(false)
   const [isRightFull, setIsRightFull] = useState(false)
@@ -181,9 +183,13 @@ export const PlaygroundScreen = () => {
         {!isAnyPanelFull && (
           <>
             <ResizableHandle />
-            <ResizablePanel defaultSize={5} className='bg-secondary/30'>
-              <Terminal className='m-2' />
-              <Separator />
+            <ResizablePanel defaultSize={20} className='bg-secondary/30'>
+              <Console 
+                errors={errors} 
+                hasCompiled={hasCompiled} 
+                sourceCode={sourceCode}
+                getErrorInfo={getErrorInfo} 
+              />
             </ResizablePanel>
           </>
         )}
