@@ -5,8 +5,16 @@ interface TokenListContentProps {
 }
 
 const TokenListContent: React.FC<TokenListContentProps> = ({ tokenList }) => {
+  if (!tokenList || tokenList.length === 0) {
+    return (
+      <div className='w-full h-full flex items-center justify-center'>
+        <p className='text-muted-foreground'>No token list available</p>
+      </div>
+    );
+  }
+
   // Convert tokens to a format suitable for display
-  const tokenLines = tokenList.reduce((acc: Record<number, any[]>, token: any) => {
+  const tokenLines = tokenList.reduce((acc: Record<number, any[]>, token: any) => {  
     if (!acc[token.line]) {
       acc[token.line] = [];
     }
