@@ -14,8 +14,6 @@ export const TackyView: React.FC<TackyViewProps> = ({ tackyCode }) => {
     )
   }
 
-  const formattedTackyCode = JSON.stringify(tackyCode, null, 2)
-
   return (
     <div className="p-2">
       <TackyNode node={tackyCode} />

@@ -159,3 +159,15 @@
 .token-eof {
   @apply text-muted-foreground;
 }
+
+@layer components {
+  .cm-error-line {
+    @apply bg-red-500/20;
+  }
+
+  .cm-error-underline .cm-line {
+    text-decoration: underline;
+    text-decoration-color: theme('colors.red.500');
+    text-decoration-style: wavy;
+  }
+}

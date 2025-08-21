@@ -1,6 +1,5 @@
 import React, { useRef, useEffect } from 'react'
 import { EditorState } from '@codemirror/state'
-import { autocompletion } from '@codemirror/autocomplete'
 import {
   foldGutter,
   syntaxHighlighting,
