@@ -25,6 +25,7 @@ import {
 import { StreamLanguage } from '@codemirror/language'
 import { z80 } from '@codemirror/legacy-modes/mode/z80'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { useTheme } from 'next-themes'
 
 interface AssemblyViewProps {
   asmCode: string
@@ -33,9 +34,12 @@ interface AssemblyViewProps {
 export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   const editorRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
+  const { resolvedTheme } = useTheme()
 
   useEffect(() => {
     if (!editorRef.current) return
+
+    const themeExtension = resolvedTheme === 'dark' ? oneDark : []
 
     const state = EditorState.create({
       doc: asmCode,
@@ -50,7 +54,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         highlightActiveLine(),
         syntaxHighlighting(defaultHighlightStyle),
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
-        oneDark,
+        themeExtension,
         StreamLanguage.define(z80),
         EditorState.readOnly.of(true), // read-only
         EditorView.theme({
@@ -70,7 +74,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       view.destroy()
       viewRef.current = null
     }
-  }, [asmCode])
+  }, [asmCode, resolvedTheme])
 
   return (
     <div

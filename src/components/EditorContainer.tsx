@@ -24,6 +24,7 @@ import {
 } from '@codemirror/commands'
 import { cpp } from '@codemirror/lang-cpp'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { useTheme } from 'next-themes'
 
 interface EditorContainerProps {
   value: string
@@ -36,10 +37,13 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
+  const { resolvedTheme } = useTheme()
 
   // This effect sets up the editor once
   useEffect(() => {
     if (!editorRef.current) return
+
+    const themeExtension = resolvedTheme === 'dark' ? oneDark : []
 
     const state = EditorState.create({
       doc: value,
@@ -55,7 +59,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         highlightActiveLine(),
         syntaxHighlighting(defaultHighlightStyle),
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
-        oneDark,
+        themeExtension,
         cpp(),
         // Listen for updates and call the onChange prop
         EditorView.updateListener.of((update) => {
@@ -80,7 +84,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
       view.destroy()
       viewRef.current = null
     }
-  }, [onChange]) // Only re-run if the onChange callback changes
+  }, [onChange, resolvedTheme]) // Only re-run if the onChange callback changes
 
   // This effect synchronizes the editor when the parents value prop changes
   useEffect(() => {
