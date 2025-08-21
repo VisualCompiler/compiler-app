@@ -41,12 +41,16 @@ export declare abstract class CompilationStage {
         get name(): "PARSER";
         get ordinal(): 1;
     };
-    static get CODE_GENERATOR(): CompilationStage & {
-        get name(): "CODE_GENERATOR";
+    static get TACKY(): CompilationStage & {
+        get name(): "TACKY";
         get ordinal(): 2;
     };
-    get name(): "LEXER" | "PARSER" | "CODE_GENERATOR";
-    get ordinal(): 0 | 1 | 2;
+    static get CODE_GENERATOR(): CompilationStage & {
+        get name(): "CODE_GENERATOR";
+        get ordinal(): 3;
+    };
+    get name(): "LEXER" | "PARSER" | "TACKY" | "CODE_GENERATOR";
+    get ordinal(): 0 | 1 | 2 | 3;
     static values(): Array<CompilationStage>;
     static valueOf(value: string): CompilationStage;
 }
@@ -114,6 +118,31 @@ export declare namespace ParserOutput.$metadata$ {
     const constructor: abstract new () => ParserOutput;
 }
 export declare namespace ParserOutput {
+    abstract class Companion extends KtSingleton<Companion.$metadata$.constructor>() {
+        private constructor();
+    }
+    /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+    namespace Companion.$metadata$ {
+        abstract class constructor {
+            private constructor();
+        }
+    }
+}
+export declare class TackyOutput extends CompilationOutput.$metadata$.constructor {
+    constructor(stage: CompilationStage | undefined, tacky: Nullable<string> | undefined, errors: Array<CompilationError>);
+    get stage(): CompilationStage;
+    get tacky(): Nullable<string>;
+    get errors(): Array<CompilationError>;
+    copy(stage?: CompilationStage, tacky?: Nullable<string>, errors?: Array<CompilationError>): TackyOutput;
+    toString(): string;
+    hashCode(): number;
+    equals(other: Nullable<any>): boolean;
+}
+/** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+export declare namespace TackyOutput.$metadata$ {
+    const constructor: abstract new () => TackyOutput;
+}
+export declare namespace TackyOutput {
     abstract class Companion extends KtSingleton<Companion.$metadata$.constructor>() {
         private constructor();
     }

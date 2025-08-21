@@ -9,7 +9,7 @@ import { Console } from '@/Screens/CompilationSteps/Console'
 import {
   ResizableHandle,
   ResizablePanel,
-  ResizablePanelGroup
+  ResizablePanelGroup,
 } from '@/components/ui/resizable'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -27,11 +27,20 @@ export const PlaygroundScreen = () => {
   const [sourceCode, setSourceCode] = useState<string>('')
   const [, setIsUnsaved] = useState(false)
   const [isCompiling, setIsCompiling] = useState(false)
-  
+
   const { getCode, saveCode } = usePlayground()
   const modalFeatures = useContext(ModalContext)
 
-  const { currentStep, index, next, prev, errors, hasCompiled, compileCode, getErrorInfo } = useCompilationSteps()
+  const {
+    currentStep,
+    index,
+    next,
+    prev,
+    errors,
+    hasCompiled,
+    compileCode,
+    getErrorInfo,
+  } = useCompilationSteps()
 
   // This function updates the component's local state
   const handleCodeChange = useCallback((newCode: string) => {
@@ -80,57 +89,59 @@ export const PlaygroundScreen = () => {
   }, [isLeftFull, isRightFull])
 
   return (
-    <div className='flex flex-col h-screen'>
+    <div className="flex flex-col h-screen">
       <Header>
         <Button
           onClick={() => navigate('/Home')}
-          variant='ghost'
-          className='text-2xl font-semibold'
-          aria-label='Back to Home Screen'
+          variant="ghost"
+          className="text-2xl font-semibold"
+          aria-label="Back to Home Screen"
         >
           Visual Compiler
         </Button>
-        <span className='right-12 absolute'>
+        <span className="right-12 absolute">
           <ModeToggle />
         </span>
         <Button
-          variant='outline'
-          size='icon'
-          aria-label='Save File'
+          variant="outline"
+          size="icon"
+          aria-label="Save File"
           onClick={handleSave}
         >
-          <Save className='w-2' />
+          <Save className="w-2" />
         </Button>
       </Header>
 
-      <ResizablePanelGroup direction='vertical' className='p-4'>
-        <ResizablePanel defaultSize={20} className='border-none'>
-          <ResizablePanelGroup direction='horizontal' className='h-full'>
+      <ResizablePanelGroup direction="vertical" className="p-4">
+        <ResizablePanel defaultSize={20} className="border-none">
+          <ResizablePanelGroup direction="horizontal" className="h-full">
             <ResizablePanel
               defaultSize={isRightFull ? 0 : isLeftFull ? 100 : 50}
               minSize={isLeftFull ? 100 : 20}
-              className='flex flex-col h-full'
+              className="flex flex-col h-full"
               style={{
-                display: isRightFull ? 'none' : 'flex' // hide if right is full
+                display: isRightFull ? 'none' : 'flex', // hide if right is full
               }}
             >
-              <Header className='h-11 sticky top-0 z-10 bg-secondary/30 overflow-clip'>
-                <span className='text-lg font-semibold top-2 left-2 absolute'>
+              <Header className="h-11 sticky top-0 z-10 bg-secondary/30 overflow-clip">
+                <span className="text-lg font-semibold top-2 left-2 absolute">
                   Code Editor
                 </span>
                 <Separator
-                  orientation='vertical'
-                  className='right-11 absolute'
+                  orientation="vertical"
+                  className="right-11 absolute"
                 />
                 <Button
                   variant={'ghost'}
-                  className='right-12 top-1 absolute'
-                  aria-label='Compile Code'
+                  className="right-12 top-1 absolute"
+                  aria-label="Compile Code"
                   onClick={handleCompile}
                   disabled={isCompiling}
                 >
-                  <Play className='w-2' />
-                  <h2 className=''>{isCompiling ? 'Compiling...' : 'Compile'}</h2>
+                  <Play className="w-2" />
+                  <h2 className="">
+                    {isCompiling ? 'Compiling...' : 'Compile'}
+                  </h2>
                 </Button>
                 <ExpandToggleButton
                   expanded={isLeftFull}
@@ -147,32 +158,32 @@ export const PlaygroundScreen = () => {
             <ResizablePanel
               defaultSize={isLeftFull ? 0 : isRightFull ? 100 : 50}
               minSize={isRightFull ? 100 : 20}
-              className='flex flex-col bg-secondary/30'
+              className="flex flex-col bg-secondary/30"
               style={{
-                display: isLeftFull ? 'none' : 'flex'
+                display: isLeftFull ? 'none' : 'flex',
               }}
             >
               <ExpandToggleButton
                 expanded={isRightFull}
                 onToggle={() => setIsRightFull(!isRightFull)}
               />
-              <div className='flex flex-col h-full'>
-                <CompilationStep {...currentStep} index={index} />
-              </div>
+
+              <CompilationStep {...currentStep} index={index} />
+
               <Separator />
-              <div className='flex w-full'>
+              <div className="flex w-full">
                 <Button
-                  variant='ghost'
+                  variant="ghost"
                   onClick={prev}
-                  className='flex-1 rounded-none'
+                  className="flex-1 rounded-none"
                 >
                   <ChevronLeft />
                 </Button>
-                <Separator orientation='vertical' />
+                <Separator orientation="vertical" />
                 <Button
-                  variant='ghost'
+                  variant="ghost"
                   onClick={next}
-                  className='flex-1 rounded-none'
+                  className="flex-1 rounded-none"
                 >
                   <ChevronRight />
                 </Button>
@@ -183,12 +194,12 @@ export const PlaygroundScreen = () => {
         {!isAnyPanelFull && (
           <>
             <ResizableHandle />
-            <ResizablePanel defaultSize={20} className='bg-secondary/30'>
-              <Console 
-                errors={errors} 
-                hasCompiled={hasCompiled} 
+            <ResizablePanel defaultSize={20} className="bg-secondary/30">
+              <Console
+                errors={errors}
+                hasCompiled={hasCompiled}
                 sourceCode={sourceCode}
-                getErrorInfo={getErrorInfo} 
+                getErrorInfo={getErrorInfo}
               />
             </ResizablePanel>
           </>
