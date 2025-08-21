@@ -30,38 +30,31 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { useTheme } from 'next-themes'
 import type { CompilationError } from '../../public/kotlin/CompilerLogic'
 
-// --- Define our custom effects and fields ---
-
-// An effect that will carry our array of errors
 const setErrorEffect = StateEffect.define<CompilationError[]>()
 
-// A decoration to apply a CSS class to a line
+// apply a CSS class to a line
 const errorLineDecoration = Decoration.line({ class: 'cm-error-line' })
 
-// A StateField that will hold the decorations for all error lines
+// hold the decorations for all error lines
 const errorField = StateField.define<DecorationSet>({
   create() {
     return Decoration.none
   },
   update(decorations, transaction) {
-    // Listen for our custom effect
     for (const effect of transaction.effects) {
       if (effect.is(setErrorEffect)) {
         const errors = effect.value
         const newDecorations = errors
           .filter((e) => e.line > 0) // Only consider errors with a valid line number
           .map((e) => {
-            // CodeMirror's doc.line() is 1-based, matching our error line number
             const line = transaction.state.doc.line(e.line)
             return errorLineDecoration.range(line.from, line.from)
           })
         return Decoration.set(newDecorations)
       }
     }
-    // If our effect isn't present, map the existing decorations through any document changes
     return decorations.map(transaction.changes)
   },
-  // Provide this field as a source of decorations for the editor view
   provide: (field) => EditorView.decorations.from(field),
 })
 
