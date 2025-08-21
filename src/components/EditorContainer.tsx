@@ -1,5 +1,3 @@
-// src/components/EditorContainer.tsx
-
 import React, { useRef, useEffect } from 'react'
 import { EditorState } from '@codemirror/state'
 import { autocompletion } from '@codemirror/autocomplete'
@@ -27,7 +25,6 @@ import {
 import { cpp } from '@codemirror/lang-cpp'
 import { oneDark } from '@codemirror/theme-one-dark'
 
-// Define the new props interface
 interface EditorContainerProps {
   value: string
   onChange: (value: string) => void
