@@ -16,7 +16,9 @@ export const TackyView: React.FC<TackyViewProps> = ({ tackyCode }) => {
 
   return (
     <div className="p-2">
-      <TackyNode node={tackyCode} />
+      <pre>
+        <code>{tackyCode}</code>
+      </pre>
     </div>
   )
 }

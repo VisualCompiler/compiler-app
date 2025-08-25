@@ -63,8 +63,7 @@ export const TackyNode: React.FC<TackyNodeProps> = ({ node, nodeKey }) => {
   }
 
   // --- Case 3: Handle all other objects ---
-  // This is the core of the fix. We differentiate between our special Tacky
-  // nodes and generic container objects.
+
   const isSpecialTackyNode = node.type && typeof node.type === 'string'
 
   return (
@@ -77,7 +76,6 @@ export const TackyNode: React.FC<TackyNodeProps> = ({ node, nodeKey }) => {
 
       <div className={nodeKey ? 'pl-4 border-l border-gray-700' : ''}>
         {isSpecialTackyNode ? (
-          // --- Rendering path for a special Tacky node ---
           <>
             <div>
               <span className="text-orange-400">type: </span>
@@ -96,8 +94,6 @@ export const TackyNode: React.FC<TackyNodeProps> = ({ node, nodeKey }) => {
             )}
           </>
         ) : (
-          // --- Rendering path for a generic container object ---
-          // Iterate over all key-value pairs and recurse.
           <>
             {Object.entries(node).map(([key, value]) => (
               <TackyNode key={key} nodeKey={key} node={value} />
