@@ -149,7 +149,11 @@ export const PlaygroundScreen = () => {
                 />
               </Header>
               <Separator />
-              <EditorContainer value={code} onChange={handleCodeChange} />
+              <EditorContainer
+                value={code}
+                onChange={handleCodeChange}
+                errors={errors}
+              />
             </ResizablePanel>
 
             {/* Handle only shown when both panels visible */}
@@ -194,7 +198,7 @@ export const PlaygroundScreen = () => {
         {!isAnyPanelFull && (
           <>
             <ResizableHandle />
-            <ResizablePanel defaultSize={20} className="bg-secondary/30">
+            <ResizablePanel defaultSize={10} className="bg-secondary/30">
               <Console
                 errors={errors}
                 hasCompiled={hasCompiled}

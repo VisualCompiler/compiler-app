@@ -5292,10 +5292,6 @@ function repeat(_this__u8e3s4, n) {
   }
   return tmp;
 }
-function regionMatches(_this__u8e3s4, thisOffset, other, otherOffset, length, ignoreCase) {
-  ignoreCase = ignoreCase === VOID ? false : ignoreCase;
-  return regionMatchesImpl(_this__u8e3s4, thisOffset, other, otherOffset, length, ignoreCase);
-}
 function startsWith(_this__u8e3s4, prefix, ignoreCase) {
   ignoreCase = ignoreCase === VOID ? false : ignoreCase;
   if (!ignoreCase) {
@@ -5304,6 +5300,10 @@ function startsWith(_this__u8e3s4, prefix, ignoreCase) {
     return _this__u8e3s4.startsWith(prefix, 0);
   } else
     return regionMatches(_this__u8e3s4, 0, prefix, 0, prefix.length, ignoreCase);
+}
+function regionMatches(_this__u8e3s4, thisOffset, other, otherOffset, length, ignoreCase) {
+  ignoreCase = ignoreCase === VOID ? false : ignoreCase;
+  return regionMatchesImpl(_this__u8e3s4, thisOffset, other, otherOffset, length, ignoreCase);
 }
 function equals_0(_this__u8e3s4, other, ignoreCase) {
   ignoreCase = ignoreCase === VOID ? false : ignoreCase;
@@ -8958,6 +8958,7 @@ export {
   lastIndexOf as lastIndexOf2d52xhix5ymjr,
   repeat as repeat2w4c6j8zoq09o,
   single_0 as single29ec4rh52687r,
+  startsWith as startsWith26w8qjqapeeq6,
   substring_0 as substring3saq8ornu0luv,
   substring as substringiqarkczpya5m,
   titlecase as titlecase36e9fbud5gg4t,

@@ -60,7 +60,7 @@ export declare namespace CompilationStage.$metadata$ {
 }
 export declare abstract class CompilationOutput {
     protected constructor();
-    abstract get stage(): CompilationStage;
+    abstract get stage(): any/* CompilerStage */;
     abstract get errors(): Array<CompilationError>;
 }
 /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
@@ -79,11 +79,11 @@ export declare namespace CompilationOutput {
     }
 }
 export declare class LexerOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: CompilationStage | undefined, tokens: Nullable<string> | undefined, errors: Array<CompilationError>);
-    get stage(): CompilationStage;
+    constructor(stage: any/* CompilerStage */ | undefined, tokens: Nullable<string> | undefined, errors: Array<CompilationError>);
+    get stage(): any/* CompilerStage */;
     get tokens(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: CompilationStage, tokens?: Nullable<string>, errors?: Array<CompilationError>): LexerOutput;
+    copy(stage?: any/* CompilerStage */, tokens?: Nullable<string>, errors?: Array<CompilationError>): LexerOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -104,11 +104,11 @@ export declare namespace LexerOutput {
     }
 }
 export declare class ParserOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: CompilationStage | undefined, ast: Nullable<string> | undefined, errors: Array<CompilationError>);
-    get stage(): CompilationStage;
+    constructor(stage: any/* CompilerStage */ | undefined, ast: Nullable<string> | undefined, errors: Array<CompilationError>);
+    get stage(): any/* CompilerStage */;
     get ast(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: CompilationStage, ast?: Nullable<string>, errors?: Array<CompilationError>): ParserOutput;
+    copy(stage?: any/* CompilerStage */, ast?: Nullable<string>, errors?: Array<CompilationError>): ParserOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -129,11 +129,12 @@ export declare namespace ParserOutput {
     }
 }
 export declare class TackyOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: CompilationStage | undefined, tacky: Nullable<string> | undefined, errors: Array<CompilationError>);
-    get stage(): CompilationStage;
-    get tacky(): Nullable<string>;
+    constructor(stage: any/* CompilerStage */ | undefined, tackyJson: Nullable<string> | undefined, tackyPretty: Nullable<string> | undefined, errors: Array<CompilationError>);
+    get stage(): any/* CompilerStage */;
+    get tackyJson(): Nullable<string>;
+    get tackyPretty(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: CompilationStage, tacky?: Nullable<string>, errors?: Array<CompilationError>): TackyOutput;
+    copy(stage?: any/* CompilerStage */, tackyJson?: Nullable<string>, tackyPretty?: Nullable<string>, errors?: Array<CompilationError>): TackyOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -154,11 +155,11 @@ export declare namespace TackyOutput {
     }
 }
 export declare class CodeGeneratorOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: CompilationStage | undefined, assembly: Nullable<string> | undefined, errors: Array<CompilationError>);
-    get stage(): CompilationStage;
+    constructor(stage: any/* CompilerStage */ | undefined, assembly: Nullable<string> | undefined, errors: Array<CompilationError>);
+    get stage(): any/* CompilerStage */;
     get assembly(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: CompilationStage, assembly?: Nullable<string>, errors?: Array<CompilationError>): CodeGeneratorOutput;
+    copy(stage?: any/* CompilerStage */, assembly?: Nullable<string>, errors?: Array<CompilationError>): CodeGeneratorOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;

@@ -66,7 +66,8 @@ export const useCompilationSteps = () => {
   const [compilationResult, setCompilationResult] = useState<{
     tokens: any[]
     ast: any
-    tacky: any
+    tackyPseudoCode: string
+
     asmCode: string
     errors: CompilationError[]
     stageOutputs: CompilationOutput[]
@@ -74,7 +75,7 @@ export const useCompilationSteps = () => {
   }>({
     tokens: [],
     ast: null,
-    tacky: null,
+    tackyPseudoCode: '',
     asmCode: '',
     errors: [],
     stageOutputs: [],
@@ -86,7 +87,7 @@ export const useCompilationSteps = () => {
       setCompilationResult({
         tokens: [],
         ast: null,
-        tacky: null,
+        tackyPseudoCode: '',
         asmCode: '',
         errors: [],
         stageOutputs: [],
@@ -121,21 +122,21 @@ export const useCompilationSteps = () => {
     const ast = (parserOutput as any)?.ast
       ? JSON.parse((parserOutput as any).ast)
       : null
-    const tacky = (tackyOutput as any)?.tacky
-      ? JSON.parse((tackyOutput as any).tacky)
-      : null
+
+    const tackyPseudoCode = (tackyOutput as any)?.tackyPretty || ''
+    console.log(tackyPseudoCode)
     const asmCode = (codeGenOutput as any)?.assembly || ''
     console.log('--- Final Parsed Data for UI ---', {
       tokens,
       ast,
-      tacky,
+      tackyPseudoCode,
       asmCode,
     })
 
     setCompilationResult({
       tokens,
       ast,
-      tacky,
+      tackyPseudoCode,
       asmCode,
       errors: result.overallErrors,
       stageOutputs: result.outputs,
@@ -157,7 +158,7 @@ export const useCompilationSteps = () => {
     {
       title: 'Intermediate Representation (TACKY)',
       description: 'Building the Tacky Instructions from the AST',
-      content: <TackyView tackyCode={compilationResult.tacky} />,
+      content: <TackyView tackyCode={compilationResult.tackyPseudoCode} />,
     },
     {
       title: 'Generated Assembly Code',

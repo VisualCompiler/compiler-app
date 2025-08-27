@@ -1,3 +1,4 @@
+import { TackyNode } from './TackyNode'
 interface TackyViewProps {
   tackyCode: any
 }
@@ -13,12 +14,10 @@ export const TackyView: React.FC<TackyViewProps> = ({ tackyCode }) => {
     )
   }
 
-  const formattedTackyCode = JSON.stringify(tackyCode, null, 2)
-
   return (
-    <div>
-      <pre className="rounded-md text-sm overflow-auto">
-        {formattedTackyCode}
+    <div className="p-2">
+      <pre>
+        <code>{tackyCode}</code>
       </pre>
     </div>
   )
