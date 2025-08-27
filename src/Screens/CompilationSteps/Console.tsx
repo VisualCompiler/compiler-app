@@ -13,7 +13,7 @@ interface ConsoleProps {
 export const Console: React.FC<ConsoleProps> = ({ errors, hasCompiled, sourceCode, getErrorInfo, className = '' }) => {
   return (
     <div className={`flex flex-col h-full ${className}`}>
-      <div className="flex items-center space-x-2 p-2 border-b bg-secondary/50">
+      <div className="flex items-center space-x-2 p-2 border-b bg-secondary">
         <Terminal className="h-4 w-4" />
         {hasCompiled && errors.length === 0 && sourceCode.trim() !== '' && (
           <div className="flex items-center space-x-1 text-green-600">
@@ -28,7 +28,7 @@ export const Console: React.FC<ConsoleProps> = ({ errors, hasCompiled, sourceCod
         )}
       </div>
       
-      <div className="flex-1 overflow-auto p-2 font-mono text-xs">
+      <div className="flex-1 overflow-auto p-2 font-mono text-xs bg-secondary/30">
         {!hasCompiled && (
           <div className="text-gray-600">
             Click "Compile" to start compilation
@@ -50,7 +50,7 @@ export const Console: React.FC<ConsoleProps> = ({ errors, hasCompiled, sourceCod
         {hasCompiled && errors.map((error, index) => {
           const errorInfo = getErrorInfo(error.type);
           return (
-            <div key={index} className="mb-2 p-2 bg-red-50 border border-red-200 rounded">
+            <div key={index} className="mb-2 p-2 bg-red-50/10 border border-red-500/40 rounded">
               <div className="flex items-start space-x-2">
                 {errorInfo.icon}
                 <div className="flex-1">

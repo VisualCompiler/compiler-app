@@ -97,6 +97,7 @@ export const PlaygroundScreen = () => {
           className="text-2xl font-semibold"
           aria-label="Back to Home Screen"
         >
+          <img src="/favicon.svg" alt="logo" className="w-8 mr-2" />
           Visual Compiler
         </Button>
         <span className="right-12 absolute">
@@ -118,12 +119,12 @@ export const PlaygroundScreen = () => {
             <ResizablePanel
               defaultSize={isRightFull ? 0 : isLeftFull ? 100 : 50}
               minSize={isLeftFull ? 100 : 20}
-              className="flex flex-col h-full"
+              className="flex flex-col h-full border-amber-700 border-1"
               style={{
                 display: isRightFull ? 'none' : 'flex', // hide if right is full
               }}
             >
-              <Header className="h-11 sticky top-0 z-10 bg-secondary/30 overflow-clip">
+              <Header className="h-11 sticky top-0 z-10 bg-secondary overflow-clip">
                 <span className="text-lg font-semibold top-2 left-2 absolute">
                   Code Editor
                 </span>
@@ -175,13 +176,13 @@ export const PlaygroundScreen = () => {
               <CompilationStep {...currentStep} index={index} />
 
               <Separator />
-              <div className="flex w-full">
+              <div className="flex w-full bg-secondary">
                 <Button
                   variant="ghost"
                   onClick={prev}
                   className="flex-1 rounded-none"
                 >
-                  <ChevronLeft />
+                  <ChevronLeft color='orange' />
                 </Button>
                 <Separator orientation="vertical" />
                 <Button
@@ -189,7 +190,7 @@ export const PlaygroundScreen = () => {
                   onClick={next}
                   className="flex-1 rounded-none"
                 >
-                  <ChevronRight />
+                  <ChevronRight color='orange' />
                 </Button>
               </div>
             </ResizablePanel>
@@ -198,7 +199,7 @@ export const PlaygroundScreen = () => {
         {!isAnyPanelFull && (
           <>
             <ResizableHandle />
-            <ResizablePanel defaultSize={10} className="bg-secondary/30">
+            <ResizablePanel defaultSize={10}>
               <Console
                 errors={errors}
                 hasCompiled={hasCompiled}

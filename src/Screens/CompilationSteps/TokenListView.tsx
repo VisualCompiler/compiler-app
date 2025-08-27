@@ -45,7 +45,7 @@ const TokenListContent: React.FC<TokenListContentProps> = ({ tokenList }) => {
   };
 
   return (
-    <div className='text-sm font-mono space-y-1 px-2'>
+    <div className='text-sm font-mono space-y-1 p-2'>
       {Object.entries(tokenLines).map(([line, tokens]) => (
         <div key={line} className='flex flex-wrap'>
           <span className='text-muted-foreground pr-2 w-6 flex-shrink-0'>

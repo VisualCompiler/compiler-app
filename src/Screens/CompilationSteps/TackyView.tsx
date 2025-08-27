@@ -1,4 +1,3 @@
-import { TackyNode } from './TackyNode'
 interface TackyViewProps {
   tackyCode: any
 }
@@ -8,7 +7,7 @@ export const TackyView: React.FC<TackyViewProps> = ({ tackyCode }) => {
     return (
       <div className="w-full h-full flex items-center justify-center">
         <p className="text-muted-foreground">
-          No Tacky Instructions are available
+          No Tacky instructions are available
         </p>
       </div>
     )
