@@ -1,66 +1,8 @@
 type Nullable<T> = T | null | undefined
 declare function KtSingleton<T>(): T & (abstract new() => any);
-export declare abstract class ErrorType {
-    private constructor();
-    static get LEXICAL(): ErrorType & {
-        get name(): "LEXICAL";
-        get ordinal(): 0;
-    };
-    static get SYNTAX(): ErrorType & {
-        get name(): "SYNTAX";
-        get ordinal(): 1;
-    };
-    static get CODE_GENERATION(): ErrorType & {
-        get name(): "CODE_GENERATION";
-        get ordinal(): 2;
-    };
-    static get RUNTIME(): ErrorType & {
-        get name(): "RUNTIME";
-        get ordinal(): 3;
-    };
-    static get GENERAL(): ErrorType & {
-        get name(): "GENERAL";
-        get ordinal(): 4;
-    };
-    get name(): "LEXICAL" | "SYNTAX" | "CODE_GENERATION" | "RUNTIME" | "GENERAL";
-    get ordinal(): 0 | 1 | 2 | 3 | 4;
-    static values(): Array<ErrorType>;
-    static valueOf(value: string): ErrorType;
-}
-/** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
-export declare namespace ErrorType.$metadata$ {
-    const constructor: abstract new () => ErrorType;
-}
-export declare abstract class CompilationStage {
-    private constructor();
-    static get LEXER(): CompilationStage & {
-        get name(): "LEXER";
-        get ordinal(): 0;
-    };
-    static get PARSER(): CompilationStage & {
-        get name(): "PARSER";
-        get ordinal(): 1;
-    };
-    static get TACKY(): CompilationStage & {
-        get name(): "TACKY";
-        get ordinal(): 2;
-    };
-    static get CODE_GENERATOR(): CompilationStage & {
-        get name(): "CODE_GENERATOR";
-        get ordinal(): 3;
-    };
-    get name(): "LEXER" | "PARSER" | "TACKY" | "CODE_GENERATOR";
-    get ordinal(): 0 | 1 | 2 | 3;
-    static values(): Array<CompilationStage>;
-    static valueOf(value: string): CompilationStage;
-}
-/** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
-export declare namespace CompilationStage.$metadata$ {
-    const constructor: abstract new () => CompilationStage;
-}
 export declare abstract class CompilationOutput {
     protected constructor();
-    abstract get stage(): any/* CompilerStage */;
+    abstract get stage(): string;
     abstract get errors(): Array<CompilationError>;
 }
 /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
@@ -79,11 +21,11 @@ export declare namespace CompilationOutput {
     }
 }
 export declare class LexerOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: any/* CompilerStage */ | undefined, tokens: Nullable<string> | undefined, errors: Array<CompilationError>);
-    get stage(): any/* CompilerStage */;
+    constructor(stage: string | undefined, tokens: Nullable<string> | undefined, errors: Array<CompilationError>);
+    get stage(): string;
     get tokens(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: any/* CompilerStage */, tokens?: Nullable<string>, errors?: Array<CompilationError>): LexerOutput;
+    copy(stage?: string, tokens?: Nullable<string>, errors?: Array<CompilationError>): LexerOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -104,11 +46,11 @@ export declare namespace LexerOutput {
     }
 }
 export declare class ParserOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: any/* CompilerStage */ | undefined, ast: Nullable<string> | undefined, errors: Array<CompilationError>);
-    get stage(): any/* CompilerStage */;
+    constructor(stage: string | undefined, ast: Nullable<string> | undefined, errors: Array<CompilationError>);
+    get stage(): string;
     get ast(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: any/* CompilerStage */, ast?: Nullable<string>, errors?: Array<CompilationError>): ParserOutput;
+    copy(stage?: string, ast?: Nullable<string>, errors?: Array<CompilationError>): ParserOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -129,12 +71,11 @@ export declare namespace ParserOutput {
     }
 }
 export declare class TackyOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: any/* CompilerStage */ | undefined, tackyJson: Nullable<string> | undefined, tackyPretty: Nullable<string> | undefined, errors: Array<CompilationError>);
-    get stage(): any/* CompilerStage */;
-    get tackyJson(): Nullable<string>;
+    constructor(stage: string | undefined, tackyPretty: Nullable<string> | undefined, errors: Array<CompilationError>);
+    get stage(): string;
     get tackyPretty(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: any/* CompilerStage */, tackyJson?: Nullable<string>, tackyPretty?: Nullable<string>, errors?: Array<CompilationError>): TackyOutput;
+    copy(stage?: string, tackyPretty?: Nullable<string>, errors?: Array<CompilationError>): TackyOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -154,21 +95,21 @@ export declare namespace TackyOutput {
         }
     }
 }
-export declare class CodeGeneratorOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: any/* CompilerStage */ | undefined, assembly: Nullable<string> | undefined, errors: Array<CompilationError>);
-    get stage(): any/* CompilerStage */;
+export declare class AssemblyOutput extends CompilationOutput.$metadata$.constructor {
+    constructor(stage: string | undefined, assembly: Nullable<string> | undefined, errors: Array<CompilationError>);
+    get stage(): string;
     get assembly(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: any/* CompilerStage */, assembly?: Nullable<string>, errors?: Array<CompilationError>): CodeGeneratorOutput;
+    copy(stage?: string, assembly?: Nullable<string>, errors?: Array<CompilationError>): AssemblyOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
 }
 /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
-export declare namespace CodeGeneratorOutput.$metadata$ {
-    const constructor: abstract new () => CodeGeneratorOutput;
+export declare namespace AssemblyOutput.$metadata$ {
+    const constructor: abstract new () => AssemblyOutput;
 }
-export declare namespace CodeGeneratorOutput {
+export declare namespace AssemblyOutput {
     abstract class Companion extends KtSingleton<Companion.$metadata$.constructor>() {
         private constructor();
     }
@@ -180,12 +121,12 @@ export declare namespace CodeGeneratorOutput {
     }
 }
 export declare class CompilationError {
-    constructor(type: ErrorType, message: string, line: number, column: number);
-    get type(): ErrorType;
+    constructor(stage: string | undefined, message: string, line: number, column: number);
+    get stage(): string;
     get message(): string;
     get line(): number;
     get column(): number;
-    copy(type?: ErrorType, message?: string, line?: number, column?: number): CompilationError;
+    copy(stage?: string, message?: string, line?: number, column?: number): CompilationError;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -234,6 +175,7 @@ export declare namespace CompilationResult {
 export declare class CompilerExport {
     constructor();
     exportCompilationResults(code: string): string;
+    toJsonString(_this_: any/* Lexer */): string;
 }
 /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
 export declare namespace CompilerExport.$metadata$ {

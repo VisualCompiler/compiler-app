@@ -3,6 +3,10 @@ import('./kotlin/CompilerLogic.mjs')
   .then((module) => {
     window.CompilerLogic = {
       CompilerExport: module.CompilerExport,
+      CompilationStage: module.CompilationStage,
+      CompilationError: module.CompilationError,
+      CompilationOutput: module.CompilationOutput,
+      CompilationResult: module.CompilationResult,
     }
     console.log(
       'CompilerLogic loaded and exposed to window:',

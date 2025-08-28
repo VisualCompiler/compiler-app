@@ -47,9 +47,15 @@ const errorField = StateField.define<DecorationSet>({
         const newDecorations = errors
           .filter((e) => e.line > 0) // Only consider errors with a valid line number
           .map((e) => {
-            const line = transaction.state.doc.line(e.line)
-            return errorLineDecoration.range(line.from, line.from)
+            try {
+              const line = transaction.state.doc.line(e.line)
+              return errorLineDecoration.range(line.from, line.from)
+            } catch (error) {
+              console.warn(`Invalid line number ${e.line} for error: ${e.message}`)
+              return null
+            }
           })
+          .filter((decoration) => decoration !== null) // Remove any null decorations
         return Decoration.set(newDecorations)
       }
     }
@@ -127,7 +133,6 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
     if (view) {
       const currentCodeInEditor = view.state.doc.toString()
       const docChanged = value !== currentCodeInEditor
-
       // update document and error
       const transaction = view.state.update({
         ...(docChanged && {
@@ -143,10 +148,17 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
       view.dispatch(transaction)
       if (errors.length > 0) {
         const line = errors[0].line
-        const linePos = view.state.doc.line(line).from
-        view.dispatch({
-          effects: EditorView.scrollIntoView(linePos, { y: 'center' }),
-        })
+        // Ensure line number is valid (1-based and within document bounds)
+        if (line > 0 && line <= view.state.doc.lines) {
+          try {
+            const linePos = view.state.doc.line(line).from
+            view.dispatch({
+              effects: EditorView.scrollIntoView(linePos, { y: 'center' }),
+            })
+          } catch (error) {
+            console.warn(`Cannot scroll to line ${line}: ${error}`)
+          }
+        }
       }
     }
   }, [value, errors])

@@ -1,16 +1,15 @@
 import React from 'react';
 import { Terminal, XCircle, CheckCircle } from 'lucide-react';
-import type { ErrorType, CompilationError } from '../../../public/kotlin/CompilerLogic';
+import type { CompilationError } from '../../../public/kotlin/CompilerLogic';
 
 interface ConsoleProps {
   errors: CompilationError[];
   hasCompiled: boolean;
   sourceCode: string;
-  getErrorInfo: (errorType: ErrorType) => { icon: React.ReactElement; label: string };
   className?: string;
 }
 
-export const Console: React.FC<ConsoleProps> = ({ errors, hasCompiled, sourceCode, getErrorInfo, className = '' }) => {
+export const Console: React.FC<ConsoleProps> = ({ errors, hasCompiled, sourceCode, className = '' }) => {
   return (
     <div className={`flex flex-col h-full ${className}`}>
       <div className="flex items-center space-x-2 p-2 border-b bg-secondary">
@@ -48,21 +47,15 @@ export const Console: React.FC<ConsoleProps> = ({ errors, hasCompiled, sourceCod
         )}
         
         {hasCompiled && errors.map((error, index) => {
-          const errorInfo = getErrorInfo(error.type);
           return (
             <div key={index} className="mb-2 p-2 bg-red-50/10 border border-red-500/40 rounded">
               <div className="flex items-start space-x-2">
-                {errorInfo.icon}
+              <XCircle className="h-3 w-3 text-red-500" />
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-1">
                     <span className="font-semibold text-red-800">
-                      {errorInfo.label}
+                      {error.stage.charAt(0).toUpperCase() + error.stage.slice(1)} failed with:
                     </span>
-                    {(error.line > 0 || error.column > 0) && (
-                      <span className="text-red-600">
-                        at line {error.line}, column {error.column}
-                      </span>
-                    )}
                   </div>
                   <p className="text-red-700">{error.message}</p>
                 </div>

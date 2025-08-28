@@ -5,8 +5,6 @@ import { TokenListContent } from '@/Screens/CompilationSteps/TokenListView'
 import { useState, useCallback } from 'react'
 import { XCircle, AlertTriangle, AlertCircle } from 'lucide-react'
 import type {
-  ErrorType,
-  CompilationStage,
   CompilationError,
   CompilationOutput,
   CompilationResult,
@@ -18,49 +16,17 @@ declare global {
       CompilerExport: new () => {
         exportCompilationResults(code: string): string
       }
-      ErrorType: typeof ErrorType
-      CompilationStage: {
-        LEXER: CompilationStage
-        PARSER: CompilationStage
-        TACKY: CompilationStage
-        CODE_GENERATOR: CompilationStage
-      }
     }
   }
 }
 
 // Unified error handling function
-const getErrorInfo = (errorType: ErrorType) => {
-  switch (errorType) {
-    case window.CompilerLogic?.ErrorType?.SYNTAX:
-      return {
-        icon: <XCircle className="h-3 w-3 text-red-500" />,
-        label: 'Syntax Error',
-      }
-    case window.CompilerLogic?.ErrorType?.LEXICAL:
-      return {
-        icon: <AlertTriangle className="h-3 w-3 text-red-500" />,
-        label: 'Lexical Error',
-      }
-
-    case window.CompilerLogic?.ErrorType?.CODE_GENERATION:
-      return {
-        icon: <AlertCircle className="h-3 w-3 text-red-500" />,
-        label: 'Code Generation Error',
-      }
-    case window.CompilerLogic?.ErrorType?.RUNTIME:
-      return {
-        icon: <AlertCircle className="h-3 w-3 text-red-500" />,
-        label: 'Runtime Error',
-      }
-    case window.CompilerLogic?.ErrorType?.GENERAL:
-    default:
-      return {
-        icon: <AlertCircle className="h-3 w-3 text-gray-500" />,
-        label: 'Compilation Error',
-      }
+const getErrorInfo = (errorStage: string) => {
+    return {
+      icon: <XCircle className="h-3 w-3 text-red-500" />,
+      label: `${errorStage} stage failed`,
+    }
   }
-}
 
 export const useCompilationSteps = () => {
   const [compilationResult, setCompilationResult] = useState<{
@@ -101,21 +67,18 @@ export const useCompilationSteps = () => {
     const result: CompilationResult = JSON.parse(resultJson)
 
     // Extract data from each stage
-    const lexerOutput = result.outputs.find((o) => o.stage === 'LEXER')
-
+    const lexerOutput = result.outputs.find((o) => o.stage === 'lexer')
     console.log('1. Raw Lexer Output:', lexerOutput)
-    const parserOutput = result.outputs.find((o) => o.stage === 'PARSER')
+
+    const parserOutput = result.outputs.find((o) => o.stage === 'parser')
     console.log('2. Raw Parser Output:', parserOutput)
 
-    const tackyOutput = result.outputs.find((o) => o.stage === 'TACKY')
-
+    const tackyOutput = result.outputs.find((o) => o.stage === 'tacky')
     console.log('3. Raw Tacky Output:', tackyOutput)
 
-    const codeGenOutput = result.outputs.find(
-      (o) => o.stage === 'CODE_GENERATOR'
-    )
-
+    const codeGenOutput = result.outputs.find((o) => o.stage === 'assembly')
     console.log('4. Raw Code Generator Output:', codeGenOutput)
+
     const tokens = (lexerOutput as any)?.tokens
       ? JSON.parse((lexerOutput as any).tokens)
       : []
