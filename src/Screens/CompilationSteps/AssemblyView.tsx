@@ -24,7 +24,6 @@ import {
 } from '@codemirror/commands'
 import { StreamLanguage } from '@codemirror/language'
 import { z80 } from '@codemirror/legacy-modes/mode/z80'
-import { oneDark } from '@codemirror/theme-one-dark'
 import { useTheme } from 'next-themes'
 
 // Custom highlight style that uses CSS classes
@@ -79,8 +78,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
   useEffect(() => {
     if (!editorRef.current) return
-
-    const themeExtension = resolvedTheme === 'dark' ? oneDark : []
 
     const state = EditorState.create({
       doc: asmCode,

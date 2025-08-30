@@ -6,42 +6,41 @@
 
 /* AST Node Colors - Theme Dependent */
 :root {
-  --color-program: #16a34a;    /* green-600 */
-  --color-function: #ea580c;   /* orange-600 */
-  --color-statement: #2563eb;  /* blue-600 */
+  --color-program: #16a34a; /* green-600 */
+  --color-function: #ea580c; /* orange-600 */
+  --color-statement: #2563eb; /* blue-600 */
   --color-expression: #ec4899; /* pink-600 */
-  --color-astnode: #ca8a04;    /* yellow-600 */
-  --color-block: #4f46e5;      /* indigo-600 */
-  --color-default: #9333ea;    /* purple-600 */
+  --color-astnode: #ca8a04; /* yellow-600 */
+  --color-block: #4f46e5; /* indigo-600 */
+  --color-default: #9333ea; /* purple-600 */
 }
 
 /* Dark theme overrides */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-program: #22c55e;    /* green-500 */
-    --color-function: #f97316;   /* orange-500 */
-    --color-statement: #3b82f6;  /* blue-500 */
+    --color-program: #22c55e; /* green-500 */
+    --color-function: #f97316; /* orange-500 */
+    --color-statement: #3b82f6; /* blue-500 */
     --color-expression: #f472b6; /* pink-500 */
-    --color-astnode: #eab308;    /* yellow-500 */
-    --color-block: #6366f1;      /* indigo-500 */
-    --color-default: #a855f7;    /* purple-500 */
+    --color-astnode: #eab308; /* yellow-500 */
+    --color-block: #6366f1; /* indigo-500 */
+    --color-default: #a855f7; /* purple-500 */
   }
 }
 
 /* CodeMirror Syntax Highlighting Colors - Theme Dependent */
 :root {
-  /* Light theme colors */
-  --cm-keyword: #d73a49;        /* red-600 */
-  --cm-number:rgb(28, 134, 255);         /* blue-600 */
-  --cm-string: #032f62;         /* blue-800 */
-  --cm-comment: #6a737d;        /* gray-600 */
-  --cm-operator: #d73a49;       /* red-600 */
-  --cm-punctuation:rgb(161, 161, 161);    /* gray-900 */
-  --cm-function:rgb(171, 139, 231);       /* purple-600 */
-  --cm-type: #e36209;           /* orange-600 */
-  --cm-variable:rgb(53, 146, 86);       /* gray-900 */
-  --cm-property: #005cc5;       /* blue-600 */
-  --cm-constant: #e36209;       /* orange-600 */
+  --cm-keyword: var(--code-accent); /* red-600 */
+  --cm-number: rgb(54, 148, 255); /* blue-600 */
+  --cm-string: #032f62; /* blue-800 */
+  --cm-comment: #6a737d; /* gray-600 */
+  --cm-operator: rgb(191, 58, 215); /* red-600 */
+  --cm-punctuation: rgb(161, 161, 161); /* gray-900 */
+  --cm-function: rgb(171, 139, 231); /* purple-600 */
+  --cm-type: #e36209; /* orange-600 */
+  --cm-variable: rgb(53, 146, 86); /* gray-900 */
+  --cm-property: #005cc5; /* blue-600 */
+  --cm-constant: #e36209; /* orange-600 */
 }
 
 @theme inline {
@@ -97,6 +96,7 @@
   --muted: oklch(0.967 0.001 286.375);
   --muted-foreground: oklch(0.552 0.016 285.938);
   --accent: oklch(0.967 0.001 286.375);
+  --code-accent: oklch(37.285% 0.07632 69.495);
   --accent-foreground: oklch(0.21 0.006 285.885);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(85.761% 0.0001 271.152);
@@ -130,6 +130,7 @@
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 286.033);
   --muted-foreground: oklch(0.705 0.015 286.067);
+  --code-accent: oklch(83.293% 0.11126 57.952);
   --accent: oklch(0.274 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);

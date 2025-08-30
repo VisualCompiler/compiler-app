@@ -168,6 +168,12 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           '.cm-line': {
             backgroundColor: 'transparent',
           },
+          '&.cm-focused .cm-cursor': {
+            borderLeftColor: '#aaa !important'
+          },
+          '&.cm-focused .cm-selectionBackground, ::selection': {
+            backgroundColor: '#66666666 !important'
+          },
         }),
       ],
     })
