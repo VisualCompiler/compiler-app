@@ -3,6 +3,31 @@
 
 @custom-variant dark (&:is(.dark *));
 @tailwind utilities;
+
+/* AST Node Colors - Theme Dependent */
+:root {
+  --color-program: #16a34a;    /* green-600 */
+  --color-function: #ea580c;   /* orange-600 */
+  --color-statement: #2563eb;  /* blue-600 */
+  --color-expression: #ec4899; /* pink-600 */
+  --color-astnode: #ca8a04;    /* yellow-600 */
+  --color-block: #4f46e5;      /* indigo-600 */
+  --color-default: #9333ea;    /* purple-600 */
+}
+
+/* Dark theme overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-program: #22c55e;    /* green-500 */
+    --color-function: #f97316;   /* orange-500 */
+    --color-statement: #3b82f6;  /* blue-500 */
+    --color-expression: #f472b6; /* pink-500 */
+    --color-astnode: #eab308;    /* yellow-500 */
+    --color-block: #6366f1;      /* indigo-500 */
+    --color-default: #a855f7;    /* purple-500 */
+  }
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -150,6 +175,26 @@
 
 .token-int {
   @apply text-chart-3;
+}
+
+.token-operator {
+  @apply text-chart-1;
+}
+
+.token-logical {
+  @apply text-chart-5;
+}
+
+.token-relational {
+  @apply text-chart-4;
+}
+
+.token-unary {
+  @apply text-chart-3;
+}
+
+.token-assignment {
+  @apply text-chart-1;
 }
 
 .token-symbol {

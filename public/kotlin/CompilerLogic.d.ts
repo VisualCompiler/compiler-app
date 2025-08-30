@@ -1,5 +1,56 @@
 type Nullable<T> = T | null | undefined
 declare function KtSingleton<T>(): T & (abstract new() => any);
+export declare interface KtList<E> /* extends Collection<E> */ {
+    asJsReadonlyArrayView(): ReadonlyArray<E>;
+    readonly __doNotUseOrImplementIt: {
+        readonly "kotlin.collections.KtList": unique symbol;
+    };
+}
+export declare abstract class KtList<E> extends KtSingleton<KtList.$metadata$.constructor>() {
+    private constructor();
+}
+/** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+export declare namespace KtList.$metadata$ {
+    abstract class constructor {
+        fromJsArray<E>(array: ReadonlyArray<E>): KtList<E>;
+        private constructor();
+    }
+}
+export declare abstract class NodeType {
+    private constructor();
+    static get Program(): NodeType & {
+        get name(): "Program";
+        get ordinal(): 0;
+    };
+    static get Statement(): NodeType & {
+        get name(): "Statement";
+        get ordinal(): 1;
+    };
+    static get Function(): NodeType & {
+        get name(): "Function";
+        get ordinal(): 2;
+    };
+    static get Expression(): NodeType & {
+        get name(): "Expression";
+        get ordinal(): 3;
+    };
+    static get ASTNode(): NodeType & {
+        get name(): "ASTNode";
+        get ordinal(): 4;
+    };
+    static get Block(): NodeType & {
+        get name(): "Block";
+        get ordinal(): 5;
+    };
+    get name(): "Program" | "Statement" | "Function" | "Expression" | "ASTNode" | "Block";
+    get ordinal(): 0 | 1 | 2 | 3 | 4 | 5;
+    static values(): Array<NodeType>;
+    static valueOf(value: string): NodeType;
+}
+/** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+export declare namespace NodeType.$metadata$ {
+    const constructor: abstract new () => NodeType;
+}
 export declare abstract class CompilationOutput {
     protected constructor();
     abstract get stage(): string;
@@ -175,7 +226,7 @@ export declare namespace CompilationResult {
 export declare class CompilerExport {
     constructor();
     exportCompilationResults(code: string): string;
-    toJsonString(_this_: any/* Lexer */): string;
+    toJsonString(_this_: KtList<any/* Token */>): string;
 }
 /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
 export declare namespace CompilerExport.$metadata$ {
