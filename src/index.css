@@ -28,6 +28,22 @@
   }
 }
 
+/* CodeMirror Syntax Highlighting Colors - Theme Dependent */
+:root {
+  /* Light theme colors */
+  --cm-keyword: #d73a49;        /* red-600 */
+  --cm-number:rgb(28, 134, 255);         /* blue-600 */
+  --cm-string: #032f62;         /* blue-800 */
+  --cm-comment: #6a737d;        /* gray-600 */
+  --cm-operator: #d73a49;       /* red-600 */
+  --cm-punctuation:rgb(161, 161, 161);    /* gray-900 */
+  --cm-function:rgb(171, 139, 231);       /* purple-600 */
+  --cm-type: #e36209;           /* orange-600 */
+  --cm-variable:rgb(53, 146, 86);       /* gray-900 */
+  --cm-property: #005cc5;       /* blue-600 */
+  --cm-constant: #e36209;       /* orange-600 */
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -214,5 +230,83 @@
     text-decoration: underline;
     text-decoration-color: theme('colors.red.500');
     text-decoration-style: wavy;
+  }
+
+  /* CodeMirror Syntax Highlighting */
+  .cm-keyword {
+    color: var(--cm-keyword) !important;
+  }
+
+  .cm-identifier {
+    color: var(--cm-identifier) !important;
+  }
+
+  .cm-number {
+    color: var(--cm-number) !important;
+  }
+
+  .cm-string {
+    color: var(--cm-string) !important;
+  }
+
+  .cm-comment {
+    color: var(--cm-comment) !important;
+  }
+
+  .cm-operator {
+    color: var(--cm-operator) !important;
+  }
+
+  .cm-punctuation {
+    color: var(--cm-punctuation) !important;
+  }
+
+  .cm-function {
+    color: var(--cm-function) !important;
+  }
+
+  .cm-type {
+    color: var(--cm-type) !important;
+  }
+
+  .cm-variable {
+    color: var(--cm-variable) !important;
+  }
+
+  .cm-property {
+    color: var(--cm-property) !important;
+  }
+
+  .cm-constant {
+    color: var(--cm-constant) !important;
+  }
+
+  /* Additional CodeMirror token types */
+  .cm-definition {
+    color: var(--cm-function) !important;
+  }
+
+  .cm-variable-2 {
+    color: var(--cm-variable) !important;
+  }
+
+  .cm-variable-3 {
+    color: var(--cm-variable) !important;
+  }
+
+  .cm-attribute {
+    color: var(--cm-property) !important;
+  }
+
+  .cm-tag {
+    color: var(--cm-type) !important;
+  }
+
+  .cm-builtin {
+    color: var(--cm-constant) !important;
+  }
+
+  .cm-qualifier {
+    color: var(--cm-type) !important;
   }
 }

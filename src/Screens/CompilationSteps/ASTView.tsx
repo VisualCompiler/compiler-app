@@ -1,4 +1,4 @@
-import { ASTNodeComponent, getNodeColor, getNodeHexColor } from '@/Screens/CompilationSteps/ASTNodeComponent'
+import { ASTNodeComponent, getNodeHexColor } from '@/Screens/CompilationSteps/ASTNodeComponent'
 import { useMemo } from 'react'
 import ReactFlow, {
   Background,
@@ -28,7 +28,6 @@ const generateGraph = (root: any): { nodes: Node[]; edges: Edge[] } => {
     const nodeLabel = node.label || node.type || 'Unknown'
 
     // Get the color for the node type (CSS variable or hex)
-    const nodeColor = getNodeColor(nodeType)
     const nodeHexColor = getNodeHexColor(nodeType)
     
     nodes.push({
@@ -61,12 +60,12 @@ const generateGraph = (root: any): { nodes: Node[]; edges: Edge[] } => {
           labelStyle: { 
             fontSize: '10px', 
             fontWeight: 'bold',
-            fill: '#6b7280', // Neutral color for edge labels
+            fill: parentColor,
           },
           labelBgStyle: { 
             fill: 'Background', 
             fillOpacity: 0.9,
-            stroke: '#6b7280', // Neutral color for edge label borders
+            stroke: parentColor,
             strokeWidth: 1
           },
         }),
