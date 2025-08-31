@@ -3,7 +3,7 @@ import { TackyView } from '@/Screens/CompilationSteps/TackyView'
 import { ASTViewer } from '@/Screens/CompilationSteps/ASTView'
 import { TokenListContent } from '@/Screens/CompilationSteps/TokenListView'
 import { useState, useCallback } from 'react'
-import { XCircle, AlertTriangle, AlertCircle } from 'lucide-react'
+import { XCircle } from 'lucide-react'
 import type {
   CompilationError,
   CompilationOutput,

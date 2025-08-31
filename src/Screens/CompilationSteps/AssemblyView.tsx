@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import { EditorState } from '@codemirror/state'
 import {
   foldGutter,
@@ -25,6 +25,11 @@ import {
 import { StreamLanguage } from '@codemirror/language'
 import { z80 } from '@codemirror/legacy-modes/mode/z80'
 import { useTheme } from 'next-themes'
+import { Button } from '@/components/ui/button'
+import { Play, StepForward } from 'lucide-react'
+import { convertAssemblyToBinary } from '@/lib/assemblyUtils'
+import type { BinaryLine } from '@/lib/assemblyUtils'
+import { Toggle } from '@/components/ui/toggle'
 
 // Custom highlight style that uses CSS classes
 const customHighlightStyle = HighlightStyle.define([
@@ -71,13 +76,31 @@ interface AssemblyViewProps {
   asmCode: string
 }
 
+
+
 export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   const editorRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const { resolvedTheme } = useTheme()
+  const [binaryLines, setBinaryLines] = useState<BinaryLine[]>([])
+  const [isConverting, setIsConverting] = useState(false)
+  const [showMachineCode, setShowMachineCode] = useState(true)
 
+  const handleAssemblyConversion = async (assemblyCode: string) => {
+    setIsConverting(true);
+    try {
+      const lines = await convertAssemblyToBinary(assemblyCode);
+      setBinaryLines(lines);
+    } catch (err) {
+      console.error('Failed to convert assembly:', err);
+      setBinaryLines([]);
+    } finally {
+      setIsConverting(false);
+    }
+  };
+  
   useEffect(() => {
-    if (!editorRef.current) return
+    if (!editorRef.current || showMachineCode) return
 
     const state = EditorState.create({
       doc: asmCode,
@@ -93,7 +116,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         syntaxHighlighting(customHighlightStyle),
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         StreamLanguage.define(z80),
-        EditorState.readOnly.of(true), // read-only
+        EditorState.readOnly.of(true),
         EditorView.theme({
           '&': { 
             height: '100%', 
@@ -127,12 +150,98 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       view.destroy()
       viewRef.current = null
     }
-  }, [asmCode, resolvedTheme])
+  }, [asmCode, resolvedTheme, showMachineCode])
+
+  useEffect(() => {
+    handleAssemblyConversion(asmCode)
+  }, [asmCode])
+
+  // Clean up editor when switching to machine code view
+  useEffect(() => {
+    if (showMachineCode && viewRef.current) {
+      viewRef.current.destroy()
+      viewRef.current = null
+    }
+  }, [showMachineCode])
 
   return (
-    <div
-      ref={editorRef}
-      className="bg-secondary/50 h-full w-full overflow-auto"
-    ></div>
+    <div className="flex h-full w-full flex-col overflow-clip">
+      <div className="border-b border-border bg-muted/50">
+      {/*<h1 className="text-sm font-semibold text-foreground pl-2">Execute Code on emulator</h1>*/}
+        <div className="flex items-center m-1 justify-between">
+          <div className="flex items-center space-x-2">
+            <Toggle 
+              variant="outline"
+              size="sm"
+              className={`px-3 rounded-sm transition-colors ${
+                showMachineCode 
+                  ? 'border-muted-foreground/30 bg-muted/50 text-muted-foreground'
+                  : 'border-amber-200/40 bg-amber-800/50 text-amber-100'
+              }`}
+              onClick={() => setShowMachineCode(!showMachineCode)}
+            >
+              {showMachineCode ? 'Hide Machine Code' : 'Display Machine Code'}
+            </Toggle>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline"
+              className="px-6 border-emerald-700! bg-emerald-700/20! transition-colors"
+              onClick={() => console.log('Run clicked')}
+            >
+              <Play className="h-4 w-4" />
+              Run
+            </Button>
+            <Button variant="outline"
+              className="px-6 border-yellow-600! bg-yellow-600/20! transition-colors"
+              onClick={() => console.log('Step clicked')}
+            >
+              <StepForward className="h-4 w-4" />
+              Step
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      <div className="border-r border-border flex flex-row h-full min-h-0">
+        <div className="flex-1 overflow-y-auto">
+          {showMachineCode ? (
+            <div className="p-2 space-y-1">
+              {isConverting && (
+                <div className="p-2 text-center text-muted-foreground">
+                  Converting assembly...
+                </div>
+              )}
+              {binaryLines.map((line, index) => (
+                <div
+                  key={index}
+                  className={`p-2 rounded text-xs font-mono transition-colors bg-muted/30 hover:bg-muted/50 text-foreground`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-muted-foreground text-xs">
+                      {line.address}
+                    </span>
+                    <span className="text-muted-foreground text-xs">
+                      L{line.lineNumber}
+                    </span>
+                  </div>
+                  <div className="mb-1">{line.assembly}</div>
+                  <div className="font-medium text-primary">
+                    {line.binary}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div ref={editorRef} className="h-full"></div>
+          )}
+        </div>
+        
+        <div className="flex-1 border-l border-border overflow-y-auto">
+          <div className="p-2 text-center text-muted-foreground">
+            {/* registers and memrory will go here */}
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
