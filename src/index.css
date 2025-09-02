@@ -3,6 +3,46 @@
 
 @custom-variant dark (&:is(.dark *));
 @tailwind utilities;
+
+/* AST Node Colors - Theme Dependent */
+:root {
+  --color-program: #16a34a; /* green-600 */
+  --color-function: #ea580c; /* orange-600 */
+  --color-statement: #2563eb; /* blue-600 */
+  --color-expression: #ec4899; /* pink-600 */
+  --color-astnode: #ca8a04; /* yellow-600 */
+  --color-block: #4f46e5; /* indigo-600 */
+  --color-default: #9333ea; /* purple-600 */
+}
+
+/* Dark theme overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-program: #22c55e; /* green-500 */
+    --color-function: #f97316; /* orange-500 */
+    --color-statement: #3b82f6; /* blue-500 */
+    --color-expression: #f472b6; /* pink-500 */
+    --color-astnode: #eab308; /* yellow-500 */
+    --color-block: #6366f1; /* indigo-500 */
+    --color-default: #a855f7; /* purple-500 */
+  }
+}
+
+/* CodeMirror Syntax Highlighting Colors - Theme Dependent */
+:root {
+  --cm-keyword: var(--code-accent); /* red-600 */
+  --cm-number: rgb(54, 148, 255); /* blue-600 */
+  --cm-string: #032f62; /* blue-800 */
+  --cm-comment: #6a737d; /* gray-600 */
+  --cm-operator: rgb(191, 58, 215); /* red-600 */
+  --cm-punctuation: rgb(161, 161, 161); /* gray-900 */
+  --cm-function: rgb(171, 139, 231); /* purple-600 */
+  --cm-type: #e36209; /* orange-600 */
+  --cm-variable: rgb(53, 146, 86); /* gray-900 */
+  --cm-property: #005cc5; /* blue-600 */
+  --cm-constant: #e36209; /* orange-600 */
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -56,6 +96,7 @@
   --muted: oklch(0.967 0.001 286.375);
   --muted-foreground: oklch(0.552 0.016 285.938);
   --accent: oklch(0.967 0.001 286.375);
+  --code-accent: oklch(37.285% 0.07632 69.495);
   --accent-foreground: oklch(0.21 0.006 285.885);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(85.761% 0.0001 271.152);
@@ -89,6 +130,7 @@
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 286.033);
   --muted-foreground: oklch(0.705 0.015 286.067);
+  --code-accent: oklch(83.293% 0.11126 57.952);
   --accent: oklch(0.274 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
@@ -152,6 +194,26 @@
   @apply text-chart-3;
 }
 
+.token-operator {
+  @apply text-chart-1;
+}
+
+.token-logical {
+  @apply text-chart-5;
+}
+
+.token-relational {
+  @apply text-chart-4;
+}
+
+.token-unary {
+  @apply text-chart-3;
+}
+
+.token-assignment {
+  @apply text-chart-1;
+}
+
 .token-symbol {
   @apply text-chart-4;
 }
@@ -169,5 +231,83 @@
     text-decoration: underline;
     text-decoration-color: theme('colors.red.500');
     text-decoration-style: wavy;
+  }
+
+  /* CodeMirror Syntax Highlighting */
+  .cm-keyword {
+    color: var(--cm-keyword) !important;
+  }
+
+  .cm-identifier {
+    color: var(--cm-identifier) !important;
+  }
+
+  .cm-number {
+    color: var(--cm-number) !important;
+  }
+
+  .cm-string {
+    color: var(--cm-string) !important;
+  }
+
+  .cm-comment {
+    color: var(--cm-comment) !important;
+  }
+
+  .cm-operator {
+    color: var(--cm-operator) !important;
+  }
+
+  .cm-punctuation {
+    color: var(--cm-punctuation) !important;
+  }
+
+  .cm-function {
+    color: var(--cm-function) !important;
+  }
+
+  .cm-type {
+    color: var(--cm-type) !important;
+  }
+
+  .cm-variable {
+    color: var(--cm-variable) !important;
+  }
+
+  .cm-property {
+    color: var(--cm-property) !important;
+  }
+
+  .cm-constant {
+    color: var(--cm-constant) !important;
+  }
+
+  /* Additional CodeMirror token types */
+  .cm-definition {
+    color: var(--cm-function) !important;
+  }
+
+  .cm-variable-2 {
+    color: var(--cm-variable) !important;
+  }
+
+  .cm-variable-3 {
+    color: var(--cm-variable) !important;
+  }
+
+  .cm-attribute {
+    color: var(--cm-property) !important;
+  }
+
+  .cm-tag {
+    color: var(--cm-type) !important;
+  }
+
+  .cm-builtin {
+    color: var(--cm-constant) !important;
+  }
+
+  .cm-qualifier {
+    color: var(--cm-type) !important;
   }
 }

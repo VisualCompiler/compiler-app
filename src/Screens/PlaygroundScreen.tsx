@@ -39,7 +39,6 @@ export const PlaygroundScreen = () => {
     errors,
     hasCompiled,
     compileCode,
-    getErrorInfo,
   } = useCompilationSteps()
 
   // This function updates the component's local state
@@ -204,7 +203,6 @@ export const PlaygroundScreen = () => {
                 errors={errors}
                 hasCompiled={hasCompiled}
                 sourceCode={sourceCode}
-                getErrorInfo={getErrorInfo}
               />
             </ResizablePanel>
           </>
