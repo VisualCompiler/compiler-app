@@ -62,32 +62,26 @@ export const convertAssemblyToBinary = async (
     ks.option(keystone.OPT_SYNTAX, keystone.OPT_SYNTAX_INTEL);
 
     // Validate each instruction line individually
-    const validatedInstructions: string[] = [];
     for (let i = 0; i < instructionLines.length; i++) {
       const instructionLine = instructionLines[i];
       const lineNumber =
         lines.findIndex((line) => line.trim() === instructionLine) + 1;
 
-      // Assemble just this instruction to validate it produces bytes
-      const singleResult = ks.asm(instructionLine);
-      if (singleResult.failed) {
-        throw new Error(
-          `Assembly failed at line ${lineNumber}: ${singleResult.err}`
-        );
+      // Assemble just this instruction to validate it produces bytes 
+      try {
+        const singleResult = ks.asm(instructionLine);
+        if (!singleResult.failed && singleResult.length === 0) {
+          throw new Error(
+            `Instruction at line ${lineNumber} produces 0 bytes: "${instructionLine}"`
+          );
+        }
+      } catch (error) {
+        // if (singleResult.failed) => line might contain a label, so we don't throw an error
       }
-
-      // Check if the instruction produces any bytes
-      if (!singleResult || singleResult.length === 0) {
-        throw new Error(
-          `Instruction at line ${lineNumber} produces 0 bytes: "${instructionLine}"`
-        );
-      }
-
-      validatedInstructions.push(instructionLine);
     }
 
     // Assemble all validated instruction lines together
-    const result = ks.asm(validatedInstructions.join("\n"));
+    const result = ks.asm(assemblyCode);
     if (result.failed) {
       throw new Error("Assembly failed: " + result.err);
     }

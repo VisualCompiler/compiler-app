@@ -113,6 +113,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   const [currentExecutingLine, setCurrentExecutingLine] = useState<
     number | null
   >(null);
+  const [lastExecutedLine, setLastExecutedLine] = useState<number | null>(null);
   const [isStepping, setIsStepping] = useState(false);
   const [memoryStartAddress, setMemoryStartAddress] = useState(
     EMULATOR_CONFIG.STACK_SEGMENT_START + EMULATOR_CONFIG.STACK_SIZE - 8
@@ -221,6 +222,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       registers: new Map(),
       memory: new Map(),
     });
+    setLastExecutedLine(null);
   };
 
   const handleAssemblyConversion = async (assemblyCode: string) => {
@@ -231,6 +233,7 @@ mov eax, 3
 push rbp
 mov rbp, rsp
 mov eax, 4
+jmp start
 pop rbp
 nop
 `;
@@ -239,6 +242,7 @@ nop
       const lines = await convertAssemblyToBinary(assemblyCode);
       setBinaryLines(lines);
     } catch (err) {
+      console.error("Failed to convert assembly code:", err);
       setBinaryLines([]);
     } finally {
       setIsConverting(false);
@@ -359,7 +363,7 @@ nop
       // Update register values
       updateRegisters(emu);
 
-      // Calculate which line is currently executing
+      // Calculate which line was just executed (not the next one to execute)
       if (binaryLines.length > 0) {
         let lineIndex = -1;
         for (let i = 0; i < binaryLines.length; i++) {
@@ -371,7 +375,7 @@ nop
         }
 
         if (lineIndex >= 0) {
-          setCurrentExecutingLine(lineIndex);
+          setLastExecutedLine(lineIndex);
         }
       }
 
@@ -494,6 +498,13 @@ nop
 
     setIsStepping(true);
 
+    // Find the instruction that's about to be executed
+    const instructionToExecute = currentState.currentInstruction;
+    const instructionLineIndex = binaryLines.findIndex(
+      (line) =>
+        line.offset === instructionToExecute && line.type === "instruction"
+    );
+
     try {
       // Load assembly code if not already loaded
       if (currentState.stepCount == 0) {
@@ -522,6 +533,11 @@ nop
           memory: currentState.memory,
         });
 
+        // Mark the instruction that was just executed as successfully executed
+        if (instructionLineIndex !== -1) {
+          setLastExecutedLine(instructionLineIndex);
+        }
+
         // Update the currently executing line for highlighting (only if no error)
         const currentLineIndex = binaryLines.findIndex(
           (line) =>
@@ -533,7 +549,7 @@ nop
 
         // Check if we've stepped through all instruction lines
         const instructionLines = getInstructionLines();
-        if (newStepCount >= instructionLines.length) {
+        if (newStepCount > instructionLines.length) {
           console.log("All instruction lines executed, stopping execution");
           // Stop the execution instead of resetting
           if (runInterval.current) {
@@ -553,6 +569,10 @@ nop
       }
     } catch (error) {
       console.error("Step execution failed:", error);
+      // Mark the instruction that failed as failed
+      if (instructionLineIndex !== -1) {
+        setLastExecutedLine(instructionLineIndex);
+      }
       handleEmulationError();
     } finally {
       setIsStepping(false); // End stepping once done
@@ -583,6 +603,7 @@ nop
     setTimeout(() => {
       setHasError(false);
       setCurrentExecutingLine(null);
+      setLastExecutedLine(null);
     }, 3000); // Increased delay to 3 seconds
   };
 
@@ -610,6 +631,7 @@ nop
       setIsPaused(false);
       isPausedRef.current = false;
       setCurrentExecutingLine(null);
+      setLastExecutedLine(null);
       setHasError(false);
       emulator?.close();
       setEmulator(null);
@@ -762,17 +784,11 @@ nop
                       key={index}
                       className={`p-2 rounded text-xs font-mono transition-colors ${
                         hasError &&
-                        currentExecutingLine === index &&
+                        lastExecutedLine === index &&
                         line.type === "instruction"
                           ? "bg-red-500/30 border-2 border-red-500/50 shadow-lg"
-                          : (currentExecutingLine === index &&
-                              line.type === "instruction") ||
-                            (currentExecutingLine === null &&
-                              index ===
-                                binaryLines.findIndex(
-                                  (l) => l.type === "instruction"
-                                ) &&
-                              line.type === "instruction")
+                          : lastExecutedLine === index &&
+                            line.type === "instruction"
                           ? "bg-green-500/30 border-2 border-green-500/50 shadow-lg"
                           : line.type === "directive"
                           ? "bg-purple-500/20 border border-purple-500/30"
