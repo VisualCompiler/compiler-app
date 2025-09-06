@@ -28,7 +28,7 @@ import {
 } from '@codemirror/commands'
 import { cpp } from '@codemirror/lang-cpp'
 import { useTheme } from 'next-themes'
-import type { CompilationError } from '../../public/kotlin/CompilerLogic'
+import type { CompilationError } from 'scripts/kotlin-js/CompilerLogic'
 
 // Custom highlight style that uses CSS classes
 const customHighlightStyle = HighlightStyle.define([

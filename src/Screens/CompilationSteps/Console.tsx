@@ -1,6 +1,6 @@
 import React from 'react';
 import { Terminal, XCircle, CheckCircle } from 'lucide-react';
-import type { CompilationError } from '../../../public/kotlin/CompilerLogic';
+import type { CompilationError } from '../../../scripts/kotlin-js/CompilerLogic';
 
 interface ConsoleProps {
   errors: CompilationError[];
@@ -11,7 +11,7 @@ interface ConsoleProps {
 
 export const Console: React.FC<ConsoleProps> = ({ errors, hasCompiled, sourceCode, className = '' }) => {
   return (
-    <div className={`flex flex-col h-full ${className}`}>
+    <div className={`flex flex-col ${className}`}>
       <div className="flex items-center space-x-2 p-2 border-b bg-secondary">
         <Terminal className="h-4 w-4" />
         {hasCompiled && errors.length === 0 && sourceCode.trim() !== '' && (

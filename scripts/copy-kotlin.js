@@ -9,7 +9,7 @@ const sourceDir = path.join(
   __dirname,
   '../../compiler-logic/build/js/packages/CompilerLogic/kotlin'
 )
-const targetDir = path.join(__dirname, '../public/kotlin')
+const targetDir = path.join(__dirname, './kotlin-js')
 
 // Create target directory if it doesn't exist
 if (!fs.existsSync(targetDir)) {

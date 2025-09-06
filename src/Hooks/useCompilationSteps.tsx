@@ -8,7 +8,7 @@ import type {
   CompilationError,
   CompilationOutput,
   CompilationResult,
-} from '../../public/kotlin/CompilerLogic'
+} from '../../scripts/kotlin-js/CompilerLogic'
 
 declare global {
   interface Window {
@@ -124,7 +124,7 @@ export const useCompilationSteps = () => {
       content: <TackyView tackyCode={compilationResult.tackyPseudoCode} />,
     },
     {
-      title: 'Generated Assembly Code',
+      title: 'Generated Assembly Code', // TODO update
       description: 'Generated x64 assembly code from the AST',
       content: <AssemblyView asmCode={compilationResult.asmCode} />,
     },
