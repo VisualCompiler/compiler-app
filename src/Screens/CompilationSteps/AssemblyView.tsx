@@ -35,6 +35,7 @@ import {
   UnicornEmulator,
   EMULATOR_CONFIG,
 } from "@/lib/emulatorConfig";
+import "@/lib/consoleExtension";
 
 // Custom highlight style that uses CSS classes
 const customHighlightStyle = HighlightStyle.define([
@@ -110,9 +111,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   );
 
   const [executionSpeed, setExecutionSpeed] = useState(200);
-  const [currentExecutingLine, setCurrentExecutingLine] = useState<
-    number | null
-  >(null);
   const [lastExecutedLine, setLastExecutedLine] = useState<number | null>(null);
   const [isStepping, setIsStepping] = useState(false);
   const [memoryStartAddress, setMemoryStartAddress] = useState(
@@ -129,7 +127,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     memory: new Map(),
   });
 
-  // Track previous values for change detection
   const prevRegistersRef = useRef<Map<string, number>>(new Map());
   const prevMemoryRef = useRef<Map<number, number>>(new Map());
   const [elevatedRegisters, setElevatedRegisters] = useState<Set<string>>(
@@ -137,7 +134,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   );
   const [elevatedMemory, setElevatedMemory] = useState<Set<number>>(new Set());
 
-  // Helper functions to reduce code duplication
   const updateExecutionState = (updates: Partial<ExecutionState>) => {
     setExecutionState((prev) => {
       const newState = { ...prev, ...updates };
@@ -160,7 +156,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
     if (changedRegisters.size > 0) {
       setElevatedRegisters(changedRegisters);
-      // Clear elevation after animation - use executionSpeed if executing, otherwise 1000ms
       const elevationDuration = isExecuting ? executionSpeed : 1000;
       setTimeout(() => {
         setElevatedRegisters(new Set());
@@ -194,7 +189,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
     if (changedMemory.size > 0) {
       setElevatedMemory(changedMemory);
-      // Clear elevation after animation - use executionSpeed if executing, otherwise 1000ms
       const elevationDuration = isExecuting ? executionSpeed : 1000;
       setTimeout(() => {
         setElevatedMemory(new Set());
@@ -226,23 +220,25 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   };
 
   const handleAssemblyConversion = async (assemblyCode: string) => {
-    assemblyCode = `
-.globl start
-start:
-mov eax, 3
-push rbp
-mov rbp, rsp
-mov eax, 4
-jmp start
-pop rbp
-nop
-`;
+    /* assemblyCode = `
+    push rbp
+    mov rbp, rsp
+    sub rsp, 0x10
+        mov [rbp-0x8], rax
+        mov [rbp-0x4], rax
+        mov eax, [rbp-0x8]
+    ` */
     setIsConverting(true);
     try {
       const lines = await convertAssemblyToBinary(assemblyCode);
       setBinaryLines(lines);
     } catch (err) {
-      console.error("Failed to convert assembly code:", err);
+      console.assemblingError(
+        `Assembly conversion failed: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
+        err
+      );
       setBinaryLines([]);
     } finally {
       setIsConverting(false);
@@ -363,7 +359,7 @@ nop
       // Update register values
       updateRegisters(emu);
 
-      // Calculate which line was just executed (not the next one to execute)
+      // Calculate which line was just executed
       if (binaryLines.length > 0) {
         let lineIndex = -1;
         for (let i = 0; i < binaryLines.length; i++) {
@@ -392,10 +388,6 @@ nop
       const value = emu.getRegister(reg.id);
       if (value !== null) {
         registerMap.set(reg.name, value);
-        // Debug logging for RSP
-        if (reg.name === "RSP") {
-          console.log("RSP value:", value, "hex:", "0x" + value.toString(16));
-        }
       }
     }
 
@@ -428,6 +420,9 @@ nop
   // Load assembly code into emulator
   const loadAssemblyCode = async (): Promise<boolean> => {
     if (!emulator || !binaryLines.length) {
+      console.emulationError(
+        "Cannot load assembly code: emulator or binary lines not available"
+      );
       return false;
     }
 
@@ -435,30 +430,24 @@ nop
       const machineCode = binaryLinesToMachineCode(binaryLines);
       const codeStart = EMULATOR_CONFIG.CODE_SEGMENT_START;
 
-      if (!emulator.writeMemory(codeStart, machineCode)) {
-        throw new Error("Failed to write machine code to memory");
-      }
+      emulator.writeMemory(codeStart, machineCode);
 
-      const readBack = emulator.readMemory(codeStart, machineCode.length);
-      console.log("Machine code written to memory, read back:", readBack);
-
-      // Ensure stack pointer is properly initialized
       resetStackPointer();
 
-      // Update execution state after loading code
       updateExecutionState({
         stepCount: 0,
         currentInstruction: codeStart,
         registers: new Map(),
         memory: new Map(),
       });
-      console.log("Execution state updated after loading code:", {
-        stepCount: 0,
-        currentInstruction: codeStart,
-      });
       return true;
     } catch (error) {
-      console.error("Failed to load assembly code:", error);
+      console.emulationError(
+        `Failed to load assembly code: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        error
+      );
       return false;
     }
   };
@@ -469,17 +458,18 @@ nop
     if (!emulator) return;
 
     setIsExecuting(true);
-    isPausedRef.current = false;
 
-    if (runInterval.current) clearInterval(runInterval.current);
+    if (!isPausedRef.current && runInterval.current)
+      clearInterval(runInterval.current);
 
     runInterval.current = setInterval(() => {
-      const currentState = executionStateRef.current;
-      const instructionLines = getInstructionLines();
       if (
-        isPausedRef.current ||
-        hasError ||
-        currentState.stepCount >= instructionLines.length
+        !isPausedRef.current &&
+        !hasError &&
+        emulator.getInstructionPointer()! >=
+          EMULATOR_CONFIG.CODE_SEGMENT_START +
+            binaryLinesToMachineCode(binaryLines).length +
+            0x8
       ) {
         clearInterval(runInterval.current!);
         setIsExecuting(false);
@@ -491,8 +481,10 @@ nop
 
   const handleStep = async () => {
     const currentState = executionStateRef.current;
-    console.log(currentState);
     if (!emulator || !binaryLines.length) {
+      console.emulationError(
+        "Cannot execute step: emulator or binary lines not available"
+      );
       return;
     }
 
@@ -506,7 +498,6 @@ nop
     );
 
     try {
-      // Load assembly code if not already loaded
       if (currentState.stepCount == 0) {
         await loadAssemblyCode();
         resetStackPointer();
@@ -517,7 +508,7 @@ nop
         currentState.currentInstruction || 0,
         EMULATOR_CONFIG.CODE_SEGMENT_START +
           binaryLinesToMachineCode(binaryLines).length,
-        1 // Execute exactly 1 instruction
+        1
       );
 
       updateRegisters(emulator);
@@ -538,18 +529,13 @@ nop
           setLastExecutedLine(instructionLineIndex);
         }
 
-        // Update the currently executing line for highlighting (only if no error)
-        const currentLineIndex = binaryLines.findIndex(
-          (line) =>
-            line.offset === nextInstruction && line.type === "instruction"
-        );
-        if (currentLineIndex !== -1) {
-          setCurrentExecutingLine(currentLineIndex);
-        }
-
         // Check if we've stepped through all instruction lines
-        const instructionLines = getInstructionLines();
-        if (newStepCount > instructionLines.length) {
+        if (
+          emulator.getInstructionPointer()! >=
+          EMULATOR_CONFIG.CODE_SEGMENT_START +
+            binaryLinesToMachineCode(binaryLines).length +
+            0x8
+        ) {
           console.log("All instruction lines executed, stopping execution");
           // Stop the execution instead of resetting
           if (runInterval.current) {
@@ -558,24 +544,23 @@ nop
           }
           // Reset for next run
           resetExecutionState();
-          const firstInstructionIndex = binaryLines.findIndex(
-            (line) => line.type === "instruction"
-          );
-          setCurrentExecutingLine(
-            firstInstructionIndex !== -1 ? firstInstructionIndex : 0
-          );
           resetProgramCounter();
         }
       }
     } catch (error) {
-      console.error("Step execution failed:", error);
-      // Mark the instruction that failed as failed
+      console.emulationError(
+        `Step execution failed: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+        error
+      );
+      // Mark the instruction that failed
       if (instructionLineIndex !== -1) {
         setLastExecutedLine(instructionLineIndex);
       }
       handleEmulationError();
     } finally {
-      setIsStepping(false); // End stepping once done
+      setIsStepping(false);
     }
   };
 
@@ -588,10 +573,8 @@ nop
 
   const handleEmulationError = () => {
     setHasError(true);
-    // Reset program counter and stack pointer
     resetProgramCounter();
     resetStackPointer();
-    // Reset execution state
     resetExecutionState();
     // Reset UI state
     setIsExecuting(false);
@@ -599,12 +582,10 @@ nop
     setIsPaused(false);
     isPausedRef.current = false;
 
-    // Clear error state and current executing line after a delay
     setTimeout(() => {
       setHasError(false);
-      setCurrentExecutingLine(null);
       setLastExecutedLine(null);
-    }, 3000); // Increased delay to 3 seconds
+    }, 3000);
   };
 
   const handleStopResume = () => {
@@ -630,7 +611,6 @@ nop
       setIsStepping(false);
       setIsPaused(false);
       isPausedRef.current = false;
-      setCurrentExecutingLine(null);
       setLastExecutedLine(null);
       setHasError(false);
       emulator?.close();
@@ -864,7 +844,7 @@ nop
                 // Color coding for different register groups
                 const getRegisterColor = (regName: string) => {
                   if (regName === "RSP") return "text-orange-500";
-                  if (regName === "RBP") return "text-purple-500";
+                  if (regName === "RBP") return "text-teal-600";
                   if (regName === "RIP") return "text-amber-400";
                   if (regName == "EFLAGS") return "text-red-400";
                   else return "text-muted-foreground"; // Default
@@ -990,7 +970,7 @@ nop
                       return "bg-orange-500/30";
                     }
                     if (rbpValue !== undefined && addr === rbpValue) {
-                      return "bg-purple-500/30";
+                      return "bg-teal-500/30";
                     }
                     if (ripValue !== undefined && addr === ripValue) {
                       return "bg-amber-500/30";

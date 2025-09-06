@@ -250,18 +250,8 @@ export class UnicornEmulator {
   }
 
   /** Start with optional single-instruction count */
-  start(begin: number, until: number, count: number = 1): boolean {
-    if (!this.isInitialized) {
-      console.error("Emulator not initialized");
-      return false;
-    }
+  start(begin: number, until: number, count: number = 1) {
 
-    try {
-      console.log(
-        `Starting emulation from 0x${begin.toString(16)} to 0x${until.toString(
-          16
-        )} with count ${count}`
-      );
 
       // Check if the start address is accessible
       const rip = this.getInstructionPointer();
@@ -272,11 +262,7 @@ export class UnicornEmulator {
       this.uc.emu_start(begin, until, 0, count);
       console.log(this.uc.mem_read(begin, 8));
       console.log("Emulation started successfully");
-      return true;
-    } catch (e) {
-      console.error("Failed to start emulation:", e);
-      return false;
-    }
+
   }
 
   getInstructionPointer(): number | null {
