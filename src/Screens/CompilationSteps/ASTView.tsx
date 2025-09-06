@@ -126,19 +126,6 @@ const generateGraph = (root: any): { nodes: Node[]; edges: Edge[] } => {
         }
       })
     }
-    
-    // Handle specific node properties that should be treated as children
-    const childProperties = ['left', 'right', 'expression', 'condition', 'body', 'then', '_else', 'init', 'post', 'lvalue', 'rvalue', 'codition', 'thenExpression', 'elseExpression', 'block', 'statement', 'declaration']
-    
-    childProperties.forEach(prop => {
-      if (node[prop] && typeof node[prop] === 'object') {
-        const childX = x
-        const childY = y + verticalSpacing
-        // When edgeLabels is true, use the property name as the edge label
-        const edgeLabel = node.edgeLabels ? prop : ''
-        walk(node[prop], childX, childY, nodeId, edgeLabel)
-      }
-    })
   }
 
   try {

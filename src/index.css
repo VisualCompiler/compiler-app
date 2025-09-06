@@ -184,7 +184,7 @@
 }
 
 .token-keyword {
-  @apply text-primary;
+  @apply text-destructive;
 }
 
 .token-identifier {

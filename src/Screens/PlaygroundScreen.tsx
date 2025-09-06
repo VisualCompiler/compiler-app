@@ -113,7 +113,7 @@ export const PlaygroundScreen = () => {
       </Header>
 
       <ResizablePanelGroup direction="vertical" className="p-4">
-        <ResizablePanel defaultSize={20} className="border-none">
+        <ResizablePanel defaultSize={82} className="border-none">
           <ResizablePanelGroup direction="horizontal" className="h-full">
             <ResizablePanel
               defaultSize={isRightFull ? 0 : isLeftFull ? 100 : 50}
@@ -161,7 +161,7 @@ export const PlaygroundScreen = () => {
 
             <ResizablePanel
               defaultSize={isLeftFull ? 0 : isRightFull ? 100 : 50}
-              minSize={isRightFull ? 100 : 20}
+              minSize={isRightFull ? 100 : 45}
               className="flex flex-col bg-secondary/30"
               style={{
                 display: isLeftFull ? 'none' : 'flex',
@@ -198,7 +198,7 @@ export const PlaygroundScreen = () => {
         {!isAnyPanelFull && (
           <>
             <ResizableHandle />
-            <ResizablePanel defaultSize={10}>
+            <ResizablePanel defaultSize={18}>
               <Console
                 errors={errors}
                 hasCompiled={hasCompiled}
