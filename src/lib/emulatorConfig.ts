@@ -162,7 +162,7 @@ export class UnicornEmulator {
     }
   }
 
-  /** Map a region (address/size must be page aligned). */
+  /** Map code and stack regions. */
   mapMemory(address: number, size: number, permissions?: number): boolean {
     if (!this.isInitialized) return false;
     try {

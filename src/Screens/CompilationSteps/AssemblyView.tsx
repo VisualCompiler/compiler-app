@@ -128,6 +128,14 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     memory: new Map(),
   });
 
+  // Track previous values for change detection
+  const prevRegistersRef = useRef<Map<string, number>>(new Map());
+  const prevMemoryRef = useRef<Map<number, number>>(new Map());
+  const [elevatedRegisters, setElevatedRegisters] = useState<Set<string>>(
+    new Set()
+  );
+  const [elevatedMemory, setElevatedMemory] = useState<Set<number>>(new Set());
+
   // Helper functions to reduce code duplication
   const updateExecutionState = (updates: Partial<ExecutionState>) => {
     setExecutionState((prev) => {
@@ -135,6 +143,62 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       executionStateRef.current = newState;
       return newState;
     });
+  };
+
+  // Function to detect register changes and update elevation
+  const detectRegisterChanges = (newRegisters: Map<string, number>) => {
+    const changedRegisters = new Set<string>();
+    const prevRegisters = prevRegistersRef.current;
+
+    for (const [regName, newValue] of newRegisters) {
+      const prevValue = prevRegisters.get(regName);
+      if (prevValue !== undefined && prevValue !== newValue) {
+        changedRegisters.add(regName);
+      }
+    }
+
+    if (changedRegisters.size > 0) {
+      setElevatedRegisters(changedRegisters);
+      // Clear elevation after animation - use executionSpeed if executing, otherwise 1000ms
+      const elevationDuration = isExecuting ? executionSpeed : 1000;
+      setTimeout(() => {
+        setElevatedRegisters(new Set());
+      }, elevationDuration);
+    }
+
+    prevRegistersRef.current = new Map(newRegisters);
+  };
+
+  // Function to detect memory changes and update elevation
+  const detectMemoryChanges = (startAddr: number, endAddr: number) => {
+    const changedMemory = new Set<number>();
+    const prevMemory = prevMemoryRef.current;
+
+    for (let addr = startAddr; addr <= endAddr; addr += 8) {
+      const data = emulator?.readMemory(addr, 8);
+      if (data) {
+        const currentValue = Array.from(data).reduce(
+          (acc, byte, index) => acc + (byte << (index * 8)),
+          0
+        );
+        const prevValue = prevMemory.get(addr);
+
+        if (prevValue !== undefined && prevValue !== currentValue) {
+          changedMemory.add(addr);
+        }
+
+        prevMemory.set(addr, currentValue);
+      }
+    }
+
+    if (changedMemory.size > 0) {
+      setElevatedMemory(changedMemory);
+      // Clear elevation after animation - use executionSpeed if executing, otherwise 1000ms
+      const elevationDuration = isExecuting ? executionSpeed : 1000;
+      setTimeout(() => {
+        setElevatedMemory(new Set());
+      }, elevationDuration);
+    }
   };
 
   const resetProgramCounter = () => {
@@ -332,6 +396,7 @@ nop
     }
 
     setCurrentRegisters(registerMap);
+    detectRegisterChanges(registerMap);
   };
 
   // Convert binary lines to machine code bytes
@@ -708,11 +773,11 @@ nop
                                   (l) => l.type === "instruction"
                                 ) &&
                               line.type === "instruction")
-                          ? "bg-blue-500/30 border-2 border-blue-500/50 shadow-lg"
+                          ? "bg-green-500/30 border-2 border-green-500/50 shadow-lg"
                           : line.type === "directive"
                           ? "bg-purple-500/20 border border-purple-500/30"
                           : line.type === "label"
-                          ? "bg-green-500/20 border border-green-500/30"
+                          ? "bg-blue-500/20 border border-blue-500/30"
                           : "bg-muted/30 hover:bg-muted/50"
                       } text-foreground`}
                     >
@@ -736,7 +801,7 @@ nop
                           Directive
                         </div>
                       ) : line.type === "label" ? (
-                        <div className="text-green-500 text-xs italic">
+                        <div className="text-blue-500 text-xs italic">
                           Label
                         </div>
                       ) : (
@@ -782,27 +847,26 @@ nop
 
                 // Color coding for different register groups
                 const getRegisterColor = (regName: string) => {
-                  if (regName === "RSP")
-                    return "text-orange-500";
-                  if (regName === "RBP")
-                    return "text-purple-500";
-                  if (regName === "RIP")
-                    return "text-amber-400";
-                  if (regName == 'EFLAGS')
-                    return "text-red-400";
+                  if (regName === "RSP") return "text-orange-500";
+                  if (regName === "RBP") return "text-purple-500";
+                  if (regName === "RIP") return "text-amber-400";
+                  if (regName == "EFLAGS") return "text-red-400";
                   else return "text-muted-foreground"; // Default
                 };
 
                 const textColor = getRegisterColor(register.name);
+                const isElevated = elevatedRegisters.has(register.name);
 
                 return (
                   <div
                     key={register.name}
-                    className={`flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center p-2 bg-muted/30 rounded space-y-1 sm:space-y-0 ${textColor}`}
+                    className={`flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center p-2 bg-muted/30 rounded space-y-1 sm:space-y-0 ${textColor} transition-all duration-300 ${
+                      isElevated
+                        ? "shadow-xs scale-103 border-2 border-yellow-400"
+                        : ""
+                    }`}
                   >
-                    <span className="font-medium min-w-0">
-                      {register.name}
-                    </span>
+                    <span className="font-medium min-w-0">{register.name}</span>
                     <span className="text-primary font-mono text-xs break-all sm:break-words sm:text-right">
                       {displayValue}
                     </span>
@@ -873,6 +937,17 @@ nop
                 const rbpValue = currentRegisters.get("RBP");
                 const ripValue = currentRegisters.get("RIP");
 
+                // Detect memory changes for the displayed range
+                const startAddr =
+                  stackSortOrder === "desc"
+                    ? alignedStartAddress - 49 * 8
+                    : alignedStartAddress;
+                const endAddr =
+                  stackSortOrder === "desc"
+                    ? alignedStartAddress
+                    : alignedStartAddress + 49 * 8;
+                detectMemoryChanges(startAddr, endAddr);
+
                 for (let i = 0; i < 50; i++) {
                   // Calculate address based on sort order
                   const addr =
@@ -908,11 +983,16 @@ nop
                   };
 
                   const bgColor = getMemoryColor();
+                  const isElevated = elevatedMemory.has(addr);
 
                   memoryRows.push(
                     <div
                       key={i}
-                      className={`flex justify-between items-start p-2 ${bgColor} rounded gap-3`}
+                      className={`flex justify-between items-start p-2 ${bgColor} rounded gap-3 transition-all duration-300 ${
+                        isElevated
+                          ? "shadow-lg scale-105 border-2 border-yellow-400"
+                          : ""
+                      }`}
                     >
                       <span className="text-muted-foreground font-medium text-xs flex-shrink-0">
                         0x{addr.toString(16).padStart(8, "0")}
