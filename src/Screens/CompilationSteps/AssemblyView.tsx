@@ -114,7 +114,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     number | null
   >(null);
   const [isStepping, setIsStepping] = useState(false);
-  const [memoryStartAddress, setMemoryStartAddress] = useState(0);
+  const [memoryStartAddress, setMemoryStartAddress] = useState(
+    EMULATOR_CONFIG.STACK_SEGMENT_START + EMULATOR_CONFIG.STACK_SIZE - 8
+  );
   const [isPaused, setIsPaused] = useState(false);
   const [stackSortOrder, setStackSortOrder] = useState<"asc" | "desc">("desc");
   const [hasError, setHasError] = useState(false);
@@ -161,7 +163,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     assemblyCode = `
 .globl start
 start:
-mov eax, 543212333222345456
+mov eax, 3
 push rbp
 mov rbp, rsp
 mov eax, 4
@@ -730,11 +732,11 @@ nop
                       </div>
                       <div className="mb-1">{line.line}</div>
                       {line.type === "directive" ? (
-                        <div className="text-purple-400 text-xs italic">
+                        <div className="text-purple-500 text-xs italic">
                           Directive
                         </div>
                       ) : line.type === "label" ? (
-                        <div className="text-green-400 text-xs italic">
+                        <div className="text-green-500 text-xs italic">
                           Label
                         </div>
                       ) : (
@@ -755,10 +757,10 @@ nop
         <div className="flex-1 border-l border-border overflow-y-auto">
           <div className="p-4 space-y-3">
             {/* Registers View */}
-            <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
+            <h3 className="text-sm font-semibold border-b border-border pb-2 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
               Registers
             </h3>
-            <div className="grid grid-cols-1 gap-2 text-xs font-mono">
+            <div className="grid grid-cols-1 gap-1 text-xs font-mono">
               {X86_REGISTERS.map((register) => {
                 const currentValue = currentRegisters.get(register.name);
                 let displayValue;
@@ -778,12 +780,27 @@ nop
                   displayValue = register.value;
                 }
 
+                // Color coding for different register groups
+                const getRegisterColor = (regName: string) => {
+                  if (regName === "RSP")
+                    return "text-orange-500";
+                  if (regName === "RBP")
+                    return "text-purple-500";
+                  if (regName === "RIP")
+                    return "text-amber-400";
+                  if (regName == 'EFLAGS')
+                    return "text-red-400";
+                  else return "text-muted-foreground"; // Default
+                };
+
+                const textColor = getRegisterColor(register.name);
+
                 return (
                   <div
                     key={register.name}
-                    className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center p-2 bg-muted/30 rounded space-y-1 sm:space-y-0"
+                    className={`flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center p-2 bg-muted/30 rounded space-y-1 sm:space-y-0 ${textColor}`}
                   >
-                    <span className="text-muted-foreground font-medium min-w-0">
+                    <span className="font-medium min-w-0">
                       {register.name}
                     </span>
                     <span className="text-primary font-mono text-xs break-all sm:break-words sm:text-right">
@@ -845,8 +862,16 @@ nop
                 const alignedStartAddress = memoryStartAddress & ~0x7;
 
                 // Define memory bounds
-                const MIN_ADDRESS = 0x0;
-                const MAX_ADDRESS = 0x7fffffffffffffff; // 64-bit address space limit
+                const MIN_ADDRESS = EMULATOR_CONFIG.STACK_SEGMENT_START;
+                const MAX_ADDRESS =
+                  EMULATOR_CONFIG.STACK_SEGMENT_START +
+                  EMULATOR_CONFIG.STACK_SIZE -
+                  8;
+
+                // Get register values for highlighting memory locations
+                const rspValue = currentRegisters.get("RSP");
+                const rbpValue = currentRegisters.get("RBP");
+                const ripValue = currentRegisters.get("RIP");
 
                 for (let i = 0; i < 50; i++) {
                   // Calculate address based on sort order
@@ -868,10 +893,26 @@ nop
                         .join(" ")
                     : "00 00 00 00 00 00 00 00";
 
+                  // Check which register points to this address and apply corresponding color
+                  const getMemoryColor = () => {
+                    if (rspValue !== undefined && addr === rspValue) {
+                      return "bg-orange-500/30";
+                    }
+                    if (rbpValue !== undefined && addr === rbpValue) {
+                      return "bg-purple-500/30";
+                    }
+                    if (ripValue !== undefined && addr === ripValue) {
+                      return "bg-amber-500/30";
+                    }
+                    return "bg-muted/30";
+                  };
+
+                  const bgColor = getMemoryColor();
+
                   memoryRows.push(
                     <div
                       key={i}
-                      className="flex justify-between items-start p-2 bg-muted/30 rounded gap-3"
+                      className={`flex justify-between items-start p-2 ${bgColor} rounded gap-3`}
                     >
                       <span className="text-muted-foreground font-medium text-xs flex-shrink-0">
                         0x{addr.toString(16).padStart(8, "0")}
