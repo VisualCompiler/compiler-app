@@ -67,7 +67,7 @@ export const convertAssemblyToBinary = async (
       const lineNumber =
         lines.findIndex((line) => line.trim() === instructionLine) + 1;
 
-      // Assemble just this instruction to validate it produces bytes 
+      // Assemble just this instruction to validate it produces bytes
       try {
         const singleResult = ks.asm(instructionLine);
         if (!singleResult.failed && singleResult.length === 0) {
@@ -168,6 +168,28 @@ export const convertAssemblyToBinary = async (
           EMULATOR_CONFIG.CODE_SEGMENT_START + inst.address + inst.bytes.length;
       }
     }
+
+    // Check if there's no main function and emit warning
+    const hasMainFunction = mapping.some(
+      (line) => line.type === "instruction" && line.line.includes("call main")
+    );
+
+    if (!hasMainFunction) {
+      // Use custom console to emit warning
+      if (
+        typeof window !== "undefined" &&
+        (window as any).console?.assemblingWarning
+      ) {
+        (window as any).console.assemblingWarning(
+          "No main function provided. Program will return 0.",
+          undefined,
+          "no-main-function"
+        );
+      } else {
+        console.warn("No main function provided. Program will return 0.");
+      }
+    }
+
     ks.close();
     cs.close();
     return mapping;

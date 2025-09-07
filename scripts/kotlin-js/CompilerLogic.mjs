@@ -71,6 +71,7 @@ import {
   drop3na99dw9feawf as drop,
   asReversed308kw52j6ls1u as asReversed_0,
   IllegalArgumentException_init_$Create$3ewkh27kzt8z8 as IllegalArgumentException_init_$Create$,
+  Collection1k04j3hzsbod0 as Collection,
 } from './kotlin-kotlin-stdlib.mjs';
 import {
   JsonPrimitiveolttw629wj53 as JsonPrimitive,
@@ -433,7 +434,7 @@ function emitInstruction($this, instruction) {
         tmp = indent + 'addq rsp, ' + instruction.nw_1;
       } else {
         if (instruction instanceof Mov) {
-          tmp = indent + 'mov ' + emitOperand$default($this, instruction.mw_1) + ', ' + emitOperand$default($this, instruction.lw_1);
+          tmp = indent + 'mov ' + emitOperand($this, instruction.mw_1, OperandSize_QUAD_getInstance()) + ', ' + emitOperand($this, instruction.lw_1, OperandSize_QUAD_getInstance());
         } else {
           if (instruction instanceof AsmUnary) {
             tmp = indent + instruction.jw_1.iw_1 + ' ' + emitOperand$default($this, instruction.kw_1);
@@ -496,7 +497,7 @@ function emitOperand($this, operand, size) {
     tmp = '' + operand.yw_1;
   } else {
     if (operand instanceof Stack) {
-      tmp = 'qword ptr[rbp ' + operand.xw_1 + ']';
+      tmp = '[rbp ' + operand.xw_1 + ']';
     } else {
       if (operand instanceof Register) {
         var tmp_0;
@@ -539,7 +540,7 @@ function emitOperand($this, operand, size) {
   return tmp;
 }
 function emitOperand$default($this, operand, size, $super) {
-  size = size === VOID ? OperandSize_QUAD_getInstance() : size;
+  size = size === VOID ? OperandSize_LONG_getInstance() : size;
   return emitOperand($this, operand, size);
 }
 function formatLabel($this, name) {
@@ -564,6 +565,10 @@ function CodeEmitter$emitFunction$lambda(this$0) {
 function OperandSize_BYTE_getInstance() {
   OperandSize_initEntries();
   return OperandSize_BYTE_instance;
+}
+function OperandSize_LONG_getInstance() {
+  OperandSize_initEntries();
+  return OperandSize_LONG_instance;
 }
 function OperandSize_QUAD_getInstance() {
   OperandSize_initEntries();
@@ -7137,6 +7142,14 @@ function convertOp($this, tackyOp) {
   }
   return tmp;
 }
+function createMainWrapper($this) {
+  var instructions = listOf_0([new Call('main'), Ret_getInstance()]);
+  return new AsmFunction('_start', instructions);
+}
+function createDefaultMain($this) {
+  var instructions = listOf_0([new Mov(new Imm(0), new Register(HardwareRegister_EAX_getInstance())), Ret_getInstance()]);
+  return new AsmFunction('_start', instructions);
+}
 function TackyToAsm() {
 }
 protoOf(TackyToAsm).hv = function (tackyProgram) {
@@ -7151,7 +7164,39 @@ protoOf(TackyToAsm).hv = function (tackyProgram) {
     destination.d(tmp$ret$0);
   }
   var asmFunction = destination;
-  return new AsmProgram(asmFunction);
+  var tmp$ret$3;
+  $l$block_0: {
+    // Inline function 'kotlin.collections.any' call
+    var tmp;
+    if (isInterface(asmFunction, Collection)) {
+      tmp = asmFunction.n();
+    } else {
+      tmp = false;
+    }
+    if (tmp) {
+      tmp$ret$3 = false;
+      break $l$block_0;
+    }
+    var _iterator__ex2g4s_0 = asmFunction.i();
+    while (_iterator__ex2g4s_0.j()) {
+      var element = _iterator__ex2g4s_0.k();
+      if (element.kv_1 === 'main') {
+        tmp$ret$3 = true;
+        break $l$block_0;
+      }
+    }
+    tmp$ret$3 = false;
+  }
+  var hasMainFunction = tmp$ret$3;
+  var tmp_0;
+  if (hasMainFunction) {
+    tmp_0 = createMainWrapper(this);
+  } else {
+    tmp_0 = createDefaultMain(this);
+  }
+  var mainWrapper = tmp_0;
+  var allFunctions = plus(listOf(mainWrapper), asmFunction);
+  return new AsmProgram(allFunctions);
 };
 //region block: post-declaration
 defineProp(protoOf(NodeType), 'name', protoOf(NodeType).w1);

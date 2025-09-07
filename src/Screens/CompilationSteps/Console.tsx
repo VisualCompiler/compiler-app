@@ -1,12 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Terminal,
-  XCircle,
-  CheckCircle,
-  Trash2,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { Terminal, XCircle, CheckCircle, Trash2 } from "lucide-react";
 import type { CompilationError } from "../../../scripts/kotlin-js/CompilerLogic";
 import { customConsole, type ConsoleMessage } from "@/lib/consoleExtension";
 import { Button } from "@/components/ui/button";
@@ -26,8 +19,8 @@ export const Console: React.FC<ConsoleProps> = ({
   className = "",
 }) => {
   const [consoleMessages, setConsoleMessages] = useState<ConsoleMessage[]>([]);
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [showCustomConsole, setShowCustomConsole] = useState(false);
+  const [isExpanded] = useState(true);
+  const [hideCustomConsole, setHideCustomConsole] = useState(false);
 
   useEffect(() => {
     // Subscribe to custom console messages
@@ -114,12 +107,12 @@ export const Console: React.FC<ConsoleProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowCustomConsole(!showCustomConsole)}
+              onClick={() => setHideCustomConsole(!hideCustomConsole)}
               className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
             >
-              {showCustomConsole
-                ? "Hide Runtime Errors"
-                : "Show Runtime Errors"}
+              {hideCustomConsole
+                ? "Show Runtime Messages"
+                : "Hide Runtime Messages"}
             </Button>
           )}
 
@@ -130,7 +123,7 @@ export const Console: React.FC<ConsoleProps> = ({
               size="sm"
               onClick={() => customConsole.clear()}
               className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-              title="Clear runtime errors"
+              title="Clear runtime messages"
             >
               <Trash2 className="h-3 w-3" />
             </Button>
@@ -203,10 +196,10 @@ export const Console: React.FC<ConsoleProps> = ({
           )}
 
           {/* Runtime Errors */}
-          {showCustomConsole && consoleMessages.length > 0 && (
+          {!hideCustomConsole && consoleMessages.length > 0 && (
             <div className="mt-4">
               <div className="text-xs text-gray-500 mb-2 border-t border-gray-300 pt-2">
-                Runtime Errors:
+                Runtime Messages:
               </div>
               <div className="space-y-1">
                 {consoleMessages.map((message) => (

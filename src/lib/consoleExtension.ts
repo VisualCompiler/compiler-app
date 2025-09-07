@@ -5,6 +5,7 @@ export interface ConsoleMessage {
   message: string;
   timestamp: Date;
   details?: any;
+  messageId?: string; // Unique identifier for the type of message
 }
 
 class CustomConsole {
@@ -15,14 +16,21 @@ class CustomConsole {
   private addMessage(
     type: ConsoleMessage["type"],
     message: string,
-    details?: any
+    details?: any,
+    messageId?: string
   ) {
+    // Check if a message with the same messageId already exists
+    if (messageId && this.messages.some((msg) => msg.messageId === messageId)) {
+      return; // Don't add duplicate messages
+    }
+
     const consoleMessage: ConsoleMessage = {
       id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
       message,
       timestamp: new Date(),
       details,
+      messageId,
     };
 
     this.messages.push(consoleMessage);
@@ -51,13 +59,17 @@ class CustomConsole {
     }
   }
 
-  // Custom console methods - only for errors
-  assemblingError = (message: string, details?: any) => {
-    this.addMessage("error", `[ASSEMBLING] ${message}`, details);
+  // Custom console methods - only for errors and warnings
+  assemblingError = (message: string, details?: any, messageId?: string) => {
+    this.addMessage("error", `[ASSEMBLING] ${message}`, details, messageId);
   };
 
-  emulationError = (message: string, details?: any) => {
-    this.addMessage("error", `[EMULATION] ${message}`, details);
+  emulationError = (message: string, details?: any, messageId?: string) => {
+    this.addMessage("error", `[EMULATION] ${message}`, details, messageId);
+  };
+
+  assemblingWarning = (message: string, details?: any, messageId?: string) => {
+    this.addMessage("warning", `[ASSEMBLING] ${message}`, details, messageId);
   };
 
   // Subscribe to console messages
@@ -68,10 +80,8 @@ class CustomConsole {
     };
   };
 
-  // Get all messages
   getMessages = () => [...this.messages];
 
-  // Clear all messages
   clear = () => {
     this.messages = [];
     this.listeners.forEach((listener) => listener([]));
@@ -81,6 +91,12 @@ class CustomConsole {
   getMessagesByType = (type: ConsoleMessage["type"]) => {
     return this.messages.filter((msg) => msg.type === type);
   };
+
+  // Clear messages by messageId
+  clearByMessageId = (messageId: string) => {
+    this.messages = this.messages.filter((msg) => msg.messageId !== messageId);
+    this.listeners.forEach((listener) => listener([...this.messages]));
+  };
 }
 
 // Create singleton instance
@@ -89,8 +105,22 @@ export const customConsole = new CustomConsole();
 // Extend the global console object
 declare global {
   interface Console {
-    assemblingError: (message: string, details?: any) => void;
-    emulationError: (message: string, details?: any) => void;
+    assemblingError: (
+      message: string,
+      details?: any,
+      messageId?: string
+    ) => void;
+    emulationError: (
+      message: string,
+      details?: any,
+      messageId?: string
+    ) => void;
+    assemblingWarning: (
+      message: string,
+      details?: any,
+      messageId?: string
+    ) => void;
+    clearByMessageId: (messageId: string) => void;
   }
 }
 
@@ -98,4 +128,6 @@ declare global {
 if (typeof window !== "undefined") {
   (window.console as any).assemblingError = customConsole.assemblingError;
   (window.console as any).emulationError = customConsole.emulationError;
+  (window.console as any).assemblingWarning = customConsole.assemblingWarning;
+  (window.console as any).clearByMessageId = customConsole.clearByMessageId;
 }

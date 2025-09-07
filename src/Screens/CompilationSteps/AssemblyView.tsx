@@ -421,7 +421,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   const loadAssemblyCode = async (): Promise<boolean> => {
     if (!emulator || !binaryLines.length) {
       console.emulationError(
-        "Cannot load assembly code: emulator or binary lines not available"
+        "Cannot load assembly code: emulator or binary lines not available",
+        undefined,
+        "emulator-not-available"
       );
       return false;
     }
@@ -446,7 +448,8 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         `Failed to load assembly code: ${
           error instanceof Error ? error.message : String(error)
         }`,
-        error
+        error,
+        "assembly-load-failed"
       );
       return false;
     }
@@ -463,14 +466,12 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       clearInterval(runInterval.current);
 
     runInterval.current = setInterval(() => {
-      if (
-        !isPausedRef.current &&
-        !hasError &&
-        emulator.getInstructionPointer()! >=
-          EMULATOR_CONFIG.CODE_SEGMENT_START +
-            binaryLinesToMachineCode(binaryLines).length +
-            0x8
-      ) {
+      const programEnd =
+        EMULATOR_CONFIG.CODE_SEGMENT_START +
+        binaryLinesToMachineCode(binaryLines).length;
+      const currentIP = emulator.getInstructionPointer()!;
+
+      if (!isPausedRef.current && !hasError && currentIP >= programEnd) {
         clearInterval(runInterval.current!);
         setIsExecuting(false);
         return;
@@ -483,7 +484,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     const currentState = executionStateRef.current;
     if (!emulator || !binaryLines.length) {
       console.emulationError(
-        "Cannot execute step: emulator or binary lines not available"
+        "Cannot execute step: emulator or binary lines not available",
+        undefined,
+        "step-execution-not-available"
       );
       return;
     }
@@ -501,6 +504,69 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       if (currentState.stepCount == 0) {
         await loadAssemblyCode();
         resetStackPointer();
+      }
+
+      // Check if we're about to execute a ret instruction in the _start function
+      const currentIP = currentState.currentInstruction;
+      const currentLine = binaryLines.find(
+        (line) => line.offset === currentIP && line.type === "instruction"
+      );
+
+      // If we're about to execute ret, check if we're in the _start function
+      if (currentLine && currentLine.line?.trim() === "ret") {
+        // Find the _start function label
+        const startFunctionLine = binaryLines.find(
+          (line) => line.type === "label" && line.line?.includes("_start")
+        );
+
+        if (startFunctionLine) {
+          // Find the next function label after _start to determine the _start function's end
+          const startFunctionIndex = binaryLines.findIndex(
+            (line) => line === startFunctionLine
+          );
+
+          // Look for the next function label after _start
+          let nextFunctionIndex = -1;
+          for (let i = startFunctionIndex + 1; i < binaryLines.length; i++) {
+            if (
+              binaryLines[i].type === "label" &&
+              binaryLines[i].line &&
+              !binaryLines[i].line.startsWith(".")
+            ) {
+              // Skip local labels
+              nextFunctionIndex = i;
+              break;
+            }
+          }
+
+          // Determine the end of _start function
+          const startFunctionEnd =
+            nextFunctionIndex !== -1
+              ? binaryLines[nextFunctionIndex].offset
+              : EMULATOR_CONFIG.CODE_SEGMENT_START +
+                binaryLinesToMachineCode(binaryLines).length;
+
+          // Check if current IP is within the _start function
+          if (
+            currentIP >= startFunctionLine.offset &&
+            currentIP < startFunctionEnd
+          ) {
+            // We're in _start function and about to execute ret
+            // Don't execute the ret, just reset the program
+            console.log("_start function completed, resetting program");
+
+            // Stop execution
+            if (runInterval.current) {
+              clearInterval(runInterval.current);
+              setIsExecuting(false);
+            }
+
+            // Reset for next run
+            resetExecutionState();
+            resetProgramCounter();
+            return;
+          }
+        }
       }
 
       // Execute one instruction using start with count=1
@@ -529,22 +595,23 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
           setLastExecutedLine(instructionLineIndex);
         }
 
-        // Check if we've stepped through all instruction lines
-        if (
-          emulator.getInstructionPointer()! >=
+        // Check if we've reached the end of the program or if _start function returned
+        const programEnd =
           EMULATOR_CONFIG.CODE_SEGMENT_START +
-            binaryLinesToMachineCode(binaryLines).length +
-            0x8
-        ) {
-          console.log("All instruction lines executed, stopping execution");
-          // Stop the execution instead of resetting
+          binaryLinesToMachineCode(binaryLines).length;
+        const currentIP = emulator.getInstructionPointer()!;
+
+        // Stop execution if we've reached the end of the program
+        // or if we're executing a ret instruction in the _start function
+        if (currentIP >= programEnd) {
+          console.log("Program execution completed, stopping execution");
+          // Stop the execution
           if (runInterval.current) {
             clearInterval(runInterval.current);
             setIsExecuting(false);
           }
           // Reset for next run
-          resetExecutionState();
-          resetProgramCounter();
+          handleReset()
         }
       }
     } catch (error) {
@@ -552,7 +619,8 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         `Step execution failed: ${
           error instanceof Error ? error.message : String(error)
         }`,
-        error
+        error,
+        "step-execution-failed"
       );
       // Mark the instruction that failed
       if (instructionLineIndex !== -1) {
@@ -846,7 +914,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
                   if (regName === "RSP") return "text-orange-500";
                   if (regName === "RBP") return "text-teal-600";
                   if (regName === "RIP") return "text-amber-400";
-                  if (regName == "EFLAGS") return "text-red-400";
                   else return "text-muted-foreground"; // Default
                 };
 
@@ -896,7 +963,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
                       }
                     }
                   }}
-                  className="w-18 px-2 py-1 text-xs font-mono bg-muted/50 border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-19 px-2 py-1 text-xs font-mono bg-muted/50 border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <div className="flex items-center space-x-1">
                   <span className="text-xs text-muted-foreground">Order:</span>
@@ -948,8 +1015,8 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
                   // Calculate address based on sort order
                   const addr =
                     stackSortOrder === "desc"
-                      ? alignedStartAddress - i * 8 // Descending: higher addresses first
-                      : alignedStartAddress + i * 8; // Ascending: lower addresses first
+                      ? alignedStartAddress - i * 8
+                      : alignedStartAddress + i * 8;
 
                   // Check if address is within valid bounds
                   if (addr < MIN_ADDRESS || addr > MAX_ADDRESS) {
