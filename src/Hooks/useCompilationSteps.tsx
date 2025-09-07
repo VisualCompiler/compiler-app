@@ -107,15 +107,15 @@ export const useCompilationSteps = () => {
     })
   }, [])
 
-  const steps = [
+  const stages = [
     {
-      title: 'Token List',
+      title: 'Lexer',
       description: 'Building a token list from the source code',
       content: <TokenListContent tokenList={compilationResult.tokens} />,
     },
     {
-      title: 'Abstract Syntax Tree (AST)',
-      description: 'Building the AST from the token list',
+      title: 'Parser & Semantic Analysis',
+      description: 'Building the Abstract Syntax Tree (AST) from the token list',
       content: <ASTViewer ast={compilationResult.ast} />,
     },
     {
@@ -124,8 +124,8 @@ export const useCompilationSteps = () => {
       content: <TackyView tackyCode={compilationResult.tackyPseudoCode} />,
     },
     {
-      title: 'Generated Assembly Code', // TODO update
-      description: 'Generated x64 assembly code from the AST',
+      title: 'Program Execution',
+      description: 'Generate x86-64 assembly code and trace execution',
       content: <AssemblyView asmCode={compilationResult.asmCode} />,
     },
   ]
@@ -133,10 +133,10 @@ export const useCompilationSteps = () => {
   const [index, setIndex] = useState(0)
 
   return {
-    currentStep: steps[index],
+    currentStep: stages[index],
     index,
-    next: () => setIndex((i) => (i + 1) % steps.length),
-    prev: () => setIndex((i) => (i === 0 ? steps.length - 1 : i - 1)),
+    next: () => setIndex((i) => (i + 1) % stages.length),
+    prev: () => setIndex((i) => (i === 0 ? stages.length - 1 : i - 1)),
     errors: compilationResult.errors,
     stageOutputs: compilationResult.stageOutputs,
     hasCompiled: compilationResult.hasCompiled,
