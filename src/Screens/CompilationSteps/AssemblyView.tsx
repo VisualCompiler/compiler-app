@@ -896,7 +896,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
                       }
                     }
                   }}
-                  className="w-18 px-2 py-1 text-xs font-mono bg-muted/50 border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-19 px-2 py-1 text-xs font-mono bg-muted/50 border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary"
                 />
                 <div className="flex items-center space-x-1">
                   <span className="text-xs text-muted-foreground">Order:</span>
@@ -948,8 +948,8 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
                   // Calculate address based on sort order
                   const addr =
                     stackSortOrder === "desc"
-                      ? alignedStartAddress - i * 8 // Descending: higher addresses first
-                      : alignedStartAddress + i * 8; // Ascending: lower addresses first
+                      ? alignedStartAddress - i * 8 
+                      : alignedStartAddress + i * 8;
 
                   // Check if address is within valid bounds
                   if (addr < MIN_ADDRESS || addr > MAX_ADDRESS) {
