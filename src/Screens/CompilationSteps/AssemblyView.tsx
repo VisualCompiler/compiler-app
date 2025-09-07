@@ -611,7 +611,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
             setIsExecuting(false);
           }
           // Reset for next run
-          handleReset()
+          handleReset();
         }
       }
     } catch (error) {

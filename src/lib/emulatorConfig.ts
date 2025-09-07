@@ -152,8 +152,14 @@ export class UnicornEmulator {
       this.uc = new window.uc.Unicorn(arch, mode);
       this.isInitialized = true;
 
-      this.setRegister(window.uc.X86_REG_RBP, EMULATOR_CONFIG.STACK_SEGMENT_START + EMULATOR_CONFIG.STACK_SIZE - 8);
-      this.setRegister(window.uc.X86_REG_RSP, EMULATOR_CONFIG.STACK_SEGMENT_START + EMULATOR_CONFIG.STACK_SIZE - 8);
+      this.setRegister(
+        window.uc.X86_REG_RBP,
+        EMULATOR_CONFIG.STACK_SEGMENT_START + EMULATOR_CONFIG.STACK_SIZE - 8
+      );
+      this.setRegister(
+        window.uc.X86_REG_RSP,
+        EMULATOR_CONFIG.STACK_SEGMENT_START + EMULATOR_CONFIG.STACK_SIZE - 8
+      );
       const layoutMapped = this.mapDefaultLayout();
       return layoutMapped;
     } catch (error) {
@@ -208,20 +214,20 @@ export class UnicornEmulator {
       console.error("Emulator not initialized");
       return false;
     }
-      console.log(
-        `Writing ${data.length} bytes to memory at 0x${address.toString(16)}`
-      );
-      console.log(
-        "Data:",
-        Array.from(data)
-          .map((b) => "0x" + b.toString(16).padStart(2, "0"))
-          .join(" ")
-      );
-      this.uc.mem_write(address, Array.from(data));
-      console.log(
-        `Successfully wrote ${data.length} bytes to 0x${address.toString(16)}`
-      );
-      return true;
+    console.log(
+      `Writing ${data.length} bytes to memory at 0x${address.toString(16)}`
+    );
+    console.log(
+      "Data:",
+      Array.from(data)
+        .map((b) => "0x" + b.toString(16).padStart(2, "0"))
+        .join(" ")
+    );
+    this.uc.mem_write(address, Array.from(data));
+    console.log(
+      `Successfully wrote ${data.length} bytes to 0x${address.toString(16)}`
+    );
+    return true;
   }
 
   setRegister(registerId: number, value: number): boolean {
@@ -251,18 +257,15 @@ export class UnicornEmulator {
 
   /** Start with optional single-instruction count */
   start(begin: number, until: number, count: number = 1) {
+    // Check if the start address is accessible
+    const rip = this.getInstructionPointer();
+    console.log(
+      `Current RIP: ${rip !== null ? "0x" + rip.toString(16) : "null"}`
+    );
 
-
-      // Check if the start address is accessible
-      const rip = this.getInstructionPointer();
-      console.log(
-        `Current RIP: ${rip !== null ? "0x" + rip.toString(16) : "null"}`
-      );
-
-      this.uc.emu_start(begin, until, 0, count);
-      console.log(this.uc.mem_read(begin, 8));
-      console.log("Emulation started successfully");
-
+    this.uc.emu_start(begin, until, 0, count);
+    console.log(this.uc.mem_read(begin, 8));
+    console.log("Emulation started successfully");
   }
 
   getInstructionPointer(): number | null {
