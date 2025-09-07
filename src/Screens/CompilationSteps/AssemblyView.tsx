@@ -720,7 +720,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
             setIsExecuting(false)
           }
           // Reset for next run
-          handleReset()
+          handleReset();
         }
       }
     } catch (error) {
