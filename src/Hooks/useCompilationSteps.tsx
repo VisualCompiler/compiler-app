@@ -33,8 +33,8 @@ export interface AstNode {
 }
 
 export interface TackyInstruction {
-  pseudoCode: string
-  astNodeId: string
+  sourceId: string
+  _raw: any
 }
 
 export interface AssemblyInstruction {
@@ -62,7 +62,7 @@ export const useCompilationSteps = () => {
     tokens: any[]
     ast: any
     tackyPseudoCode: string
-    tacky: string
+    tackyInstructions: TackyInstruction[]
     asmCode: string
     asm: string
     errors: CompilationError[]
@@ -72,7 +72,7 @@ export const useCompilationSteps = () => {
     tokens: [],
     ast: null,
     tackyPseudoCode: '',
-    tacky: '',
+    tackyInstructions: [],
     asmCode: '',
     asm: '',
     errors: [],
@@ -86,7 +86,7 @@ export const useCompilationSteps = () => {
         tokens: [],
         ast: null,
         tackyPseudoCode: '',
-        tacky: '',
+        tackyInstructions: [],
         asmCode: '',
         asm: '',
         errors: [],
@@ -120,8 +120,12 @@ export const useCompilationSteps = () => {
       ? JSON.parse((parserOutput as any).ast)
       : null
 
+    const tackyJsonString = (tackyOutput as any)?.tacky || null
+    const tackyProgram = tackyJsonString ? JSON.parse(tackyJsonString) : null
+
+    const tackyInstructions = tackyProgram?.functions?.[0]?.body || []
     const tackyPseudoCode = (tackyOutput as any)?.tackyPretty || ''
-    const tacky = (tackyOutput as any)?.tacky || ''
+    //const tacky = (tackyOutput as any)?.tacky || ''
 
     //console.log(tackyPseudoCode)
     const asmCode = (codeGenOutput as any)?.assembly || ''
@@ -131,7 +135,7 @@ export const useCompilationSteps = () => {
       tokens,
       ast,
       tackyPseudoCode,
-      tacky,
+      tackyInstructions,
       asmCode,
       asm,
       errors: result.overallErrors,
@@ -163,7 +167,15 @@ export const useCompilationSteps = () => {
     {
       title: 'Intermediate Representation (TACKY)',
       description: 'Building the Tacky Instructions from the AST',
-      content: <TackyView tackyCode={compilationResult.tackyPseudoCode} />,
+      content: (
+        <TackyView
+          instructions={compilationResult.tackyInstructions}
+          prettyTacky={compilationResult.tackyPseudoCode}
+          ast={compilationResult.ast}
+          activeLocation={activeLocation}
+          setActiveLocation={setActiveLocation}
+        />
+      ),
     },
     {
       title: 'Program Execution',

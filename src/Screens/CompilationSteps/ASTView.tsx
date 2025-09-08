@@ -49,7 +49,7 @@ const generateGraph = (
         label: node.label || node.type || 'Unknown',
         type: node.type || node.label || 'Unknown',
         color: getNodeHexColor(node.type),
-        id: node.id, // Pass the actual node ID
+        id: node.id,
         location: node.location, // Pass the location object into the data payload
         setActiveLocation: setActiveLocation, // Pass the setter function
       },
