@@ -4,10 +4,11 @@ import { ASTViewer } from '@/Screens/CompilationSteps/ASTView'
 import { TokenListContent } from '@/Screens/CompilationSteps/TokenListView'
 import { useState, useCallback } from 'react'
 import { XCircle } from 'lucide-react'
-import type {
-  CompilationError,
-  CompilationOutput,
-  CompilationResult,
+import {
+  AssemblyOutput,
+  type CompilationError,
+  type CompilationOutput,
+  type CompilationResult,
 } from '../../scripts/kotlin-js/CompilerLogic'
 
 declare global {
@@ -20,21 +21,50 @@ declare global {
   }
 }
 
+export interface SourceLocation {
+  startLine: number
+  startColumn: number
+  endLine: number
+  endColumn: number
+}
+export interface AstNode {
+  id: string
+  location: SourceLocation
+}
+
+export interface TackyInstruction {
+  pseudoCode: string
+  astNodeId: string
+}
+
+export interface AssemblyInstruction {
+  text: string
+  astNodeId?: string
+}
+
 // Unified error handling function
 const getErrorInfo = (errorStage: string) => {
-    return {
-      icon: <XCircle className="h-3 w-3 text-red-500" />,
-      label: `${errorStage} stage failed`,
-    }
+  return {
+    icon: <XCircle className="h-3 w-3 text-red-500" />,
+    label: `${errorStage} stage failed`,
   }
+}
 
 export const useCompilationSteps = () => {
+  const [activeAstId, setActiveAstId] = useState<string | null>(null)
+  const [activeLocation, setActiveLocation] = useState<SourceLocation | null>(
+    null
+  )
+
+  console.log('Current activeLocation in hook:', activeLocation)
+
   const [compilationResult, setCompilationResult] = useState<{
     tokens: any[]
     ast: any
     tackyPseudoCode: string
-
+    tacky: string
     asmCode: string
+    asm: string
     errors: CompilationError[]
     stageOutputs: CompilationOutput[]
     hasCompiled: boolean
@@ -42,7 +72,9 @@ export const useCompilationSteps = () => {
     tokens: [],
     ast: null,
     tackyPseudoCode: '',
+    tacky: '',
     asmCode: '',
+    asm: '',
     errors: [],
     stageOutputs: [],
     hasCompiled: false,
@@ -54,7 +86,9 @@ export const useCompilationSteps = () => {
         tokens: [],
         ast: null,
         tackyPseudoCode: '',
+        tacky: '',
         asmCode: '',
+        asm: '',
         errors: [],
         stageOutputs: [],
         hasCompiled: true,
@@ -87,20 +121,19 @@ export const useCompilationSteps = () => {
       : null
 
     const tackyPseudoCode = (tackyOutput as any)?.tackyPretty || ''
-    console.log(tackyPseudoCode)
+    const tacky = (tackyOutput as any)?.tacky || ''
+
+    //console.log(tackyPseudoCode)
     const asmCode = (codeGenOutput as any)?.assembly || ''
-    console.log('--- Final Parsed Data for UI ---', {
-      tokens,
-      ast,
-      tackyPseudoCode,
-      asmCode,
-    })
+    const asm = (AssemblyOutput as any)?.rawAssembly || ''
 
     setCompilationResult({
       tokens,
       ast,
       tackyPseudoCode,
+      tacky,
       asmCode,
+      asm,
       errors: result.overallErrors,
       stageOutputs: result.outputs,
       hasCompiled: true,
@@ -115,8 +148,17 @@ export const useCompilationSteps = () => {
     },
     {
       title: 'Parser & Semantic Analysis',
-      description: 'Building the Abstract Syntax Tree (AST) from the token list',
-      content: <ASTViewer ast={compilationResult.ast} />,
+      description:
+        'Building the Abstract Syntax Tree (AST) from the token list',
+      content: (
+        <ASTViewer
+          ast={compilationResult.ast}
+          activeAstId={activeAstId}
+          setActiveAstId={setActiveAstId}
+          activeLocation={activeLocation}
+          setActiveLocation={setActiveLocation}
+        />
+      ),
     },
     {
       title: 'Intermediate Representation (TACKY)',
@@ -142,5 +184,7 @@ export const useCompilationSteps = () => {
     hasCompiled: compilationResult.hasCompiled,
     compileCode,
     getErrorInfo,
+    activeLocation,
+    setActiveLocation,
   }
 }

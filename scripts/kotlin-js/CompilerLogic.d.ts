@@ -76,11 +76,12 @@ export declare namespace CompilationOutput {
     }
 }
 export declare class LexerOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: string | undefined, tokens: Nullable<string> | undefined, errors: Array<CompilationError>);
+    constructor(stage: string | undefined, tokens: Nullable<string> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
     get stage(): string;
     get tokens(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: string, tokens?: Nullable<string>, errors?: Array<CompilationError>): LexerOutput;
+    get sourceLocation(): Nullable<SourceLocationInfo>;
+    copy(stage?: string, tokens?: Nullable<string>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): LexerOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -101,11 +102,12 @@ export declare namespace LexerOutput {
     }
 }
 export declare class ParserOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: string | undefined, ast: Nullable<string> | undefined, errors: Array<CompilationError>);
+    constructor(stage: string | undefined, ast: Nullable<string> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
     get stage(): string;
     get ast(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: string, ast?: Nullable<string>, errors?: Array<CompilationError>): ParserOutput;
+    get sourceLocation(): Nullable<SourceLocationInfo>;
+    copy(stage?: string, ast?: Nullable<string>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): ParserOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -126,11 +128,13 @@ export declare namespace ParserOutput {
     }
 }
 export declare class TackyOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: string | undefined, tackyPretty: Nullable<string> | undefined, errors: Array<CompilationError>);
+    constructor(stage: string | undefined, tacky: Nullable<string> | undefined, tackyPretty: Nullable<string> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
     get stage(): string;
+    get tacky(): Nullable<string>;
     get tackyPretty(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: string, tackyPretty?: Nullable<string>, errors?: Array<CompilationError>): TackyOutput;
+    get sourceLocation(): Nullable<SourceLocationInfo>;
+    copy(stage?: string, tacky?: Nullable<string>, tackyPretty?: Nullable<string>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): TackyOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -151,11 +155,13 @@ export declare namespace TackyOutput {
     }
 }
 export declare class AssemblyOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: string | undefined, assembly: Nullable<string> | undefined, errors: Array<CompilationError>);
+    constructor(stage: string | undefined, assembly: Nullable<string> | undefined, rawAssembly: Nullable<string> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
     get stage(): string;
     get assembly(): Nullable<string>;
+    get rawAssembly(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: string, assembly?: Nullable<string>, errors?: Array<CompilationError>): AssemblyOutput;
+    get sourceLocation(): Nullable<SourceLocationInfo>;
+    copy(stage?: string, assembly?: Nullable<string>, rawAssembly?: Nullable<string>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): AssemblyOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -165,6 +171,33 @@ export declare namespace AssemblyOutput.$metadata$ {
     const constructor: abstract new () => AssemblyOutput;
 }
 export declare namespace AssemblyOutput {
+    abstract class Companion extends KtSingleton<Companion.$metadata$.constructor>() {
+        private constructor();
+    }
+    /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+    namespace Companion.$metadata$ {
+        abstract class constructor {
+            private constructor();
+        }
+    }
+}
+export declare class SourceLocationInfo {
+    constructor(startLine: number, startColumn: number, endLine: number, endColumn: number, totalLines: number);
+    get startLine(): number;
+    get startColumn(): number;
+    get endLine(): number;
+    get endColumn(): number;
+    get totalLines(): number;
+    copy(startLine?: number, startColumn?: number, endLine?: number, endColumn?: number, totalLines?: number): SourceLocationInfo;
+    toString(): string;
+    hashCode(): number;
+    equals(other: Nullable<any>): boolean;
+}
+/** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+export declare namespace SourceLocationInfo.$metadata$ {
+    const constructor: abstract new () => SourceLocationInfo;
+}
+export declare namespace SourceLocationInfo {
     abstract class Companion extends KtSingleton<Companion.$metadata$.constructor>() {
         private constructor();
     }
@@ -230,7 +263,7 @@ export declare namespace CompilationResult {
 export declare class CompilerExport {
     constructor();
     exportCompilationResults(code: string): string;
-    toJsonString(_this_: KtList<any/* Token */>): string;
+    exportTokens(tokens: KtList<any/* Token */>): string;
 }
 /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
 export declare namespace CompilerExport.$metadata$ {

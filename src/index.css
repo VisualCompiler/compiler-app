@@ -228,6 +228,11 @@
     @apply bg-red-500/20;
   }
 
+  .cm-highlighted-range {
+    background-color: rgba(255, 255, 0, 0.102); /* yellow highlight */
+    border-radius: 2px;
+  }
+
   .cm-error-underline .cm-line {
     text-decoration: underline;
     text-decoration-color: theme('colors.red.500');

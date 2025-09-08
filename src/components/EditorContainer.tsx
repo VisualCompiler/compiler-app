@@ -1,6 +1,8 @@
 import React, { useRef, useEffect } from 'react'
 import { EditorState, StateField, StateEffect } from '@codemirror/state'
 import { autocompletion } from '@codemirror/autocomplete'
+import { solarizedDark } from '@uiw/codemirror-theme-solarized'
+import { nord } from '@uiw/codemirror-theme-nord'
 import { foldGutter } from '@codemirror/language'
 import {
   EditorView,
@@ -29,6 +31,7 @@ import {
 import { cpp } from '@codemirror/lang-cpp'
 import { useTheme } from 'next-themes'
 import type { CompilationError } from 'scripts/kotlin-js/CompilerLogic'
+import type { SourceLocation } from '@/Hooks/useCompilationSteps'
 
 // Custom highlight style that uses CSS classes
 const customHighlightStyle = HighlightStyle.define([
@@ -73,10 +76,43 @@ const customHighlightStyle = HighlightStyle.define([
 
 const setErrorEffect = StateEffect.define<CompilationError[]>()
 
-// apply a CSS class to a line
+// Define a StateEffect to update the highlight location.
+const setHighlightEffect = StateEffect.define<SourceLocation | null>()
+
+// Define the decoration for the highlight.
+const highlightDecoration = Decoration.mark({ class: 'cm-highlighted-range' })
+const highlightField = StateField.define<DecorationSet>({
+  create() {
+    return Decoration.none
+  },
+  update(decorations, transaction) {
+    for (const effect of transaction.effects) {
+      if (effect.is(setHighlightEffect)) {
+        const location = effect.value
+        if (!location) return Decoration.none
+
+        try {
+          const startLine = transaction.state.doc.line(location.startLine)
+          const endLine = transaction.state.doc.line(location.endLine)
+
+          const from = startLine.from + (location.startCol - 1)
+          const to = endLine.from + location.endCol
+
+          return Decoration.set([highlightDecoration.range(from, to)])
+        } catch (e) {
+          console.warn('Invalid highlight location:', location, e)
+          return Decoration.none
+        }
+      }
+    }
+
+    return decorations.map(transaction.changes)
+  },
+  provide: (field) => EditorView.decorations.from(field),
+})
+
 const errorLineDecoration = Decoration.line({ class: 'cm-error-line' })
 
-// hold the decorations for all error lines
 const errorField = StateField.define<DecorationSet>({
   create() {
     return Decoration.none
@@ -92,7 +128,9 @@ const errorField = StateField.define<DecorationSet>({
               const line = transaction.state.doc.line(e.line)
               return errorLineDecoration.range(line.from, line.from)
             } catch (error) {
-              console.warn(`Invalid line number ${e.line} for error: ${e.message}`)
+              console.warn(
+                `Invalid line number ${e.line} for error: ${e.message}`
+              )
               return null
             }
           })
@@ -109,16 +147,20 @@ interface EditorContainerProps {
   value: string
   onChange: (value: string) => void
   errors?: CompilationError[]
+  activeLocation: SourceLocation | null
 }
 
 export const EditorContainer: React.FC<EditorContainerProps> = ({
   value,
   onChange,
   errors = [],
+  activeLocation,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const { resolvedTheme } = useTheme()
+
+  console.log('EditorContainer received activeLocation:', activeLocation)
 
   // This effect sets up the editor once
   useEffect(() => {
@@ -136,9 +178,11 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         autocompletion(),
         foldGutter(),
         highlightActiveLine(),
-        syntaxHighlighting(customHighlightStyle),
+        //syntaxHighlighting(customHighlightStyle),
+        nord,
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         cpp(),
+        highlightField,
         errorField,
         // Listen for updates and call the onChange prop
         EditorView.updateListener.of((update) => {
@@ -147,9 +191,9 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           }
         }),
         EditorView.theme({
-          '&': { 
-            height: '100%', 
-            backgroundColor: 'transparent' 
+          '&': {
+            height: '100%',
+            backgroundColor: 'transparent',
           },
           '.cm-scroller': {
             fontFamily: 'Fira Code, monospace',
@@ -169,10 +213,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
             backgroundColor: 'transparent',
           },
           '&.cm-focused .cm-cursor': {
-            borderLeftColor: '#aaa !important'
-          },
-          '&.cm-focused .cm-selectionBackground, ::selection': {
-            backgroundColor: '#66666666 !important'
+            borderLeftColor: '#aaa !important',
           },
         }),
       ],
@@ -187,45 +228,39 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
     }
   }, [onChange, resolvedTheme]) // Only re-run if the onChange callback changes
 
-  // This effect synchronizes the editor when the parents value prop changes
   useEffect(() => {
     const view = viewRef.current
     if (view) {
       const currentCodeInEditor = view.state.doc.toString()
       const docChanged = value !== currentCodeInEditor
-      // update document and error
-      const transaction = view.state.update({
-        ...(docChanged && {
-          changes: {
-            from: 0,
-            to: currentCodeInEditor.length,
-            insert: value,
-          },
-        }),
-        effects: [setErrorEffect.of(errors)],
-      })
 
-      view.dispatch(transaction)
-      if (errors.length > 0) {
-        const line = errors[0].line
-        // Ensure line number is valid (1-based and within document bounds)
-        if (line > 0 && line <= view.state.doc.lines) {
-          try {
-            const linePos = view.state.doc.line(line).from
-            view.dispatch({
-              effects: EditorView.scrollIntoView(linePos, { y: 'center' }),
-            })
-          } catch (error) {
-            console.warn(`Cannot scroll to line ${line}: ${error}`)
-          }
-        }
-      }
+      view.dispatch({
+        ...(docChanged && {
+          changes: { from: 0, to: currentCodeInEditor.length, insert: value },
+        }),
+        // This dispatch contains ONLY the error effect
+        effects: [
+          setErrorEffect.of(errors),
+          setHighlightEffect.of(activeLocation),
+        ],
+      })
     }
   }, [value, errors])
-  return (
-    <div
-      ref={editorRef}
-      className="h-full w-full overflow-auto"
-    ></div>
-  )
+
+  // --- This effect ONLY handles highlighting ---
+  useEffect(() => {
+    const view = viewRef.current
+    if (view) {
+      console.log(
+        'Highlight effect is firing. Dispatching location:',
+        activeLocation
+      )
+      // This dispatch contains ONLY the highlight effect
+      view.dispatch({
+        effects: [setHighlightEffect.of(activeLocation)],
+      })
+    }
+  }, [activeLocation])
+
+  return <div ref={editorRef} className="h-full w-full overflow-auto"></div>
 }

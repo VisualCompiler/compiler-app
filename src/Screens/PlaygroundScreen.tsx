@@ -39,6 +39,8 @@ export const PlaygroundScreen = () => {
     errors,
     hasCompiled,
     compileCode,
+    activeLocation,
+    setActiveLocation,
   } = useCompilationSteps()
 
   // This function updates the component's local state
@@ -153,6 +155,7 @@ export const PlaygroundScreen = () => {
                 value={code}
                 onChange={handleCodeChange}
                 errors={errors}
+                activeLocation={activeLocation}
               />
             </ResizablePanel>
 
@@ -181,7 +184,7 @@ export const PlaygroundScreen = () => {
                   onClick={prev}
                   className="flex-1 rounded-none"
                 >
-                  <ChevronLeft color='orange' />
+                  <ChevronLeft color="orange" />
                 </Button>
                 <Separator orientation="vertical" />
                 <Button
@@ -189,7 +192,7 @@ export const PlaygroundScreen = () => {
                   onClick={next}
                   className="flex-1 rounded-none"
                 >
-                  <ChevronRight color='orange' />
+                  <ChevronRight color="orange" />
                 </Button>
               </div>
             </ResizablePanel>
