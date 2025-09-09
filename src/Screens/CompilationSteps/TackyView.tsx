@@ -68,8 +68,9 @@ export const TackyView: React.FC<TackyViewProps> = ({
   return (
     <div className="p-2 font-mono text-sm overflow-auto h-full">
       {tackyLines.map((line, index) => {
-        const instructionIndex = index
-        const instr = instructions[instructionIndex]
+        const isHeader = index === 0
+        const instructionIndex = index - 1
+        const instr = !isHeader ? instructions[instructionIndex] : null
 
         const correspondingAstNode = instr
           ? findAstNodeById(ast, instr.sourceId)
