@@ -64,7 +64,7 @@ export const useCompilationSteps = () => {
     tackyPseudoCode: string
     tackyInstructions: TackyInstruction[]
     asmCode: string
-    asm: string
+    asmInstructions: AssemblyInstruction[]
     errors: CompilationError[]
     stageOutputs: CompilationOutput[]
     hasCompiled: boolean
@@ -74,7 +74,7 @@ export const useCompilationSteps = () => {
     tackyPseudoCode: '',
     tackyInstructions: [],
     asmCode: '',
-    asm: '',
+    asmInstructions: [],
     errors: [],
     stageOutputs: [],
     hasCompiled: false,
@@ -88,7 +88,7 @@ export const useCompilationSteps = () => {
         tackyPseudoCode: '',
         tackyInstructions: [],
         asmCode: '',
-        asm: '',
+        asmInstructions: [],
         errors: [],
         stageOutputs: [],
         hasCompiled: true,
@@ -128,8 +128,12 @@ export const useCompilationSteps = () => {
     //const tacky = (tackyOutput as any)?.tacky || ''
 
     //console.log(tackyPseudoCode)
-    const asmCode = (codeGenOutput as any)?.assembly || ''
-    const asm = (AssemblyOutput as any)?.rawAssembly || ''
+    const asmJsonString = (codeGenOutput as any)?.rawAssembly
+    const asmProgram = asmJsonString ? JSON.parse(asmJsonString) : []
+    const asmInstructions = asmProgram?.functions?.[0]?.body || []
+    const asmCode = (codeGenOutput as any)?.assembly
+
+    console.log('asmInstructions', asmInstructions)
 
     setCompilationResult({
       tokens,
@@ -137,7 +141,7 @@ export const useCompilationSteps = () => {
       tackyPseudoCode,
       tackyInstructions,
       asmCode,
-      asm,
+      asmInstructions,
       errors: result.overallErrors,
       stageOutputs: result.outputs,
       hasCompiled: true,
@@ -180,7 +184,15 @@ export const useCompilationSteps = () => {
     {
       title: 'Program Execution',
       description: 'Generate x86-64 assembly code and trace execution',
-      content: <AssemblyView asmCode={compilationResult.asmCode} />,
+      content: (
+        <AssemblyView
+          asmCodeForEmulator={compilationResult.asmCode}
+          instructions={compilationResult.asmInstructions}
+          ast={compilationResult.ast}
+          activeLocation={activeLocation}
+          setActiveLocation={setActiveLocation}
+        />
+      ),
     },
   ]
 
