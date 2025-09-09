@@ -23,7 +23,7 @@ import {
   indentWithTab,
 } from '@codemirror/commands'
 import { StreamLanguage } from '@codemirror/language'
-import { z80 } from '@codemirror/legacy-modes/mode/z80'
+import { gas } from '@codemirror/legacy-modes/mode/gas'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { Play, StepForward, RotateCcw, Pause } from 'lucide-react'
@@ -85,7 +85,7 @@ const customHighlightStyle = HighlightStyle.define([
 
 interface AssemblyViewProps {
   asmCodeForEmulator: string
-  instructions: AssemblyInstruction
+  instructions: AssemblyInstruction[]
   ast: AstNode | null
   activeLocation: SourceLocation | null
   setActiveLocation: (location: SourceLocation | null) => void
@@ -104,6 +104,7 @@ const findAstNodeById = (node: AstNode | null, id: string): AstNode | null => {
 
   if (node.children) {
     for (const childValue of Object.values(node.children)) {
+      // Child can be a single node or an array of nodes
       if (Array.isArray(childValue)) {
         for (const item of childValue) {
           const result = findAstNodeById(item, id)
@@ -202,11 +203,24 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
 
   // Function to detect memory changes and update elevation
   const detectMemoryChanges = (startAddr: number, endAddr: number) => {
+    console.log(
+      'detectMemoryChanges called - emulator:',
+      emulator,
+      'startAddr:',
+      startAddr,
+      'endAddr:',
+      endAddr
+    )
+    if (!emulator) {
+      console.log('detectMemoryChanges: emulator not initialized, returning')
+      return // Don't detect changes if emulator is not initialized
+    }
+
     const changedMemory = new Set<number>()
     const prevMemory = prevMemoryRef.current
 
     for (let addr = startAddr; addr <= endAddr; addr += 8) {
-      const data = emulator?.readMemory(addr, 8)
+      const data = emulator.readMemory(addr, 8)
       if (data) {
         const currentValue = Array.from(data).reduce(
           (acc, byte, index) => acc + (byte << (index * 8)),
@@ -296,8 +310,69 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
         highlightActiveLine(),
         syntaxHighlighting(customHighlightStyle),
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
-        StreamLanguage.define(z80),
+        StreamLanguage.define(gas),
         EditorState.readOnly.of(true),
+        EditorView.domEventHandlers({
+          mouseover: (event, view) => {
+            const rect = view.dom.getBoundingClientRect()
+            const y = event.clientY - rect.top
+            const lineBlock = view.lineBlockAtHeight(y)
+            const lineNumber = view.state.doc.lineAt(lineBlock.from).number
+            const lineText = view.state.doc.line(lineNumber).text.trim()
+
+            let instruction = null
+            let instructionIndex = -1
+
+            // Skip global directives
+            if (lineText.startsWith('.globl') || lineText.startsWith('ret')) {
+              instruction = null
+            }
+            // Skip labels (lines ending with :)
+            else if (lineText.endsWith(':')) {
+              instruction = null
+            }
+            // Skip prologue instructions
+            else if (
+              lineText.includes('push rbp') ||
+              lineText.includes('mov rbp, rsp')
+            ) {
+              instruction = null
+            }
+            // Skip epilogue instructions
+            else if (
+              lineText.includes('mov rsp, rbp') ||
+              lineText.includes('pop rbp')
+            ) {
+              instruction = null
+            }
+            // Map to instruction array, accounting for prologue
+            else {
+              instructionIndex = lineNumber - 5
+              if (
+                instructionIndex >= 0 &&
+                instructionIndex < instructions.length
+              ) {
+                instruction = instructions[instructionIndex]
+              }
+            }
+
+            if (instruction?.sourceId) {
+              // Find the AST node directly using the sourceId
+              const astNode = findAstNodeById(ast, instruction.sourceId)
+              if (astNode && astNode.location) {
+                // Highlight the source code location directly
+                setActiveLocation(astNode.location)
+                console.log('astNode:', astNode)
+                console.log('astNode.location:', astNode.location)
+              }
+            } else {
+              console.log('CodeMirror: No sourceId found for this instruction')
+            }
+          },
+          mouseout: () => {
+            handleMouseLeave()
+          },
+        }),
         EditorView.theme({
           '&': {
             height: '100%',
@@ -334,6 +409,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   }, [instructions, resolvedTheme, showMachineCode])
 
   useEffect(() => {
+    console.log('Instructions changed:', instructions)
     if (asmCodeForEmulator && asmCodeForEmulator.trim()) {
       handleAssemblyConversion(asmCodeForEmulator)
     } else {
@@ -343,9 +419,18 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
 
   // Initialize emulator when binary lines are available
   useEffect(() => {
+    console.log(
+      'Emulator initialization check - binaryLines.length:',
+      binaryLines.length,
+      'emulator:',
+      emulator
+    )
     if (binaryLines.length > 0 && !emulator) {
+      console.log('Creating new emulator')
       const newEmulator = new UnicornEmulator()
+      console.log('Emulator created, initializing...')
       if (newEmulator.initialize()) {
+        console.log('Emulator initialized successfully, setting state')
         setEmulator(newEmulator)
         setupEmulatorHooks(newEmulator)
         // Count only actual instructions (not directives or labels)
@@ -362,10 +447,14 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
         }
 
         if (totalBytes <= 0) {
+          console.log('No bytes to load, skipping execution state setup')
         } else {
+          console.log('Setting execution state with totalBytes:', totalBytes)
           setExecutionState(initialState)
           executionStateRef.current = initialState
         }
+      } else {
+        console.log('Emulator initialization failed')
       }
     }
   }, [binaryLines, emulator])
@@ -666,7 +755,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   }
 
   function resetStackPointer() {
-    emulator?.setRegister(
+    if (!emulator) return // Don't reset if emulator is not initialized
+
+    emulator.setRegister(
       window.uc.X86_REG_RSP,
       EMULATOR_CONFIG.STACK_SEGMENT_START + EMULATOR_CONFIG.STACK_SIZE - 0x8
     )
@@ -719,16 +810,67 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     }
   }
 
-  const handleMouseEnter = (astNodeId?: string) => {
-    // If the instruction has no ID (like prologue/epilogue), do nothing.
-    if (!ast || !astNodeId) return
-    const targetNode = findAstNodeById(ast, astNodeId)
-    if (targetNode && targetNode.location) {
-      setActiveLocation(targetNode.location)
-    }
-  }
   const handleMouseLeave = () => {
     setActiveLocation(null)
+  }
+
+  // Function to get the corresponding assembly instruction for a binary line
+  const getInstructionForBinaryLine = (
+    lineIndex: number
+  ): AssemblyInstruction | null => {
+    console.log('getInstructionForBinaryLine called with lineIndex:', lineIndex)
+    console.log('instructions:', instructions, 'length:', instructions?.length)
+    if (!instructions || instructions.length === 0) {
+      console.log('No instructions available for hover')
+      return null
+    }
+
+    // Parse the assembly code to get line-by-line instructions
+    const assemblyLines = asmCodeForEmulator
+      .split('\n')
+      .filter((line) => line.trim())
+
+    console.log('Hover debug:', {
+      lineIndex,
+      instructionsLength: instructions.length,
+      assemblyLinesLength: assemblyLines.length,
+      instruction: instructions[lineIndex],
+      hassourceId: instructions[lineIndex]?.sourceId,
+      allInstructions: instructions.map((inst, idx) => ({
+        idx,
+        text: inst.text,
+        sourceId: inst.sourceId,
+      })),
+    })
+
+    // Try to find the instruction by matching the assembly line content
+    if (lineIndex < assemblyLines.length) {
+      const currentLine = assemblyLines[lineIndex].trim()
+
+      // First try direct index mapping
+      if (lineIndex < instructions.length) {
+        const directMatch = instructions[lineIndex]
+        if (directMatch && directMatch.sourceId) {
+          console.log('Found direct match:', directMatch)
+          return directMatch
+        }
+      }
+
+      // If direct mapping fails, try to find by content matching
+      for (let i = 0; i < instructions.length; i++) {
+        const instruction = instructions[i]
+        if (
+          instruction.text &&
+          instruction.text.trim() === currentLine &&
+          instruction.sourceId
+        ) {
+          console.log('Found content match:', instruction)
+          return instruction
+        }
+      }
+    }
+
+    return null
   }
 
   // Clean up editor when switching to machine code view
@@ -739,6 +881,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     }
   }, [showMachineCode])
 
+  const asmCode = asmCodeForEmulator.split('\n')
   return (
     <div className="flex h-full w-full flex-col overflow-clip">
       <div className="border-b border-border bg-muted/50">
@@ -845,7 +988,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
         <div className="flex-1 overflow-auto">
           {showMachineCode ? (
             <div className="p-4 space-y-3">
-              {/* Code View Header */}
+              {/* Code View */}
               <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
                 Code
               </h3>
@@ -855,87 +998,71 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                     Converting assembly...
                   </div>
                 )}
-
-                {/* --- THIS IS THE CORRECTED LOGIC --- */}
-
-                {/* 1. The primary check is now on the `instructions` prop. */}
-                {!instructions || instructions.length === 0 ? (
+                {!asmCodeForEmulator || !asmCodeForEmulator.trim() ? (
                   <div className="p-4 text-center text-muted-foreground">
                     <div className="text-sm font-medium mb-2">
                       No Code Available
                     </div>
+                    <div className="text-xs"></div>
+                  </div>
+                ) : binaryLines.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground">
+                    <div className="text-sm font-medium mb-2">
+                      Assembly Conversion Failed
+                    </div>
+                    <div className="text-xs">
+                      Check the console for error details.
+                    </div>
                   </div>
                 ) : (
-                  // 2. The main render loop iterates over the `instructions` array.
-                  instructions.map((instr, index) => {
-                    // 3. Look up the corresponding line from the secondary data source.
-                    const binaryLine = binaryLines[index]
-
-                    // 4. Highlighting logic is based on `instr` and the shared `activeLocation` state.
-                    const correspondingAstNode = instr.astNodeId
-                      ? findAstNodeById(ast, instr.astNodeId)
-                      : null
-                    const isHighlighted =
-                      activeLocation &&
-                      correspondingAstNode &&
-                      correspondingAstNode.location.startLine ===
-                        activeLocation.startLine &&
-                      correspondingAstNode.location.endLine ===
-                        activeLocation.endLine
-
-                    return (
-                      <div
-                        key={index}
-                        // 5. Add event handlers to trigger the highlight.
-                        onMouseEnter={() => handleMouseEnter(instr.astNodeId)}
-                        onMouseLeave={handleMouseLeave}
-                        // 6. Combine interactive highlighting with emulator/error highlighting.
-                        className={`p-2 rounded text-xs font-mono transition-colors ${
-                          isHighlighted
-                            ? 'bg-yellow-200 dark:bg-yellow-800' // Interactive highlight
-                            : hasError &&
-                              lastExecutedLine === index &&
-                              binaryLine?.type === 'instruction'
-                            ? 'bg-red-500/30 border-2 border-red-500/50 shadow-lg' // Error highlight
-                            : lastExecutedLine === index &&
-                              binaryLine?.type === 'instruction'
-                            ? 'bg-green-500/30 border-2 border-green-500/50 shadow-lg' // Execution highlight
-                            : binaryLine?.type === 'directive'
-                            ? 'bg-purple-500/20 border border-purple-500/30'
-                            : binaryLine?.type === 'label'
-                            ? 'bg-blue-500/20 border border-blue-500/30'
-                            : 'bg-muted/30 hover:bg-muted/50' // Default and hover
-                        } text-foreground`}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          {binaryLine?.type === 'instruction' ? (
-                            <span className="text-muted-foreground text-xs">
-                              0x
-                              {binaryLine.offset.toString(16).padStart(8, '0')}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">
-                              —
-                            </span>
-                          )}
+                  binaryLines.map((line, index) => (
+                    <div
+                      key={index}
+                      className={`p-2 rounded text-xs font-mono transition-colors ${
+                        hasError &&
+                        lastExecutedLine === index &&
+                        line.type === 'instruction'
+                          ? 'bg-red-500/30 border-2 border-red-500/50 shadow-lg'
+                          : lastExecutedLine === index &&
+                            line.type === 'instruction'
+                          ? 'bg-green-500/30 border-2 border-green-500/50 shadow-lg'
+                          : line.type === 'directive'
+                          ? 'bg-purple-500/20 border border-purple-500/30'
+                          : line.type === 'label'
+                          ? 'bg-blue-500/20 border border-blue-500/30'
+                          : 'bg-muted/30 hover:bg-muted/50'
+                      } text-foreground`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        {line.type === 'instruction' ? (
                           <span className="text-muted-foreground text-xs">
-                            L{index + 1}
+                            0x{line.offset.toString(16).padStart(8, '0')}
                           </span>
-                        </div>
-
-                        {/* 7. Display the text from the primary data source, `instr`. */}
-                        <div className="mb-1">{instr.text}</div>
-
-                        {/* 8. Display machine code from the secondary source, `binaryLine`. */}
-                        {binaryLine?.type === 'instruction' &&
-                          binaryLine.bytes.length > 0 && (
-                            <div className="font-medium text-primary">
-                              {binaryLine.bytes.join(' ')}
-                            </div>
-                          )}
+                        ) : (
+                          <span className="text-muted-foreground text-xs">
+                            —
+                          </span>
+                        )}
+                        <span className="text-muted-foreground text-xs">
+                          L{index}
+                        </span>
                       </div>
-                    )
-                  })
+                      <div className="mb-1">{line.line}</div>
+                      {line.type === 'directive' ? (
+                        <div className="text-purple-500 text-xs italic">
+                          Directive
+                        </div>
+                      ) : line.type === 'label' ? (
+                        <div className="text-blue-500 text-xs italic">
+                          Label
+                        </div>
+                      ) : (
+                        <div className="font-medium text-primary">
+                          {line.bytes.slice().reverse().join(' ')}
+                        </div>
+                      )}
+                    </div>
+                  ))
                 )}
               </div>
             </div>

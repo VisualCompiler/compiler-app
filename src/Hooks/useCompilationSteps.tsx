@@ -39,7 +39,7 @@ export interface TackyInstruction {
 
 export interface AssemblyInstruction {
   text: string
-  astNodeId?: string
+  sourceId?: string
 }
 
 // Unified error handling function
@@ -185,13 +185,15 @@ export const useCompilationSteps = () => {
       title: 'Program Execution',
       description: 'Generate x86-64 assembly code and trace execution',
       content: (
-        <AssemblyView
-          asmCodeForEmulator={compilationResult.asmCode}
-          instructions={compilationResult.asmInstructions}
-          ast={compilationResult.ast}
-          activeLocation={activeLocation}
-          setActiveLocation={setActiveLocation}
-        />
+        <>
+          <AssemblyView
+            asmCodeForEmulator={compilationResult.asmCode}
+            instructions={compilationResult.asmInstructions}
+            ast={compilationResult.ast}
+            activeLocation={activeLocation}
+            setActiveLocation={setActiveLocation}
+          />
+        </>
       ),
     },
   ]
