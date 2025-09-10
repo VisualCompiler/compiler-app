@@ -351,7 +351,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       const newEmulator = new UnicornEmulator();
       if (newEmulator.initialize()) {
         setEmulator(newEmulator);
-        setupEmulatorHooks(newEmulator);
         // Count only actual instructions (not directives or labels)
         const instructionLines = getInstructionLines();
         const totalBytes = instructionLines.reduce(
@@ -402,41 +401,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   }, [emulator]);
 
   // Set up emulator hooks
-  const setupEmulatorHooks = (emu: UnicornEmulator) => {
-    emu.addCodeHook((address) => {
-      const currentState = executionStateRef.current;
-      const newStepCount = currentState.stepCount + 1;
-
-      updateExecutionState({
-        currentInstruction: address,
-        stepCount: newStepCount,
-        registers: currentState.registers,
-        memory: currentState.memory,
-      });
-
-      // Update register values
-      updateRegisters(emu);
-
-      // Calculate which line was just executed
-      if (binaryLines.length > 0) {
-        let lineIndex = -1;
-        for (let i = 0; i < binaryLines.length; i++) {
-          const line = binaryLines[i];
-          if (line.offset === address && line.type === "instruction") {
-            lineIndex = i;
-            break;
-          }
-        }
-
-        if (lineIndex >= 0) {
-          setLastExecutedLine(lineIndex);
-        }
-      }
-
-      setIsStepping(false);
-      setIsExecuting(false);
-    });
-  };
 
   // Update register values from emulator
   const updateRegisters = (emu: UnicornEmulator) => {
@@ -537,6 +501,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   const handleRun = () => {
     if (!emulator) return;
 
+    console.log("Starting execution - setting isExecuting to true");
     setIsExecuting(true);
 
     if (!isPausedRef.current && runInterval.current)
@@ -550,6 +515,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
       if (!isPausedRef.current && !hasError && currentIP >= programEnd) {
         clearInterval(runInterval.current!);
+        console.log("Program completed - setting isExecuting to false");
         setIsExecuting(false);
         return;
       }
@@ -557,7 +523,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     }, executionSpeed);
   };
 
-  const handleStep = async () => {
+  const handleStep = async (isManualStep: boolean = false) => {
     const currentState = executionStateRef.current;
     if (!emulator || !binaryLines.length) {
       console.emulationError(
@@ -568,7 +534,13 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       return;
     }
 
-    setIsStepping(true);
+    // Only set isStepping to true for manual steps, not during automatic execution
+    if (isManualStep) {
+      console.log("Manual step - setting isStepping to true");
+      setIsStepping(true);
+    } else {
+      console.log("Automatic step - not changing isStepping state");
+    }
 
     // Find the instruction that's about to be executed
     const instructionToExecute = currentState.currentInstruction;
@@ -705,7 +677,11 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       }
       handleEmulationError();
     } finally {
-      setIsStepping(false);
+      // Only set isStepping to false for manual steps
+      if (isManualStep) {
+        console.log("Manual step completed - setting isStepping to false");
+        setIsStepping(false);
+      }
     }
   };
 
@@ -736,10 +712,30 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   const handleStopResume = () => {
     if (isPaused) {
       // Resume
+      console.log("Resuming execution");
       isPausedRef.current = false;
-      handleRun();
+      setIsPaused(false);
+      setIsExecuting(true);
+      
+      // Restart the interval without calling handleRun (which would reset execution)
+      runInterval.current = setInterval(() => {
+        if (!emulator) return;
+        const programEnd =
+          EMULATOR_CONFIG.CODE_SEGMENT_START +
+          binaryLinesToMachineCode(binaryLines).length;
+        const currentIP = emulator.getInstructionPointer()!;
+
+        if (!isPausedRef.current && !hasError && currentIP >= programEnd) {
+          clearInterval(runInterval.current!);
+          console.log("Program completed - setting isExecuting to false");
+          setIsExecuting(false);
+          return;
+        }
+        handleStep();
+      }, executionSpeed);
     } else {
       // Pause
+      console.log("Pausing execution");
       isPausedRef.current = true;
       if (runInterval.current) clearInterval(runInterval.current);
       setIsPaused(true);
@@ -838,7 +834,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
             <Button
               variant="outline"
               className="px-6 border-yellow-600! bg-yellow-600/20! transition-colors"
-              onClick={handleStep}
+              onClick={() => handleStep(true)}
               disabled={isExecuting || isStepping || !binaryLines.length}
             >
               <StepForward className="h-4 w-4" />
@@ -852,7 +848,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
                   : "border-red-600! bg-red-600/20!"
               }`}
               onClick={handleStopResume}
-              disabled={!isExecuting && !isStepping && !isPaused}
+              disabled={!isExecuting && !isPaused}
             >
               {isPaused ? (
                 <>
