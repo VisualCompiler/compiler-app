@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { EditorState, StateEffect, StateField } from '@codemirror/state'
+import { EditorState } from '@codemirror/state'
 import {
   foldGutter,
   syntaxHighlighting,
@@ -15,8 +15,6 @@ import {
   drawSelection,
   highlightActiveLine,
   lineNumbers,
-  Decoration,
-  type DecorationSet,
 } from '@codemirror/view'
 import {
   defaultKeymap,
@@ -88,7 +86,7 @@ const customHighlightStyle = HighlightStyle.define([
 
 interface AssemblyViewProps {
   asmCodeForEmulator: string
-  instructions: AssemblyInstruction[]
+  instructions: AssemblyInstruction
   astNodeHashTable: AstNodeHashTable
   activeLocation: SourceLocation | null
   setActiveLocation: (location: SourceLocation | null) => void
@@ -333,11 +331,11 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
             console.log('Clicked line:', lineText)
             console.log(
               'Available instructions:',
-              instructionsArray.map((inst) => inst.code)
+              instructionsArray.map((inst: any) => inst.code)
             )
 
             const matchingInstruction = instructionsArray.find(
-              (inst) => inst.code && inst.code.trim() === lineText.trim()
+              (inst: any) => inst.code && inst.code.trim() === lineText.trim()
             )
 
             console.log('Matching instruction:', matchingInstruction)
@@ -346,7 +344,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
               console.log('SourceId found:', matchingInstruction.sourceId)
               const node = findAstNodeById(
                 astNodeHashTable,
-                matchingInstruction.sourceId
+                matchingInstruction.sourceId || null
               )
               console.log('Found AST node:', node)
               if (node?.location) {
@@ -993,7 +991,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
           ) : (
             // <div ref={editorRef} className="h-full"></div>
             <div className="p-2 font-mono text-sm overflow-auto h-full">
-              {asmCode.map((line, index) => {
+              {asmCode.map((_, index) => {
                 const isHeader = index === 0
                 const instructionIndex = index - 1
                 const instr = !isHeader
@@ -1001,7 +999,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                   : null
 
                 const correspondingAstNode = instr
-                  ? findAstNodeById(astNodeHashTable, instr.sourceId)
+                  ? findAstNodeById(astNodeHashTable, instr.sourceId || null)
                   : null
                 const isHighlighted =
                   activeLocation &&
@@ -1010,9 +1008,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                     activeLocation.startLine &&
                   correspondingAstNode.location.endLine ===
                     activeLocation.endLine &&
-                  correspondingAstNode.location.startCol ===
-                    activeLocation.startCol &&
-                  correspondingAstNode.location.endCol === activeLocation.endCol
+                  correspondingAstNode.location.startColumn ===
+                    activeLocation.startColumn &&
+                  correspondingAstNode.location.endColumn === activeLocation.endColumn
 
                 return (
                   <div
@@ -1023,12 +1021,12 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                       console.log('functions:', functions)
 
                       const allInstructions = functions.flatMap(
-                        (fn) => fn.body || []
+                        (fn: any) => fn.body || []
                       )
                       console.log('allInstructions:', allInstructions)
 
                       const matchingInstruction = allInstructions.find(
-                        (inst) => inst.code && inst.code.trim() === lineText
+                        (inst: any) => inst.code && inst.code.trim() === lineText
                       )
 
                       console.log('Matching instruction:', matchingInstruction)
@@ -1040,7 +1038,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                         )
                         const node = findAstNodeById(
                           astNodeHashTable,
-                          matchingInstruction.sourceId
+                          matchingInstruction.sourceId || null
                         )
                         console.log('Found AST node:', node)
                         if (node?.location) {

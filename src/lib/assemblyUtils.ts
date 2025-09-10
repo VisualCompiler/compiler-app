@@ -171,7 +171,7 @@ export const convertAssemblyToBinary = async (
 
     // Check if there's no main function and emit warning
     const hasMainFunction = mapping.some(
-      (line) => line.type === "instruction" && line.line.includes("call main")
+      (line) => line.type === "label" && line.line.includes("main:")
     );
 
     if (!hasMainFunction) {

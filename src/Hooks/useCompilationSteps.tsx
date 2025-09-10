@@ -1,11 +1,10 @@
-import { AssemblyView } from '@/Screens/CompilationSteps/AssemblyView'
+// import { AssemblyView } from '@/Screens/CompilationSteps/AssemblyView'
 import { TackyView } from '@/Screens/CompilationSteps/TackyView'
 import { ASTViewer } from '@/Screens/CompilationSteps/ASTView'
 import { TokenListContent } from '@/Screens/CompilationSteps/TokenListView'
 import { useState, useCallback } from 'react'
 import { XCircle } from 'lucide-react'
 import {
-  AssemblyOutput,
   type CompilationError,
   type CompilationOutput,
   type CompilationResult,
@@ -45,8 +44,11 @@ export interface TackyInstruction {
 }
 
 export interface AssemblyInstruction {
-  text: string
-  sourceId?: string
+  body: Array<{
+    code: string
+    sourceId?: string
+    astNodeId?: string
+  }>
 }
 
 // Function to extract all AST nodes and create a hash table
@@ -131,7 +133,7 @@ export const useCompilationSteps = () => {
     tackyPseudoCode: string
     tackyInstructions: TackyInstruction[]
     asmCode: string
-    asmInstructions: AssemblyInstruction[]
+    asmInstructions: AssemblyInstruction
     errors: CompilationError[]
     stageOutputs: CompilationOutput[]
     hasCompiled: boolean
@@ -142,7 +144,7 @@ export const useCompilationSteps = () => {
     tackyPseudoCode: '',
     tackyInstructions: [],
     asmCode: '',
-    asmInstructions: [],
+    asmInstructions: { body: [] },
     errors: [],
     stageOutputs: [],
     hasCompiled: false,
@@ -157,7 +159,7 @@ export const useCompilationSteps = () => {
         tackyPseudoCode: '',
         tackyInstructions: [],
         asmCode: '',
-        asmInstructions: [],
+        asmInstructions: { body: [] },
         errors: [],
         stageOutputs: [],
         hasCompiled: true,
@@ -204,7 +206,24 @@ export const useCompilationSteps = () => {
     //const tacky = (tackyOutput as any)?.tacky || ''
 
     //console.log(tackyPseudoCode)
-    const asmInstructions = (codeGenOutput as any)?.rawAssembly
+    const rawAsmInstructions = (codeGenOutput as any)?.rawAssembly
+    console.log('rawAsmInstructions:', rawAsmInstructions)
+
+    // Parse the raw assembly instructions if it's a string
+    let asmInstructions: AssemblyInstruction = { body: [] }
+    if (rawAsmInstructions) {
+      if (typeof rawAsmInstructions === 'string') {
+        try {
+          const parsed = JSON.parse(rawAsmInstructions)
+          asmInstructions = parsed
+        } catch (e) {
+          console.warn('Failed to parse assembly instructions:', e)
+          asmInstructions = { body: [] }
+        }
+      } else {
+        asmInstructions = rawAsmInstructions
+      }
+    }
     console.log('asmInstructions:', asmInstructions)
 
     const asmCode = (codeGenOutput as any)?.assembly
@@ -261,15 +280,11 @@ export const useCompilationSteps = () => {
       title: 'Program Execution',
       description: 'Generate x86-64 assembly code and trace execution',
       content: (
-        <>
-          <AssemblyView
-            asmCodeForEmulator={compilationResult.asmCode}
-            instructions={compilationResult.asmInstructions}
-            astNodeHashTable={compilationResult.astNodeHashTable}
-            activeLocation={activeLocation}
-            setActiveLocation={setActiveLocation}
-          />
-        </>
+        <div className="w-full h-full flex items-center justify-center">
+          <p className="text-muted-foreground">
+            Assembly View temporarily unavailable
+          </p>
+        </div>
       ),
     },
   ]
