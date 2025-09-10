@@ -226,53 +226,19 @@ export const convertAssemblyToBinary = async (
       }
     }
 
-    // Check for user-defined main function vs wrapper main function
-    const hasUserMainFunction = mapping.some(
-      (line) => line.type === "label" && line.line.includes("main:") && !line.line.includes("main.:")
-    );
-    const hasWrapperMainFunction = mapping.some(
-      (line) => line.type === "label" && line.line.includes("main.:")
+    // Check if there's no main function and emit warning
+    const hasMainFunction = mapping.some(
+      (line) => line.type === "label" && line.line.includes("main:")
     );
 
-    // If we have a wrapper main function, change its display name to "main:" and emit warning
-    if (hasWrapperMainFunction && !hasUserMainFunction) {
-      // Find and update the wrapper main function display
-      const wrapperMainLine = mapping.find(
-        (line) => line.type === "label" && line.line.includes("main.:")
-      );
-      if (wrapperMainLine) {
-        wrapperMainLine.line = wrapperMainLine.line.replace("main.:", "main:");
-      }
-
-      // Find and update any .globl main. directives
-      const globlMainLine = mapping.find(
-        (line) => line.type === "directive" && line.line.includes(".globl main.")
-      );
-      if (globlMainLine) {
-        globlMainLine.line = globlMainLine.line.replace(".globl main.", ".globl main");
-      }
-
-      // Emit warning that no user main was provided
+    if (!hasMainFunction) {
+      // Use custom console to emit warning
       if (
         typeof window !== "undefined" &&
         (window as any).console?.assemblingWarning
       ) {
         (window as any).console.assemblingWarning(
-          "No main function provided. Program will return 0.",
-          undefined,
-          "no-main-function"
-        );
-      } else {
-        console.warn("No main function provided. Program will return 0.");
-      }
-    } else if (!hasUserMainFunction && !hasWrapperMainFunction) {
-      // No main function at all
-      if (
-        typeof window !== "undefined" &&
-        (window as any).console?.assemblingWarning
-      ) {
-        (window as any).console.assemblingWarning(
-          "No main function provided. Program will return 0.",
+          "No main function provided. Execution is disabled.",
           undefined,
           "no-main-function"
         );

@@ -858,7 +858,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
               variant="outline"
               className="px-6 border-emerald-700! bg-emerald-700/20! transition-colors"
               onClick={handleRun}
-              disabled={isExecuting || isStepping || !binaryLines.length}
+              disabled={isExecuting || isStepping || !binaryLines.length || !getMainFunctionAddress()}
             >
               <Play className="h-4 w-4" />
               {isExecuting ? 'Running...' : 'Run'}
@@ -867,7 +867,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
               variant="outline"
               className="px-6 border-yellow-600! bg-yellow-600/20! transition-colors"
               onClick={() => handleStep(true)}
-              disabled={isExecuting || isStepping || !binaryLines.length}
+              disabled={isExecuting || isStepping || !binaryLines.length || !getMainFunctionAddress()}
             >
               <StepForward className="h-4 w-4" />
               {isStepping ? 'Stepping...' : 'Step'}
