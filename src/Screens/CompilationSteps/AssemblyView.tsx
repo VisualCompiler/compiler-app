@@ -136,16 +136,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   const [isConverting, setIsConverting] = useState(false)
   const [showMachineCode, setShowMachineCode] = useState(true)
 
-  const setHighlightEffect = StateEffect.define<string | null>()
-  const highlightDecoration = Decoration.line({ class: 'cm-highlighted-range' })
-  const [hoveredSourceId, setHoveredSourceId] = useState<string | null>(null)
-
-  const normalizeLocation = (loc: any) => ({
-    startLine: loc.startLine ?? loc.start_line ?? null,
-    startColumn: loc.startColumn ?? loc.start_col ?? loc.startCol ?? null,
-    endLine: loc.endLine ?? loc.end_line ?? null,
-    endColumn: loc.endColumn ?? loc.end_col ?? loc.endCol ?? null,
-  })
   const parseInstructions = (raw: string | object) => {
     if (typeof raw === 'string') {
       // Ensure it’s valid JSON by wrapping in []
@@ -154,35 +144,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     }
     return raw
   }
-  // StateField to highlight assembly lines based on hovered sourceId
-  const asmHighlightField = (instructions: AsmInstruction[]) =>
-    StateField.define<DecorationSet>({
-      create() {
-        return Decoration.none
-      },
-      update(decorations, tr) {
-        for (const effect of tr.effects) {
-          if (effect.is(setHighlightEffect)) {
-            const hoveredId = effect.value
-            const decos: any[] = []
-
-            instructions.forEach((instr, idx) => {
-              if (
-                instr.sourceId &&
-                hoveredId &&
-                String(instr.sourceId) === String(hoveredId)
-              ) {
-                const line = tr.state.doc.line(idx + 1)
-                decos.push(highlightDecoration.range(line.from))
-              }
-            })
-            return Decoration.set(decos)
-          }
-        }
-        return decorations.map(tr.changes)
-      },
-      provide: (f) => EditorView.decorations.from(f),
-    })
 
   // Execution state
   const [emulator, setEmulator] = useState<UnicornEmulator | null>(null)
@@ -345,6 +306,10 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     }
   }
 
+  const handleMouseLeave = () => {
+    setActiveLocation(null)
+  }
+
   useEffect(() => {
     if (!editorRef.current || showMachineCode) return
 
@@ -363,7 +328,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         StreamLanguage.define(gas),
         EditorState.readOnly.of(true),
-        asmHighlightField(instructions),
         EditorView.domEventHandlers({
           click: (event, view) => {
             const rect = view.dom.getBoundingClientRect()
@@ -397,10 +361,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                 console.log('Found AST node:', node)
                 if (node?.location) {
                   setActiveLocation(node.location)
-                  console.log(
-                    'Highlighting location:',
-                    normalizeLocation(node.location)
-                  )
                 } else {
                   console.log('No location found on AST node')
                 }
@@ -409,7 +369,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
               }
             } else {
               console.log('No matching instruction or sourceId found')
-              setHoveredSourceId(null)
               setActiveLocation(null)
             }
           },
@@ -851,10 +810,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     }
   }
 
-  const handleMouseLeave = () => {
-    setActiveLocation(null)
-  }
-
   // Function to get the corresponding assembly instruction for a binary line
   const getInstructionForBinaryLine = (
     lineIndex: number
@@ -1134,7 +1089,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                 return (
                   <div
                     key={index}
-                    onClick={() => {
+                    onMouseEnter={() => {
                       const lineText = asmCode[index].trim()
                       const functions = parseInstructions(instructions) // array of functions
                       console.log('functions:', functions)
@@ -1163,10 +1118,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                           console.log('Found AST node:', node)
                           if (node?.location) {
                             setActiveLocation(node.location)
-                            console.log(
-                              'Highlighting location:',
-                              normalizeLocation(node.location)
-                            )
                           } else {
                             console.log('No location found on AST node')
                           }
@@ -1175,10 +1126,10 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                         }
                       } else {
                         console.log('No matching instruction or sourceId found')
-                        setHoveredSourceId(null)
                         setActiveLocation(null)
                       }
                     }}
+                    onMouseLeave={handleMouseLeave}
                     // Apply conditional styling
                     className={`whitespace-pre px-2 py-1 rounded-md transition-colors cursor-pointer ${
                       isHighlighted
