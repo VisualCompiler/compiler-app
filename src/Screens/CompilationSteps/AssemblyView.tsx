@@ -146,7 +146,14 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     endLine: loc.endLine ?? loc.end_line ?? null,
     endColumn: loc.endColumn ?? loc.end_col ?? loc.endCol ?? null,
   })
-
+  const parseInstructions = (raw: string | object) => {
+    if (typeof raw === 'string') {
+      // Ensure it’s valid JSON by wrapping in []
+      const fixed = `[${raw.trim().replace(/}\s*{/g, '},{')}]`
+      return JSON.parse(fixed)
+    }
+    return raw
+  }
   // StateField to highlight assembly lines based on hovered sourceId
   const asmHighlightField = (instructions: AsmInstruction[]) =>
     StateField.define<DecorationSet>({
@@ -367,9 +374,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
 
             console.log('instructions', instructions)
             // Find instruction that matches the clicked line text
-            const instructionsObject = instructions
-              ? JSON.parse(instructions)
-              : null
+            const instructionsObject = parseInstructions(instructions)
             const instructionsArray = instructionsObject?.body ?? []
             console.log('instructions:', instructions)
             console.log('instructionsArray:', instructionsArray)
@@ -1129,26 +1134,18 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                 return (
                   <div
                     key={index}
-                    // Add the event handlers
                     onClick={() => {
                       const lineText = asmCode[index].trim()
+                      const functions = parseInstructions(instructions) // array of functions
+                      console.log('functions:', functions)
 
-                      // Find instruction that matches the clicked line text
-                      const instructionsObject = instructions
-                        ? JSON.parse(instructions)
-                        : null
-                      const instructionsArray = instructionsObject?.body ?? []
-                      console.log('instructions:', instructions)
-                      console.log('instructionsArray:', instructionsArray)
-                      console.log('Clicked line:', lineText)
-                      console.log(
-                        'Available instructions:',
-                        instructionsArray.map((inst) => inst.code)
+                      const allInstructions = functions.flatMap(
+                        (fn) => fn.body || []
                       )
+                      console.log('allInstructions:', allInstructions)
 
-                      const matchingInstruction = instructionsArray.find(
-                        (inst) =>
-                          inst.code && inst.code.trim() === lineText.trim()
+                      const matchingInstruction = allInstructions.find(
+                        (inst) => inst.code && inst.code.trim() === lineText
                       )
 
                       console.log('Matching instruction:', matchingInstruction)
