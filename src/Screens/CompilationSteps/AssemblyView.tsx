@@ -810,65 +810,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     }
   }
 
-  // Function to get the corresponding assembly instruction for a binary line
-  const getInstructionForBinaryLine = (
-    lineIndex: number
-  ): AssemblyInstruction | null => {
-    console.log('getInstructionForBinaryLine called with lineIndex:', lineIndex)
-    console.log('instructions:', instructions, 'length:', instructions?.length)
-    if (!instructions || instructions.length === 0) {
-      console.log('No instructions available for hover')
-      return null
-    }
-
-    // Parse the assembly code to get line-by-line instructions
-    const assemblyLines = asmCodeForEmulator
-      .split('\n')
-      .filter((line) => line.trim())
-
-    console.log('Hover debug:', {
-      lineIndex,
-      instructionsLength: instructions.length,
-      assemblyLinesLength: assemblyLines.length,
-      instruction: instructions[lineIndex],
-      hassourceId: instructions[lineIndex]?.sourceId,
-      allInstructions: instructions.map((inst, idx) => ({
-        idx,
-        text: inst.text,
-        sourceId: inst.sourceId,
-      })),
-    })
-
-    // Try to find the instruction by matching the assembly line content
-    if (lineIndex < assemblyLines.length) {
-      const currentLine = assemblyLines[lineIndex].trim()
-
-      // First try direct index mapping
-      if (lineIndex < instructions.length) {
-        const directMatch = instructions[lineIndex]
-        if (directMatch && directMatch.sourceId) {
-          console.log('Found direct match:', directMatch)
-          return directMatch
-        }
-      }
-
-      // If direct mapping fails, try to find by content matching
-      for (let i = 0; i < instructions.length; i++) {
-        const instruction = instructions[i]
-        if (
-          instruction.text &&
-          instruction.text.trim() === currentLine &&
-          instruction.sourceId
-        ) {
-          console.log('Found content match:', instruction)
-          return instruction
-        }
-      }
-    }
-
-    return null
-  }
-
   // Clean up editor when switching to machine code view
   useEffect(() => {
     if (showMachineCode && viewRef.current) {
