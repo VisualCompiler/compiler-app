@@ -429,7 +429,7 @@ function emitInstruction($this, instruction) {
       tmp = indent + 'push ' + operand;
     } else {
       if (instruction instanceof DeAllocateStack) {
-        tmp = indent + 'addq rsp, ' + instruction.nw_1;
+        tmp = indent + 'add rsp, ' + instruction.nw_1;
       } else {
         if (instruction instanceof Mov) {
           tmp = indent + 'mov ' + emitOperand$default($this, instruction.mw_1) + ', ' + emitOperand$default($this, instruction.lw_1);
@@ -447,7 +447,7 @@ function emitInstruction($this, instruction) {
                   tmp = indent + 'idiv ' + emitOperand$default($this, instruction.xv_1);
                 } else {
                   if (instruction instanceof AllocateStack) {
-                    tmp = indent + 'subq rsp, ' + instruction.wv_1;
+                    tmp = indent + 'sub rsp, ' + instruction.wv_1;
                   } else {
                     if (instruction instanceof Cdq) {
                       tmp = indent + 'cdq';
@@ -495,37 +495,54 @@ function emitOperand($this, operand, size) {
     tmp = '' + operand.yw_1;
   } else {
     if (operand instanceof Stack) {
-      tmp = 'dword ptr[rbp ' + operand.xw_1 + ']';
+      var tmp_0;
+      switch (size.v1_1) {
+        case 0:
+          tmp_0 = 'byte ptr';
+          break;
+        case 1:
+          tmp_0 = 'dword ptr';
+          break;
+        case 2:
+          tmp_0 = 'qword ptr';
+          break;
+        default:
+          noWhenBranchMatchedException();
+          break;
+      }
+      var ptrSize = tmp_0;
+      var sign = operand.xw_1 < 0 ? '' : '+';
+      tmp = ptrSize + ' [rbp' + sign + operand.xw_1 + ']';
     } else {
       if (operand instanceof Register) {
-        var tmp_0;
+        var tmp_1;
         switch (size.v1_1) {
           case 2:
             // Inline function 'kotlin.text.lowercase' call
 
             // Inline function 'kotlin.js.asDynamic' call
 
-            tmp_0 = operand.ww_1.tw_1.toLowerCase();
+            tmp_1 = operand.ww_1.tw_1.toLowerCase();
             break;
           case 1:
             // Inline function 'kotlin.text.lowercase' call
 
             // Inline function 'kotlin.js.asDynamic' call
 
-            tmp_0 = operand.ww_1.uw_1.toLowerCase();
+            tmp_1 = operand.ww_1.uw_1.toLowerCase();
             break;
           case 0:
             // Inline function 'kotlin.text.lowercase' call
 
             // Inline function 'kotlin.js.asDynamic' call
 
-            tmp_0 = operand.ww_1.vw_1.toLowerCase();
+            tmp_1 = operand.ww_1.vw_1.toLowerCase();
             break;
           default:
             noWhenBranchMatchedException();
             break;
         }
-        tmp = tmp_0;
+        tmp = tmp_1;
       } else {
         if (operand instanceof Pseudo) {
           throw IllegalStateException_init_$Create$("Cannot emit assembly with pseudo-register '" + operand.qw_1 + "'");
@@ -7143,7 +7160,7 @@ function convertOp($this, tackyOp) {
 }
 function createDefaultMain($this) {
   var instructions = listOf_0([new Mov(new Imm(0), new Register(HardwareRegister_EAX_getInstance())), Ret_getInstance()]);
-  return new AsmFunction('main', instructions);
+  return new AsmFunction('main.', instructions);
 }
 function TackyToAsm() {
 }

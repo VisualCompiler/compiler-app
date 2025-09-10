@@ -92,6 +92,8 @@ interface ExecutionState {
 export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const machineCodeContainerRef = useRef<HTMLDivElement>(null);
+  const lineRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const { resolvedTheme } = useTheme();
   const [binaryLines, setBinaryLines] = useState<BinaryLine[]>([]);
   const [isConverting, setIsConverting] = useState(false);
@@ -110,7 +112,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     new Map()
   );
 
-  const [executionSpeed, setExecutionSpeed] = useState(200);
+  const [executionSpeed, setExecutionSpeed] = useState(300);
   const [lastExecutedLine, setLastExecutedLine] = useState<number | null>(null);
   const [isStepping, setIsStepping] = useState(false);
   const [memoryStartAddress, setMemoryStartAddress] = useState(
@@ -196,12 +198,45 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     }
   };
 
+  const getMainFunctionAddress = (): number | null => {
+    // First look for user-defined main function
+    const userMainFunctionLine = binaryLines.find(
+      (line) => line.type === "label" && line.line?.includes("main:") && !line.line?.includes("main.:")
+    );
+    
+    if (userMainFunctionLine) {
+      return userMainFunctionLine.offset;
+    }
+    
+    // If no user main, look for wrapper main function
+    const wrapperMainFunctionLine = binaryLines.find(
+      (line) => line.type === "label" && line.line?.includes("main.:")
+    );
+    
+    return wrapperMainFunctionLine ? wrapperMainFunctionLine.offset : null;
+  };
+
+  const scrollToExecutedLine = (lineIndex: number) => {
+    if (!showMachineCode || !machineCodeContainerRef.current) return;
+    
+    // Small delay to ensure DOM has been updated
+    setTimeout(() => {
+      const lineElement = lineRefs.current.get(lineIndex);
+      if (lineElement) {
+        lineElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }, 50);
+  };
+
   const resetProgramCounter = () => {
     if (emulator) {
-      emulator.setRegister(
-        window.uc.X86_REG_RIP,
-        EMULATOR_CONFIG.CODE_SEGMENT_START
-      );
+      const mainAddress = getMainFunctionAddress();
+      const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
+      emulator.setRegister(window.uc.X86_REG_RIP, startAddress);
     }
   };
 
@@ -210,8 +245,10 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   };
 
   const resetExecutionState = () => {
+    const mainAddress = getMainFunctionAddress();
+    const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
     updateExecutionState({
-      currentInstruction: EMULATOR_CONFIG.CODE_SEGMENT_START,
+      currentInstruction: startAddress,
       stepCount: 0,
       registers: new Map(),
       memory: new Map(),
@@ -304,6 +341,8 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     } else {
       setBinaryLines([]);
     }
+    // Clean up line refs when binary lines change
+    lineRefs.current.clear();
   }, [asmCode]);
 
   // Initialize emulator when binary lines are available
@@ -319,8 +358,27 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
           (sum, line) => sum + line.bytes.length,
           0
         );
+        const mainAddress = getMainFunctionAddress();
+        const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
+        
+        // Check if we have a user-defined main or wrapper main
+        const userMainFunctionLine = binaryLines.find(
+          (line) => line.type === "label" && line.line?.includes("main:") && !line.line?.includes("main.:")
+        );
+        const wrapperMainFunctionLine = binaryLines.find(
+          (line) => line.type === "label" && line.line?.includes("main.:")
+        );
+        
+        if (userMainFunctionLine) {
+          console.log(`Emulator initialized - execution will start from user-defined main function at address 0x${mainAddress?.toString(16)}`);
+        } else if (wrapperMainFunctionLine) {
+          console.log(`Emulator initialized - no user main function found, using wrapper main at address 0x${mainAddress?.toString(16)}`);
+        } else {
+          console.log(`Emulator initialized - no main function found, execution will start from code beginning at address 0x${EMULATOR_CONFIG.CODE_SEGMENT_START.toString(16)}`);
+        }
+        
         const initialState: ExecutionState = {
-          currentInstruction: EMULATOR_CONFIG.CODE_SEGMENT_START,
+          currentInstruction: startAddress,
           stepCount: 0,
           registers: new Map(),
           memory: new Map(),
@@ -436,9 +494,28 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
       resetStackPointer();
 
+      const mainAddress = getMainFunctionAddress();
+      const startAddress = mainAddress || codeStart;
+      
+      // Check if we have a user-defined main or wrapper main
+      const userMainFunctionLine = binaryLines.find(
+        (line) => line.type === "label" && line.line?.includes("main:") && !line.line?.includes("main.:")
+      );
+      const wrapperMainFunctionLine = binaryLines.find(
+        (line) => line.type === "label" && line.line?.includes("main.:")
+      );
+      
+      if (userMainFunctionLine) {
+        console.log(`Execution starting from user-defined main function at address 0x${mainAddress?.toString(16)}`);
+      } else if (wrapperMainFunctionLine) {
+        console.log(`No user main function found, execution starting from wrapper main at address 0x${mainAddress?.toString(16)}`);
+      } else {
+        console.log(`No main function found, execution starting from code beginning at address 0x${codeStart.toString(16)}`);
+      }
+      
       updateExecutionState({
         stepCount: 0,
-        currentInstruction: codeStart,
+        currentInstruction: startAddress,
         registers: new Map(),
         memory: new Map(),
       });
@@ -514,9 +591,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
       // If we're about to execute ret, check if we're in the main function
       if (currentLine && currentLine.line?.trim() === "ret") {
-        // Find the main function label
+        // Find the main function label (either user-defined main: or wrapper main.:)
         const startFunctionLine = binaryLines.find(
-          (line) => line.type === "label" && line.line?.includes("main")
+          (line) => line.type === "label" && (line.line?.includes("main:") || line.line?.includes("main.:"))
         );
 
         if (startFunctionLine) {
@@ -694,6 +771,13 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     }
   }, [showMachineCode]);
 
+  // Scroll to executed line when it changes
+  useEffect(() => {
+    if (lastExecutedLine !== null) {
+      scrollToExecutedLine(lastExecutedLine);
+    }
+  }, [lastExecutedLine]);
+
   return (
     <div className="flex h-full w-full flex-col overflow-clip">
       <div className="border-b border-border bg-muted/50">
@@ -734,7 +818,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
                 min="50"
                 max="1000"
                 step="50"
-                defaultValue="200"
                 className="w-20 h-2 bg-foreground/20 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => setExecutionSpeed(parseInt(e.target.value))}
                 title="Execution Speed (ms)"
@@ -804,7 +887,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
               <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
                 Code
               </h3>
-              <div className="space-y-1">
+              <div ref={machineCodeContainerRef} className="space-y-1">
                 {isConverting && (
                   <div className="p-2 text-center text-muted-foreground">
                     Converting assembly...
@@ -830,6 +913,13 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
                   binaryLines.map((line, index) => (
                     <div
                       key={index}
+                      ref={(el) => {
+                        if (el) {
+                          lineRefs.current.set(index, el);
+                        } else {
+                          lineRefs.current.delete(index);
+                        }
+                      }}
                       className={`p-2 rounded text-xs font-mono transition-colors ${
                         hasError &&
                         lastExecutedLine === index &&
