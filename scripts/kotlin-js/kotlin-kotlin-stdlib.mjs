@@ -234,7 +234,6 @@ initMetadataForObject(UNINITIALIZED_VALUE, 'UNINITIALIZED_VALUE');
 initMetadataForCompanion(Companion_12);
 initMetadataForClass(Failure, 'Failure');
 initMetadataForClass(Result, 'Result');
-initMetadataForClass(NotImplementedError, 'NotImplementedError', NotImplementedError, Error_0);
 initMetadataForClass(Pair, 'Pair');
 initMetadataForClass(Triple, 'Triple');
 initMetadataForCompanion(Companion_13);
@@ -4129,12 +4128,7 @@ function Error_init_$Create$() {
   captureStack(tmp, Error_init_$Create$);
   return tmp;
 }
-function Error_init_$Init$_0(message, $this) {
-  extendThrowable($this, message);
-  Error_0.call($this);
-  return $this;
-}
-function Error_init_$Init$_1(message, cause, $this) {
+function Error_init_$Init$_0(message, cause, $this) {
   extendThrowable($this, message, cause);
   Error_0.call($this);
   return $this;
@@ -4177,7 +4171,7 @@ function AssertionError_init_$Create$() {
 }
 function AssertionError_init_$Init$_0(message, $this) {
   var tmp = message == null ? null : toString_1(message);
-  Error_init_$Init$_1(tmp, message instanceof Error ? message : null, $this);
+  Error_init_$Init$_0(tmp, message instanceof Error ? message : null, $this);
   AssertionError.call($this);
   return $this;
 }
@@ -7694,11 +7688,6 @@ protoOf(Result).equals = function (other) {
 function createFailure(exception) {
   return new Failure(exception);
 }
-function NotImplementedError(message) {
-  message = message === VOID ? 'An operation is not implemented.' : message;
-  Error_init_$Init$_0(message, this);
-  captureStack(this, NotImplementedError);
-}
 function Pair(first, second) {
   this.ma_1 = first;
   this.na_1 = second;
@@ -8593,7 +8582,6 @@ export {
   Exception as Exceptiondt2hlxn7j7vw,
   IllegalArgumentException as IllegalArgumentException2asla15b5jaob,
   Long as Long2qws0ah9gnpki,
-  NotImplementedError as NotImplementedErrorfzlkpv14xxr8,
   Pair as Paire9pteg33gng7,
   Result as Result3t1vadv16kmzk,
   THROW_CCE as THROW_CCE2g6jy02ryeudk,

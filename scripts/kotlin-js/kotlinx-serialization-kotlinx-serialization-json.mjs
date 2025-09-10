@@ -3,11 +3,11 @@ import {
   SerializerFactory1qv9hivitncuv as SerializerFactory,
   serializer1x79l67jvwntn as serializer,
   InlinePrimitiveDescriptor3i6ccn1a4fw94 as InlinePrimitiveDescriptor,
-  MapSerializer11kmegt3g5c1g as MapSerializer,
-  SerialDescriptor2pelqekb5ic3a as SerialDescriptor,
-  KSerializerzf77vz1967fq as KSerializer,
   SEALED_getInstance3nsev85ow9059 as SEALED_getInstance,
   buildSerialDescriptor2873qmkp8r2ib as buildSerialDescriptor,
+  KSerializerzf77vz1967fq as KSerializer,
+  MapSerializer11kmegt3g5c1g as MapSerializer,
+  SerialDescriptor2pelqekb5ic3a as SerialDescriptor,
   STRING_getInstance2ou4lro9xn2qn as STRING_getInstance,
   ListSerializer1hxuk9dx5n9du as ListSerializer,
   ENUM_getInstance22lfbrqor0c0a as ENUM_getInstance,
@@ -129,9 +129,9 @@ initMetadataForCompanion(Companion_2);
 initMetadataForClass(JsonArray, 'JsonArray', VOID, JsonElement, [JsonElement, KtList], VOID, VOID, {0: JsonArraySerializer_getInstance});
 initMetadataForObject(JsonNull, 'JsonNull', VOID, JsonPrimitive, [JsonPrimitive, SerializerFactory], VOID, VOID, {0: JsonNull_getInstance});
 initMetadataForClass(JsonLiteral, 'JsonLiteral', VOID, JsonPrimitive);
+initMetadataForObject(JsonElementSerializer, 'JsonElementSerializer', VOID, VOID, [KSerializer]);
 initMetadataForObject(JsonObjectDescriptor, 'JsonObjectDescriptor', VOID, VOID, [SerialDescriptor]);
 initMetadataForObject(JsonObjectSerializer, 'JsonObjectSerializer', VOID, VOID, [KSerializer]);
-initMetadataForObject(JsonElementSerializer, 'JsonElementSerializer', VOID, VOID, [KSerializer]);
 initMetadataForObject(JsonPrimitiveSerializer, 'JsonPrimitiveSerializer', VOID, VOID, [KSerializer]);
 initMetadataForObject(JsonArrayDescriptor, 'JsonArrayDescriptor', VOID, VOID, [SerialDescriptor]);
 initMetadataForObject(JsonArraySerializer, 'JsonArraySerializer', VOID, VOID, [KSerializer]);
@@ -547,61 +547,6 @@ function _init_properties_JsonElement_kt__7cbdc2() {
     jsonUnquotedLiteralDescriptor = InlinePrimitiveDescriptor('kotlinx.serialization.json.JsonUnquotedLiteral', serializer(StringCompanionObject_instance));
   }
 }
-function JsonObjectDescriptor() {
-  JsonObjectDescriptor_instance = this;
-  this.gt_1 = MapSerializer(serializer(StringCompanionObject_instance), JsonElementSerializer_getInstance()).qe();
-  this.ht_1 = 'kotlinx.serialization.json.JsonObject';
-}
-protoOf(JsonObjectDescriptor).bg = function () {
-  return this.gt_1.bg();
-};
-protoOf(JsonObjectDescriptor).cg = function () {
-  return this.gt_1.cg();
-};
-protoOf(JsonObjectDescriptor).dg = function () {
-  return this.gt_1.dg();
-};
-protoOf(JsonObjectDescriptor).xf = function () {
-  return this.gt_1.xf();
-};
-protoOf(JsonObjectDescriptor).eg = function () {
-  return this.gt_1.eg();
-};
-protoOf(JsonObjectDescriptor).fg = function (index) {
-  return this.gt_1.fg(index);
-};
-protoOf(JsonObjectDescriptor).gg = function (index) {
-  return this.gt_1.gg(index);
-};
-protoOf(JsonObjectDescriptor).pf = function () {
-  return this.ht_1;
-};
-var JsonObjectDescriptor_instance;
-function JsonObjectDescriptor_getInstance() {
-  if (JsonObjectDescriptor_instance == null)
-    new JsonObjectDescriptor();
-  return JsonObjectDescriptor_instance;
-}
-function JsonObjectSerializer() {
-  JsonObjectSerializer_instance = this;
-  this.it_1 = JsonObjectDescriptor_getInstance();
-}
-protoOf(JsonObjectSerializer).qe = function () {
-  return this.it_1;
-};
-protoOf(JsonObjectSerializer).jt = function (encoder, value) {
-  verify(encoder);
-  MapSerializer(serializer(StringCompanionObject_instance), JsonElementSerializer_getInstance()).re(encoder, value);
-};
-protoOf(JsonObjectSerializer).re = function (encoder, value) {
-  return this.jt(encoder, value instanceof JsonObject ? value : THROW_CCE());
-};
-var JsonObjectSerializer_instance;
-function JsonObjectSerializer_getInstance() {
-  if (JsonObjectSerializer_instance == null)
-    new JsonObjectSerializer();
-  return JsonObjectSerializer_instance;
-}
 function JsonElementSerializer$descriptor$lambda($this$buildSerialDescriptor) {
   $this$buildSerialDescriptor.af('JsonPrimitive', defer(JsonElementSerializer$descriptor$lambda$lambda));
   $this$buildSerialDescriptor.af('JsonNull', defer(JsonElementSerializer$descriptor$lambda$lambda_0));
@@ -611,30 +556,30 @@ function JsonElementSerializer$descriptor$lambda($this$buildSerialDescriptor) {
   return Unit_instance;
 }
 function JsonElementSerializer$descriptor$lambda$lambda() {
-  return JsonPrimitiveSerializer_getInstance().kt_1;
+  return JsonPrimitiveSerializer_getInstance().gt_1;
 }
 function JsonElementSerializer$descriptor$lambda$lambda_0() {
-  return JsonNullSerializer_getInstance().lt_1;
+  return JsonNullSerializer_getInstance().ht_1;
 }
 function JsonElementSerializer$descriptor$lambda$lambda_1() {
-  return JsonLiteralSerializer_getInstance().mt_1;
+  return JsonLiteralSerializer_getInstance().it_1;
 }
 function JsonElementSerializer$descriptor$lambda$lambda_2() {
-  return JsonObjectSerializer_getInstance().it_1;
+  return JsonObjectSerializer_getInstance().jt_1;
 }
 function JsonElementSerializer$descriptor$lambda$lambda_3() {
-  return JsonArraySerializer_getInstance().nt_1;
+  return JsonArraySerializer_getInstance().kt_1;
 }
 function JsonElementSerializer() {
   JsonElementSerializer_instance = this;
   var tmp = this;
   var tmp_0 = SEALED_getInstance();
-  tmp.ot_1 = buildSerialDescriptor('kotlinx.serialization.json.JsonElement', tmp_0, [], JsonElementSerializer$descriptor$lambda);
+  tmp.lt_1 = buildSerialDescriptor('kotlinx.serialization.json.JsonElement', tmp_0, [], JsonElementSerializer$descriptor$lambda);
 }
 protoOf(JsonElementSerializer).qe = function () {
-  return this.ot_1;
+  return this.lt_1;
 };
-protoOf(JsonElementSerializer).pt = function (encoder, value) {
+protoOf(JsonElementSerializer).mt = function (encoder, value) {
   verify(encoder);
   if (value instanceof JsonPrimitive) {
     encoder.fi(JsonPrimitiveSerializer_getInstance(), value);
@@ -649,7 +594,7 @@ protoOf(JsonElementSerializer).pt = function (encoder, value) {
   }
 };
 protoOf(JsonElementSerializer).re = function (encoder, value) {
-  return this.pt(encoder, value instanceof JsonElement ? value : THROW_CCE());
+  return this.mt(encoder, value instanceof JsonElement ? value : THROW_CCE());
 };
 var JsonElementSerializer_instance;
 function JsonElementSerializer_getInstance() {
@@ -657,12 +602,67 @@ function JsonElementSerializer_getInstance() {
     new JsonElementSerializer();
   return JsonElementSerializer_instance;
 }
+function JsonObjectDescriptor() {
+  JsonObjectDescriptor_instance = this;
+  this.nt_1 = MapSerializer(serializer(StringCompanionObject_instance), JsonElementSerializer_getInstance()).qe();
+  this.ot_1 = 'kotlinx.serialization.json.JsonObject';
+}
+protoOf(JsonObjectDescriptor).bg = function () {
+  return this.nt_1.bg();
+};
+protoOf(JsonObjectDescriptor).cg = function () {
+  return this.nt_1.cg();
+};
+protoOf(JsonObjectDescriptor).dg = function () {
+  return this.nt_1.dg();
+};
+protoOf(JsonObjectDescriptor).xf = function () {
+  return this.nt_1.xf();
+};
+protoOf(JsonObjectDescriptor).eg = function () {
+  return this.nt_1.eg();
+};
+protoOf(JsonObjectDescriptor).fg = function (index) {
+  return this.nt_1.fg(index);
+};
+protoOf(JsonObjectDescriptor).gg = function (index) {
+  return this.nt_1.gg(index);
+};
+protoOf(JsonObjectDescriptor).pf = function () {
+  return this.ot_1;
+};
+var JsonObjectDescriptor_instance;
+function JsonObjectDescriptor_getInstance() {
+  if (JsonObjectDescriptor_instance == null)
+    new JsonObjectDescriptor();
+  return JsonObjectDescriptor_instance;
+}
+function JsonObjectSerializer() {
+  JsonObjectSerializer_instance = this;
+  this.jt_1 = JsonObjectDescriptor_getInstance();
+}
+protoOf(JsonObjectSerializer).qe = function () {
+  return this.jt_1;
+};
+protoOf(JsonObjectSerializer).pt = function (encoder, value) {
+  verify(encoder);
+  MapSerializer(serializer(StringCompanionObject_instance), JsonElementSerializer_getInstance()).re(encoder, value);
+};
+protoOf(JsonObjectSerializer).re = function (encoder, value) {
+  return this.pt(encoder, value instanceof JsonObject ? value : THROW_CCE());
+};
+var JsonObjectSerializer_instance;
+function JsonObjectSerializer_getInstance() {
+  if (JsonObjectSerializer_instance == null)
+    new JsonObjectSerializer();
+  return JsonObjectSerializer_instance;
+}
 function JsonPrimitiveSerializer() {
   JsonPrimitiveSerializer_instance = this;
-  this.kt_1 = buildSerialDescriptor('kotlinx.serialization.json.JsonPrimitive', STRING_getInstance(), []);
+  this.gt_1 = buildSerialDescriptor('kotlinx.serialization.json.JsonPrimitive', STRING_getInstance(), []);
 }
 protoOf(JsonPrimitiveSerializer).qe = function () {
-  return this.kt_1;
+  return this.gt_1;
 };
 protoOf(JsonPrimitiveSerializer).qt = function (encoder, value) {
   verify(encoder);
@@ -723,10 +723,10 @@ function JsonArrayDescriptor_getInstance() {
 }
 function JsonArraySerializer() {
   JsonArraySerializer_instance = this;
-  this.nt_1 = JsonArrayDescriptor_getInstance();
+  this.kt_1 = JsonArrayDescriptor_getInstance();
 }
 protoOf(JsonArraySerializer).qe = function () {
-  return this.nt_1;
+  return this.kt_1;
 };
 protoOf(JsonArraySerializer).tt = function (encoder, value) {
   verify(encoder);
@@ -743,10 +743,10 @@ function JsonArraySerializer_getInstance() {
 }
 function JsonNullSerializer() {
   JsonNullSerializer_instance = this;
-  this.lt_1 = buildSerialDescriptor('kotlinx.serialization.json.JsonNull', ENUM_getInstance(), []);
+  this.ht_1 = buildSerialDescriptor('kotlinx.serialization.json.JsonNull', ENUM_getInstance(), []);
 }
 protoOf(JsonNullSerializer).qe = function () {
-  return this.lt_1;
+  return this.ht_1;
 };
 protoOf(JsonNullSerializer).ut = function (encoder, value) {
   verify(encoder);
@@ -761,18 +761,15 @@ function JsonNullSerializer_getInstance() {
     new JsonNullSerializer();
   return JsonNullSerializer_instance;
 }
-function verify(encoder) {
-  asJsonEncoder(encoder);
-}
 function defer(deferred) {
   return new defer$1(deferred);
 }
 function JsonLiteralSerializer() {
   JsonLiteralSerializer_instance = this;
-  this.mt_1 = PrimitiveSerialDescriptor('kotlinx.serialization.json.JsonLiteral', STRING_getInstance());
+  this.it_1 = PrimitiveSerialDescriptor('kotlinx.serialization.json.JsonLiteral', STRING_getInstance());
 }
 protoOf(JsonLiteralSerializer).qe = function () {
-  return this.mt_1;
+  return this.it_1;
 };
 protoOf(JsonLiteralSerializer).vt = function (encoder, value) {
   verify(encoder);
@@ -827,6 +824,9 @@ function JsonLiteralSerializer_getInstance() {
   if (JsonLiteralSerializer_instance == null)
     new JsonLiteralSerializer();
   return JsonLiteralSerializer_instance;
+}
+function verify(encoder) {
+  asJsonEncoder(encoder);
 }
 function asJsonEncoder(_this__u8e3s4) {
   var tmp0_elvis_lhs = isInterface(_this__u8e3s4, JsonEncoder) ? _this__u8e3s4 : null;
@@ -1014,6 +1014,9 @@ function JsonEncodingException(message) {
 function InvalidKeyKindException(keyDescriptor) {
   return new JsonEncodingException("Value of type '" + keyDescriptor.pf() + "' can't be used in JSON as a key in the map. " + ("It should have either primitive or enum kind, but its kind is '" + keyDescriptor.eg().toString() + "'.\n") + "Use 'allowStructuredMapKeys = true' in 'Json {}' builder to convert such maps to [key1, value1, key2, value2,...] arrays.");
 }
+function InvalidFloatingPointEncoded(value, output) {
+  return new JsonEncodingException('Unexpected special floating-point value ' + toString(value) + '. By default, ' + 'non-finite floating point values are prohibited because they do not conform JSON specification. ' + "It is possible to deserialize them using 'JsonBuilder.allowSpecialFloatingPointValues = true'\n" + ('Current output: ' + toString(minify(output))));
+}
 function JsonException(message) {
   SerializationException_init_$Init$(message, this);
   captureStack(this, JsonException);
@@ -1038,9 +1041,6 @@ function minify(_this__u8e3s4, offset) {
   // Inline function 'kotlin.text.substring' call
   var endIndex_0 = coerceAtMost(end, charSequenceLength(_this__u8e3s4));
   return prefix + toString(charSequenceSubSequence(_this__u8e3s4, tmp2, endIndex_0)) + suffix;
-}
-function InvalidFloatingPointEncoded(value, output) {
-  return new JsonEncodingException('Unexpected special floating-point value ' + toString(value) + '. By default, ' + 'non-finite floating point values are prohibited because they do not conform JSON specification. ' + "It is possible to deserialize them using 'JsonBuilder.allowSpecialFloatingPointValues = true'\n" + ('Current output: ' + toString(minify(output))));
 }
 var JsonDeserializationNamesKey;
 function get_JsonSerializationNamesKey() {

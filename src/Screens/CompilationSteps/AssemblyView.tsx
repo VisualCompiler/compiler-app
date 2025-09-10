@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react'
-import { EditorState } from '@codemirror/state'
+import { EditorState, StateEffect, StateField } from '@codemirror/state'
 import {
   foldGutter,
   syntaxHighlighting,
@@ -15,6 +15,8 @@ import {
   drawSelection,
   highlightActiveLine,
   lineNumbers,
+  Decoration,
+  type DecorationSet,
 } from '@codemirror/view'
 import {
   defaultKeymap,
@@ -98,21 +100,22 @@ interface ExecutionState {
   memory: Map<number, number>
 }
 
-const findAstNodeById = (node: AstNode | null, id: string): AstNode | null => {
-  if (!node) return null
-  if (node.id === id) return node
-
+const findAstNodeById = (
+  node: AstNode | null,
+  id: string | null
+): AstNode | null => {
+  if (!node || !id) return null
+  if (String(node.id) === String(id)) return node
   if (node.children) {
-    for (const childValue of Object.values(node.children)) {
-      // Child can be a single node or an array of nodes
-      if (Array.isArray(childValue)) {
-        for (const item of childValue) {
-          const result = findAstNodeById(item, id)
-          if (result) return result
+    for (const child of Object.values(node.children)) {
+      if (Array.isArray(child)) {
+        for (const c of child) {
+          const res = findAstNodeById(c, id)
+          if (res) return res
         }
-      } else if (childValue && typeof childValue === 'object') {
-        const result = findAstNodeById(childValue as AstNode, id)
-        if (result) return result
+      } else if (child && typeof child === 'object') {
+        const res = findAstNodeById(child as AstNode, id)
+        if (res) return res
       }
     }
   }
@@ -132,6 +135,47 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   const [binaryLines, setBinaryLines] = useState<BinaryLine[]>([])
   const [isConverting, setIsConverting] = useState(false)
   const [showMachineCode, setShowMachineCode] = useState(true)
+
+  const setHighlightEffect = StateEffect.define<string | null>()
+  const highlightDecoration = Decoration.line({ class: 'cm-highlighted-range' })
+  const [hoveredSourceId, setHoveredSourceId] = useState<string | null>(null)
+
+  const normalizeLocation = (loc: any) => ({
+    startLine: loc.startLine ?? loc.start_line ?? null,
+    startColumn: loc.startColumn ?? loc.start_col ?? loc.startCol ?? null,
+    endLine: loc.endLine ?? loc.end_line ?? null,
+    endColumn: loc.endColumn ?? loc.end_col ?? loc.endCol ?? null,
+  })
+
+  // StateField to highlight assembly lines based on hovered sourceId
+  const asmHighlightField = (instructions: AsmInstruction[]) =>
+    StateField.define<DecorationSet>({
+      create() {
+        return Decoration.none
+      },
+      update(decorations, tr) {
+        for (const effect of tr.effects) {
+          if (effect.is(setHighlightEffect)) {
+            const hoveredId = effect.value
+            const decos: any[] = []
+
+            instructions.forEach((instr, idx) => {
+              if (
+                instr.sourceId &&
+                hoveredId &&
+                String(instr.sourceId) === String(hoveredId)
+              ) {
+                const line = tr.state.doc.line(idx + 1)
+                decos.push(highlightDecoration.range(line.from))
+              }
+            })
+            return Decoration.set(decos)
+          }
+        }
+        return decorations.map(tr.changes)
+      },
+      provide: (f) => EditorView.decorations.from(f),
+    })
 
   // Execution state
   const [emulator, setEmulator] = useState<UnicornEmulator | null>(null)
@@ -312,65 +356,57 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         StreamLanguage.define(gas),
         EditorState.readOnly.of(true),
+        asmHighlightField(instructions),
         EditorView.domEventHandlers({
-          mouseover: (event, view) => {
+          click: (event, view) => {
             const rect = view.dom.getBoundingClientRect()
             const y = event.clientY - rect.top
             const lineBlock = view.lineBlockAtHeight(y)
             const lineNumber = view.state.doc.lineAt(lineBlock.from).number
             const lineText = view.state.doc.line(lineNumber).text.trim()
 
-            let instruction = null
-            let instructionIndex = -1
+            console.log('instructions', instructions)
+            // Find instruction that matches the clicked line text
+            const instructionsObject = instructions
+              ? JSON.parse(instructions)
+              : null
+            const instructionsArray = instructionsObject?.body ?? []
+            console.log('instructions:', instructions)
+            console.log('instructionsArray:', instructionsArray)
+            console.log('Clicked line:', lineText)
+            console.log(
+              'Available instructions:',
+              instructionsArray.map((inst) => inst.code)
+            )
 
-            // Skip global directives
-            if (lineText.startsWith('.globl') || lineText.startsWith('ret')) {
-              instruction = null
-            }
-            // Skip labels (lines ending with :)
-            else if (lineText.endsWith(':')) {
-              instruction = null
-            }
-            // Skip prologue instructions
-            else if (
-              lineText.includes('push rbp') ||
-              lineText.includes('mov rbp, rsp')
-            ) {
-              instruction = null
-            }
-            // Skip epilogue instructions
-            else if (
-              lineText.includes('mov rsp, rbp') ||
-              lineText.includes('pop rbp')
-            ) {
-              instruction = null
-            }
-            // Map to instruction array, accounting for prologue
-            else {
-              instructionIndex = lineNumber - 5
-              if (
-                instructionIndex >= 0 &&
-                instructionIndex < instructions.length
-              ) {
-                instruction = instructions[instructionIndex]
-              }
-            }
+            const matchingInstruction = instructionsArray.find(
+              (inst) => inst.code && inst.code.trim() === lineText.trim()
+            )
 
-            if (instruction?.sourceId) {
-              // Find the AST node directly using the sourceId
-              const astNode = findAstNodeById(ast, instruction.sourceId)
-              if (astNode && astNode.location) {
-                // Highlight the source code location directly
-                setActiveLocation(astNode.location)
-                console.log('astNode:', astNode)
-                console.log('astNode.location:', astNode.location)
+            console.log('Matching instruction:', matchingInstruction)
+
+            if (matchingInstruction?.sourceId) {
+              console.log('SourceId found:', matchingInstruction.sourceId)
+              if (ast) {
+                const node = findAstNodeById(ast, matchingInstruction.sourceId)
+                console.log('Found AST node:', node)
+                if (node?.location) {
+                  setActiveLocation(node.location)
+                  console.log(
+                    'Highlighting location:',
+                    normalizeLocation(node.location)
+                  )
+                } else {
+                  console.log('No location found on AST node')
+                }
+              } else {
+                console.log('No AST available')
               }
             } else {
-              console.log('CodeMirror: No sourceId found for this instruction')
+              console.log('No matching instruction or sourceId found')
+              setHoveredSourceId(null)
+              setActiveLocation(null)
             }
-          },
-          mouseout: () => {
-            handleMouseLeave()
           },
         }),
         EditorView.theme({
@@ -1067,7 +1103,97 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
               </div>
             </div>
           ) : (
-            <div ref={editorRef} className="h-full"></div>
+            // <div ref={editorRef} className="h-full"></div>
+            <div className="p-2 font-mono text-sm overflow-auto h-full">
+              {asmCode.map((line, index) => {
+                const isHeader = index === 0
+                const instructionIndex = index - 1
+                const instr = !isHeader
+                  ? instructions?.body?.[instructionIndex]
+                  : null
+
+                const correspondingAstNode = instr
+                  ? findAstNodeById(ast, instr.sourceId)
+                  : null
+                const isHighlighted =
+                  activeLocation &&
+                  correspondingAstNode &&
+                  correspondingAstNode.location.startLine ===
+                    activeLocation.startLine &&
+                  correspondingAstNode.location.endLine ===
+                    activeLocation.endLine &&
+                  correspondingAstNode.location.startCol ===
+                    activeLocation.startCol &&
+                  correspondingAstNode.location.endCol === activeLocation.endCol
+
+                return (
+                  <div
+                    key={index}
+                    // Add the event handlers
+                    onClick={() => {
+                      const lineText = asmCode[index].trim()
+
+                      // Find instruction that matches the clicked line text
+                      const instructionsObject = instructions
+                        ? JSON.parse(instructions)
+                        : null
+                      const instructionsArray = instructionsObject?.body ?? []
+                      console.log('instructions:', instructions)
+                      console.log('instructionsArray:', instructionsArray)
+                      console.log('Clicked line:', lineText)
+                      console.log(
+                        'Available instructions:',
+                        instructionsArray.map((inst) => inst.code)
+                      )
+
+                      const matchingInstruction = instructionsArray.find(
+                        (inst) =>
+                          inst.code && inst.code.trim() === lineText.trim()
+                      )
+
+                      console.log('Matching instruction:', matchingInstruction)
+
+                      if (matchingInstruction?.sourceId) {
+                        console.log(
+                          'SourceId found:',
+                          matchingInstruction.sourceId
+                        )
+                        if (ast) {
+                          const node = findAstNodeById(
+                            ast,
+                            matchingInstruction.sourceId
+                          )
+                          console.log('Found AST node:', node)
+                          if (node?.location) {
+                            setActiveLocation(node.location)
+                            console.log(
+                              'Highlighting location:',
+                              normalizeLocation(node.location)
+                            )
+                          } else {
+                            console.log('No location found on AST node')
+                          }
+                        } else {
+                          console.log('No AST available')
+                        }
+                      } else {
+                        console.log('No matching instruction or sourceId found')
+                        setHoveredSourceId(null)
+                        setActiveLocation(null)
+                      }
+                    }}
+                    // Apply conditional styling
+                    className={`whitespace-pre px-2 py-1 rounded-md transition-colors cursor-pointer ${
+                      isHighlighted
+                        ? 'bg-yellow-200 dark:bg-yellow-800'
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    {asmCode[index]}
+                  </div>
+                )
+              })}
+            </div>
           )}
         </div>
 

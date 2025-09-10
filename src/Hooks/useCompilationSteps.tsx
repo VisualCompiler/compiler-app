@@ -128,12 +128,11 @@ export const useCompilationSteps = () => {
     //const tacky = (tackyOutput as any)?.tacky || ''
 
     //console.log(tackyPseudoCode)
-    const asmJsonString = (codeGenOutput as any)?.rawAssembly
-    const asmProgram = asmJsonString ? JSON.parse(asmJsonString) : []
-    const asmInstructions = asmProgram?.functions?.[0]?.body || []
-    const asmCode = (codeGenOutput as any)?.assembly
+    const asmInstructions = (codeGenOutput as any)?.rawAssembly
+    console.log('asmInstructions:', asmInstructions)
 
-    console.log('asmInstructions', asmInstructions)
+    const asmCode = (codeGenOutput as any)?.assembly
+    console.log('asmCode:', asmCode)
 
     setCompilationResult({
       tokens,
