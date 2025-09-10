@@ -506,26 +506,26 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         resetStackPointer();
       }
 
-      // Check if we're about to execute a ret instruction in the _start function
+      // Check if we're about to execute a ret instruction in the main function
       const currentIP = currentState.currentInstruction;
       const currentLine = binaryLines.find(
         (line) => line.offset === currentIP && line.type === "instruction"
       );
 
-      // If we're about to execute ret, check if we're in the _start function
+      // If we're about to execute ret, check if we're in the main function
       if (currentLine && currentLine.line?.trim() === "ret") {
-        // Find the _start function label
+        // Find the main function label
         const startFunctionLine = binaryLines.find(
-          (line) => line.type === "label" && line.line?.includes("_start")
+          (line) => line.type === "label" && line.line?.includes("main")
         );
 
         if (startFunctionLine) {
-          // Find the next function label after _start to determine the _start function's end
+          // Find the next function label after main to determine the main function's end
           const startFunctionIndex = binaryLines.findIndex(
             (line) => line === startFunctionLine
           );
 
-          // Look for the next function label after _start
+          // Look for the next function label after main
           let nextFunctionIndex = -1;
           for (let i = startFunctionIndex + 1; i < binaryLines.length; i++) {
             if (
@@ -539,21 +539,21 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
             }
           }
 
-          // Determine the end of _start function
+          // Determine the end of main function
           const startFunctionEnd =
             nextFunctionIndex !== -1
               ? binaryLines[nextFunctionIndex].offset
               : EMULATOR_CONFIG.CODE_SEGMENT_START +
                 binaryLinesToMachineCode(binaryLines).length;
 
-          // Check if current IP is within the _start function
+          // Check if current IP is within the main function
           if (
             currentIP >= startFunctionLine.offset &&
             currentIP < startFunctionEnd
           ) {
-            // We're in _start function and about to execute ret
+            // We're in main function and about to execute ret
             // Don't execute the ret, just reset the program
-            console.log("_start function completed, resetting program");
+            console.log("main function completed, resetting program");
 
             // Stop execution
             if (runInterval.current) {
@@ -595,14 +595,14 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
           setLastExecutedLine(instructionLineIndex);
         }
 
-        // Check if we've reached the end of the program or if _start function returned
+        // Check if we've reached the end of the program or if main function returned
         const programEnd =
           EMULATOR_CONFIG.CODE_SEGMENT_START +
           binaryLinesToMachineCode(binaryLines).length;
         const currentIP = emulator.getInstructionPointer()!;
 
         // Stop execution if we've reached the end of the program
-        // or if we're executing a ret instruction in the _start function
+        // or if we're executing a ret instruction in the main function
         if (currentIP >= programEnd) {
           console.log("Program execution completed, stopping execution");
           // Stop the execution

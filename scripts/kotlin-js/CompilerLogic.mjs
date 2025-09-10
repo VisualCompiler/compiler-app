@@ -405,9 +405,7 @@ function emitFunction($this, function_0) {
   this_0.b7(value_2).c7(_Char___init__impl__6a9atx(10));
   // Inline function 'kotlin.text.isNotEmpty' call
   if (charSequenceLength(bodyAsm) > 0) {
-    // Inline function 'kotlin.text.appendLine' call
-    // Inline function 'kotlin.text.appendLine' call
-    this_0.b7(bodyAsm).c7(_Char___init__impl__6a9atx(10));
+    this_0.b7(bodyAsm);
   }
   // Inline function 'kotlin.text.appendLine' call
   var value_3 = '  mov rsp, rbp';
@@ -434,7 +432,7 @@ function emitInstruction($this, instruction) {
         tmp = indent + 'addq rsp, ' + instruction.nw_1;
       } else {
         if (instruction instanceof Mov) {
-          tmp = indent + 'mov ' + emitOperand($this, instruction.mw_1, OperandSize_QUAD_getInstance()) + ', ' + emitOperand($this, instruction.lw_1, OperandSize_QUAD_getInstance());
+          tmp = indent + 'mov ' + emitOperand$default($this, instruction.mw_1) + ', ' + emitOperand$default($this, instruction.lw_1);
         } else {
           if (instruction instanceof AsmUnary) {
             tmp = indent + instruction.jw_1.iw_1 + ' ' + emitOperand$default($this, instruction.kw_1);
@@ -497,7 +495,7 @@ function emitOperand($this, operand, size) {
     tmp = '' + operand.yw_1;
   } else {
     if (operand instanceof Stack) {
-      tmp = '[rbp ' + operand.xw_1 + ']';
+      tmp = 'dword ptr[rbp ' + operand.xw_1 + ']';
     } else {
       if (operand instanceof Register) {
         var tmp_0;
@@ -6431,7 +6429,8 @@ function TackyFunction(name, args, body) {
 }
 protoOf(TackyFunction).q13 = function (indentationLevel) {
   var paramString = joinToString(this.u14_1, ', ');
-  var bodyAsCode = joinToString(this.v14_1, '\n', VOID, VOID, VOID, VOID, TackyFunction$toPseudoCode$lambda(indentationLevel));
+  var tmp = this.v14_1;
+  var bodyAsCode = joinToString(tmp, '\n', VOID, VOID, VOID, VOID, TackyFunction$toPseudoCode$lambda(indentationLevel));
   // Inline function 'kotlin.text.buildString' call
   // Inline function 'kotlin.apply' call
   var this_0 = StringBuilder_init_$Create$();
@@ -7142,13 +7141,9 @@ function convertOp($this, tackyOp) {
   }
   return tmp;
 }
-function createMainWrapper($this) {
-  var instructions = listOf_0([new Call('main'), Ret_getInstance()]);
-  return new AsmFunction('_start', instructions);
-}
 function createDefaultMain($this) {
   var instructions = listOf_0([new Mov(new Imm(0), new Register(HardwareRegister_EAX_getInstance())), Ret_getInstance()]);
-  return new AsmFunction('_start', instructions);
+  return new AsmFunction('main', instructions);
 }
 function TackyToAsm() {
 }
@@ -7189,13 +7184,12 @@ protoOf(TackyToAsm).hv = function (tackyProgram) {
   }
   var hasMainFunction = tmp$ret$3;
   var tmp_0;
-  if (hasMainFunction) {
-    tmp_0 = createMainWrapper(this);
+  if (!hasMainFunction) {
+    tmp_0 = plus(listOf(createDefaultMain(this)), asmFunction);
   } else {
-    tmp_0 = createDefaultMain(this);
+    tmp_0 = asmFunction;
   }
-  var mainWrapper = tmp_0;
-  var allFunctions = plus(listOf(mainWrapper), asmFunction);
+  var allFunctions = tmp_0;
   return new AsmProgram(allFunctions);
 };
 //region block: post-declaration
