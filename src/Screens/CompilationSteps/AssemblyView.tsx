@@ -866,7 +866,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
             <Button
               variant="outline"
               className="px-6 border-yellow-600! bg-yellow-600/20! transition-colors"
-              onClick={handleStep}
+              onClick={() => handleStep(true)}
               disabled={isExecuting || isStepping || !binaryLines.length}
             >
               <StepForward className="h-4 w-4" />
@@ -880,7 +880,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                   : 'border-red-600! bg-red-600/20!'
               }`}
               onClick={handleStopResume}
-              disabled={!isExecuting && !isStepping && !isPaused}
+              disabled={!isExecuting && !isPaused}
             >
               {isPaused ? (
                 <>
