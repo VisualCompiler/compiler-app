@@ -257,8 +257,10 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   }
 
   const resetExecutionState = () => {
+    const mainAddress = getMainFunctionAddress();
+    const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
     updateExecutionState({
-      currentInstruction: EMULATOR_CONFIG.CODE_SEGMENT_START,
+      currentInstruction: startAddress,
       stepCount: 0,
       registers: new Map(),
       memory: new Map(),
@@ -425,7 +427,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
           0
         )
         const initialState: ExecutionState = {
-          currentInstruction: EMULATOR_CONFIG.CODE_SEGMENT_START,
+          currentInstruction: startAddress,
           stepCount: 0,
           registers: new Map(),
           memory: new Map(),
@@ -545,7 +547,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
 
       updateExecutionState({
         stepCount: 0,
-        currentInstruction: codeStart,
+        currentInstruction: startAddress,
         registers: new Map(),
         memory: new Map(),
       })
@@ -844,7 +846,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                 min="50"
                 max="1000"
                 step="50"
-                defaultValue="200"
                 className="w-20 h-2 bg-foreground/20 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => setExecutionSpeed(parseInt(e.target.value))}
                 title="Execution Speed (ms)"
@@ -914,7 +915,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
               <h3 className="text-sm font-semibold text-foreground border-b border-border pb-2 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
                 Code
               </h3>
-              <div className="space-y-1">
+              <div ref={machineCodeContainerRef} className="space-y-1">
                 {isConverting && (
                   <div className="p-2 text-center text-muted-foreground">
                     Converting assembly...
@@ -940,6 +941,13 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                   binaryLines.map((line, index) => (
                     <div
                       key={index}
+                      ref={(el) => {
+                        if (el) {
+                          lineRefs.current.set(index, el);
+                        } else {
+                          lineRefs.current.delete(index);
+                        }
+                      }}
                       className={`p-2 rounded text-xs font-mono transition-colors ${
                         hasError &&
                         lastExecutedLine === index &&
