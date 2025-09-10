@@ -71,7 +71,6 @@ import {
   drop3na99dw9feawf as drop,
   asReversed308kw52j6ls1u as asReversed_0,
   IllegalArgumentException_init_$Create$3ewkh27kzt8z8 as IllegalArgumentException_init_$Create$,
-  Collection1k04j3hzsbod0 as Collection,
 } from './kotlin-kotlin-stdlib.mjs';
 import {
   JsonPrimitiveolttw629wj53 as JsonPrimitive,
@@ -7158,10 +7157,6 @@ function convertOp($this, tackyOp) {
   }
   return tmp;
 }
-function createDefaultMain($this) {
-  var instructions = listOf_0([new Mov(new Imm(0), new Register(HardwareRegister_EAX_getInstance())), Ret_getInstance()]);
-  return new AsmFunction('main.', instructions);
-}
 function TackyToAsm() {
 }
 protoOf(TackyToAsm).hv = function (tackyProgram) {
@@ -7176,38 +7171,7 @@ protoOf(TackyToAsm).hv = function (tackyProgram) {
     destination.d(tmp$ret$0);
   }
   var asmFunction = destination;
-  var tmp$ret$3;
-  $l$block_0: {
-    // Inline function 'kotlin.collections.any' call
-    var tmp;
-    if (isInterface(asmFunction, Collection)) {
-      tmp = asmFunction.n();
-    } else {
-      tmp = false;
-    }
-    if (tmp) {
-      tmp$ret$3 = false;
-      break $l$block_0;
-    }
-    var _iterator__ex2g4s_0 = asmFunction.i();
-    while (_iterator__ex2g4s_0.j()) {
-      var element = _iterator__ex2g4s_0.k();
-      if (element.kv_1 === 'main') {
-        tmp$ret$3 = true;
-        break $l$block_0;
-      }
-    }
-    tmp$ret$3 = false;
-  }
-  var hasMainFunction = tmp$ret$3;
-  var tmp_0;
-  if (!hasMainFunction) {
-    tmp_0 = plus(listOf(createDefaultMain(this)), asmFunction);
-  } else {
-    tmp_0 = asmFunction;
-  }
-  var allFunctions = tmp_0;
-  return new AsmProgram(allFunctions);
+  return new AsmProgram(asmFunction);
 };
 //region block: post-declaration
 defineProp(protoOf(NodeType), 'name', protoOf(NodeType).w1);

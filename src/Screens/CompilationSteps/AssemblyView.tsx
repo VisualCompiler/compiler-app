@@ -199,21 +199,10 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   };
 
   const getMainFunctionAddress = (): number | null => {
-    // First look for user-defined main function
-    const userMainFunctionLine = binaryLines.find(
-      (line) => line.type === "label" && line.line?.includes("main:") && !line.line?.includes("main.:")
+    const mainFunctionLine = binaryLines.find(
+      (line) => line.type === "label" && line.line?.includes("main:")
     );
-    
-    if (userMainFunctionLine) {
-      return userMainFunctionLine.offset;
-    }
-    
-    // If no user main, look for wrapper main function
-    const wrapperMainFunctionLine = binaryLines.find(
-      (line) => line.type === "label" && line.line?.includes("main.:")
-    );
-    
-    return wrapperMainFunctionLine ? wrapperMainFunctionLine.offset : null;
+    return mainFunctionLine ? mainFunctionLine.offset : null;
   };
 
   const scrollToExecutedLine = (lineIndex: number) => {
@@ -360,20 +349,10 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         const mainAddress = getMainFunctionAddress();
         const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
         
-        // Check if we have a user-defined main or wrapper main
-        const userMainFunctionLine = binaryLines.find(
-          (line) => line.type === "label" && line.line?.includes("main:") && !line.line?.includes("main.:")
-        );
-        const wrapperMainFunctionLine = binaryLines.find(
-          (line) => line.type === "label" && line.line?.includes("main.:")
-        );
-        
-        if (userMainFunctionLine) {
-          console.log(`Emulator initialized - execution will start from user-defined main function at address 0x${mainAddress?.toString(16)}`);
-        } else if (wrapperMainFunctionLine) {
-          console.log(`Emulator initialized - no user main function found, using wrapper main at address 0x${mainAddress?.toString(16)}`);
+        if (mainAddress) {
+          console.log(`Emulator initialized - execution will start from main function at address 0x${mainAddress.toString(16)}`);
         } else {
-          console.log(`Emulator initialized - no main function found, execution will start from code beginning at address 0x${EMULATOR_CONFIG.CODE_SEGMENT_START.toString(16)}`);
+          console.log(`Emulator initialized - no main function found, no execution will be possible`);
         }
         
         const initialState: ExecutionState = {
@@ -461,18 +440,8 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       const mainAddress = getMainFunctionAddress();
       const startAddress = mainAddress || codeStart;
       
-      // Check if we have a user-defined main or wrapper main
-      const userMainFunctionLine = binaryLines.find(
-        (line) => line.type === "label" && line.line?.includes("main:") && !line.line?.includes("main.:")
-      );
-      const wrapperMainFunctionLine = binaryLines.find(
-        (line) => line.type === "label" && line.line?.includes("main.:")
-      );
-      
-      if (userMainFunctionLine) {
-        console.log(`Execution starting from user-defined main function at address 0x${mainAddress?.toString(16)}`);
-      } else if (wrapperMainFunctionLine) {
-        console.log(`No user main function found, execution starting from wrapper main at address 0x${mainAddress?.toString(16)}`);
+      if (mainAddress) {
+        console.log(`Execution starting from main function at address 0x${mainAddress.toString(16)}`);
       } else {
         console.log(`No main function found, execution starting from code beginning at address 0x${codeStart.toString(16)}`);
       }
@@ -500,6 +469,13 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
   const handleRun = () => {
     if (!emulator) return;
+
+    // Check if there's a main function to execute
+    const mainAddress = getMainFunctionAddress();
+    if (!mainAddress) {
+      console.log("Cannot execute - no main function found");
+      return;
+    }
 
     console.log("Starting execution - setting isExecuting to true");
     setIsExecuting(true);
@@ -534,6 +510,13 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       return;
     }
 
+    // Check if there's a main function to execute
+    const mainAddress = getMainFunctionAddress();
+    if (!mainAddress) {
+      console.log("Cannot execute step - no main function found");
+      return;
+    }
+
     // Only set isStepping to true for manual steps, not during automatic execution
     if (isManualStep) {
       console.log("Manual step - setting isStepping to true");
@@ -563,9 +546,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
       // If we're about to execute ret, check if we're in the main function
       if (currentLine && currentLine.line?.trim() === "ret") {
-        // Find the main function label (either user-defined main: or wrapper main.:)
+        // Find the main function label
         const startFunctionLine = binaryLines.find(
-          (line) => line.type === "label" && (line.line?.includes("main:") || line.line?.includes("main.:"))
+          (line) => line.type === "label" && line.line?.includes("main:")
         );
 
         if (startFunctionLine) {
@@ -826,7 +809,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
               variant="outline"
               className="px-6 border-emerald-700! bg-emerald-700/20! transition-colors"
               onClick={handleRun}
-              disabled={isExecuting || isStepping || !binaryLines.length}
+              disabled={isExecuting || isStepping || !binaryLines.length || !getMainFunctionAddress()}
             >
               <Play className="h-4 w-4" />
               {isExecuting ? "Running..." : "Run"}
@@ -835,7 +818,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
               variant="outline"
               className="px-6 border-yellow-600! bg-yellow-600/20! transition-colors"
               onClick={() => handleStep(true)}
-              disabled={isExecuting || isStepping || !binaryLines.length}
+              disabled={isExecuting || isStepping || !binaryLines.length || !getMainFunctionAddress()}
             >
               <StepForward className="h-4 w-4" />
               {isStepping ? "Stepping..." : "Step"}
