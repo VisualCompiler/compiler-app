@@ -811,7 +811,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
             <div className="flex items-center space-x-2">
               <input
                 type="range"
-                min="50"
+                min="0"
                 max="1000"
                 step="50"
                 className="w-20 h-2 bg-foreground/20 rounded-lg appearance-none cursor-pointer"
