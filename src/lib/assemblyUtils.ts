@@ -14,7 +14,7 @@ export interface BinaryLine {
   address: string;
   bytes: string[];
   type: "instruction" | "label" | "directive";
-  directiveType?: "globl" | "data" | "text" | "section" | "other";
+  directiveType?: "globl" | "data" | "text";
 }
 
 export const convertAssemblyToBinary = async (
@@ -61,20 +61,16 @@ export const convertAssemblyToBinary = async (
     const ks = new keystone.Keystone(keystone.ARCH_X86, keystone.MODE_64);
     ks.option(keystone.OPT_SYNTAX, keystone.OPT_SYNTAX_INTEL);
 
-    // Validate each instruction line individually
-    const invalidInstructions: Array<{line: string, lineNumber: number, error: string}> = [];
     
     for (let i = 0; i < instructionLines.length; i++) {
       const instructionLine = instructionLines[i];
       const lineNumber =
         lines.findIndex((line) => line.trim() === instructionLine) + 1;
-
-      // Assemble just this instruction to validate it produces bytes
       try {
         const singleResult = ks.asm(instructionLine);
         if (!singleResult.failed && singleResult.length === 0) {
           throw new Error(
-            `Instruction at line ${lineNumber} produces 0 bytes: "${instructionLine}"`
+            `Invalid instruction in line ${lineNumber}: "${instructionLine}"`
           );
         } 
       } catch (error) {
@@ -86,15 +82,11 @@ export const convertAssemblyToBinary = async (
     const result = ks.asm(assemblyCode);
     if (result.failed) {
       const errorMsg = `Assembly failed: ${result.err}`;
-      if (typeof window !== "undefined" && (window as any).console?.assemblingError) {
-        (window as any).console.assemblingError(
-          errorMsg,
-          { assemblyCode, result },
-          "assembly-failed"
-        );
-      } else {
-        console.error(errorMsg);
-      }
+      (window as any).console.assemblingError(
+        errorMsg,
+        { assemblyCode, result },
+        "assembly-failed"
+      );
       throw new Error(errorMsg);
     }
     const machineBytes = result;
@@ -104,24 +96,6 @@ export const convertAssemblyToBinary = async (
       machineBytes,
       Number(EMULATOR_CONFIG.CODE_SEGMENT_START)
     );
-    // Check if disassembly produced fewer instructions than expected
-    const expectedInstructionCount = instructionLines.length - invalidInstructions.length;
-    if (instructions.length < expectedInstructionCount) {
-      const warningMsg = `Disassembly produced ${instructions.length} instructions but expected ${expectedInstructionCount}. Some instructions may not have been properly disassembled.`;
-      if (typeof window !== "undefined" && (window as any).console?.assemblingWarning) {
-        (window as any).console.assemblingWarning(
-          warningMsg,
-          { 
-            expected: expectedInstructionCount, 
-            actual: instructions.length,
-            invalidInstructions: invalidInstructions.length 
-          },
-          "disassembly-mismatch"
-        );
-      } else {
-        console.warn(warningMsg);
-      }
-    }
     
     const mapping: BinaryLine[] = [];
     let instIndex = 0;
@@ -210,19 +184,12 @@ export const convertAssemblyToBinary = async (
 
     // Report unmapped lines
     if (unmappedLines.length > 0) {
-      if (typeof window !== "undefined" && (window as any).console?.assemblingWarning) {
-        for (const unmapped of unmappedLines) {
-          (window as any).console.assemblingWarning(
-            `Line ${unmapped.lineNumber}: Instruction could not be mapped to disassembled code`,
-            { instruction: unmapped.line, lineNumber: unmapped.lineNumber },
-            "unmapped-instruction"
-          );
-        }
-      } else {
-        console.warn("Unmapped instructions:");
-        unmappedLines.forEach(unmapped => {
-          console.warn(`Line ${unmapped.lineNumber}: "${unmapped.line}"`);
-        });
+      for (const unmapped of unmappedLines) {
+        (window as any).console.assemblingWarning(
+          `Line ${unmapped.lineNumber}: Instruction could not be mapped to disassembled code`,
+          { instruction: unmapped.line, lineNumber: unmapped.lineNumber },
+          "unmapped-instruction"
+        );
       }
     }
 
@@ -233,36 +200,15 @@ export const convertAssemblyToBinary = async (
 
     if (!hasMainFunction) {
       // Use custom console to emit warning
-      if (
-        typeof window !== "undefined" &&
-        (window as any).console?.assemblingWarning
-      ) {
-        (window as any).console.assemblingWarning(
-          "No main function provided. Execution is disabled.",
-          undefined,
-          "no-main-function"
-        );
-      } else {
-        console.warn("No main function provided. Program will return 0.");
-      }
+      (window as any).console.assemblingWarning(
+        "No main function provided. Execution is disabled.",
+        undefined,
+        "no-main-function"
+      );
     }
 
     ks.close();
     cs.close();
-    
-    // Log summary information
-    console.log("Assembly conversion summary:", {
-      totalInputLines: assemblyCode.split("\n").length,
-      filteredLines: lines.length,
-      mappingLines: mapping.length,
-      invalidInstructions: invalidInstructions.length,
-      unmappedLines: unmappedLines.length,
-      directives: mapping.filter(l => l.type === "directive").length,
-      labels: mapping.filter(l => l.type === "label").length,
-      instructions: mapping.filter(l => l.type === "instruction").length
-    });
-    
-    console.log("Mapping:", mapping);
     return mapping;
   } catch (error) {
     throw error;
