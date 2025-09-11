@@ -670,6 +670,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
               setIsExecuting(false)
             }
 
+            // Clear console when execution finishes normally
+            customConsole.clear();
+
             // Reset for next run
             resetExecutionState()
             resetProgramCounter()
