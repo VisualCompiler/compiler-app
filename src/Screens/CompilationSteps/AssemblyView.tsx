@@ -340,7 +340,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       const newEmulator = new UnicornEmulator();
       if (newEmulator.initialize()) {
         setEmulator(newEmulator);
-        // Count only actual instructions (not directives or labels)
+        // Count only actual instructions
         const instructionLines = getInstructionLines();
         const totalBytes = instructionLines.reduce(
           (sum, line) => sum + line.bytes.length,
@@ -348,12 +348,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         );
         const mainAddress = getMainFunctionAddress();
         const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
-        
-        if (mainAddress) {
-          console.log(`Emulator initialized - execution will start from main function at address 0x${mainAddress.toString(16)}`);
-        } else {
-          console.log(`Emulator initialized - no main function found, no execution will be possible`);
-        }
         
         const initialState: ExecutionState = {
           currentInstruction: startAddress,
@@ -378,8 +372,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       }
     };
   }, [emulator]);
-
-  // Set up emulator hooks
 
   // Update register values from emulator
   const updateRegisters = (emu: UnicornEmulator) => {
@@ -440,12 +432,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       const mainAddress = getMainFunctionAddress();
       const startAddress = mainAddress || codeStart;
       
-      if (mainAddress) {
-        console.log(`Execution starting from main function at address 0x${mainAddress.toString(16)}`);
-      } else {
-        console.log(`No main function found, execution starting from code beginning at address 0x${codeStart.toString(16)}`);
-      }
-      
       updateExecutionState({
         stepCount: 0,
         currentInstruction: startAddress,
@@ -473,11 +459,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     // Check if there's a main function to execute
     const mainAddress = getMainFunctionAddress();
     if (!mainAddress) {
-      console.log("Cannot execute - no main function found");
       return;
     }
 
-    console.log("Starting execution - setting isExecuting to true");
     setIsExecuting(true);
 
     if (!isPausedRef.current && runInterval.current)
@@ -491,7 +475,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
       if (!isPausedRef.current && !hasError && currentIP >= programEnd) {
         clearInterval(runInterval.current!);
-        console.log("Program completed - setting isExecuting to false");
         setIsExecuting(false);
         return;
       }
@@ -513,16 +496,12 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     // Check if there's a main function to execute
     const mainAddress = getMainFunctionAddress();
     if (!mainAddress) {
-      console.log("Cannot execute step - no main function found");
       return;
     }
 
     // Only set isStepping to true for manual steps, not during automatic execution
     if (isManualStep) {
-      console.log("Manual step - setting isStepping to true");
       setIsStepping(true);
-    } else {
-      console.log("Automatic step - not changing isStepping state");
     }
 
     // Find the instruction that's about to be executed
@@ -585,7 +564,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
           ) {
             // We're in main function and about to execute ret
             // Don't execute the ret, just reset the program
-            console.log("main function completed, resetting program");
 
             // Stop execution
             if (runInterval.current) {
@@ -636,8 +614,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         // Stop execution if we've reached the end of the program
         // or if we're executing a ret instruction in the main function
         if (currentIP >= programEnd) {
-          console.log("Program execution completed, stopping execution");
-          // Stop the execution
           if (runInterval.current) {
             clearInterval(runInterval.current);
             setIsExecuting(false);
@@ -662,7 +638,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     } finally {
       // Only set isStepping to false for manual steps
       if (isManualStep) {
-        console.log("Manual step completed - setting isStepping to false");
         setIsStepping(false);
       }
     }
@@ -695,7 +670,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   const handleStopResume = () => {
     if (isPaused) {
       // Resume
-      console.log("Resuming execution");
       isPausedRef.current = false;
       setIsPaused(false);
       setIsExecuting(true);
@@ -710,7 +684,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
         if (!isPausedRef.current && !hasError && currentIP >= programEnd) {
           clearInterval(runInterval.current!);
-          console.log("Program completed - setting isExecuting to false");
           setIsExecuting(false);
           return;
         }
@@ -718,7 +691,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       }, executionSpeed);
     } else {
       // Pause
-      console.log("Pausing execution");
       isPausedRef.current = true;
       if (runInterval.current) clearInterval(runInterval.current);
       setIsPaused(true);
@@ -730,7 +702,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     if (emulator) {
       emulator.stop();
       setCurrentRegisters(new Map());
-      // setCurrentMemory(new Map());
       setIsExecuting(false);
       setIsStepping(false);
       setIsPaused(false);

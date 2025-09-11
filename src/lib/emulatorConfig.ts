@@ -190,18 +190,11 @@ export class UnicornEmulator {
     }
   }
 
-  /** Convenience: map code + stack regions you’re using */
   mapDefaultLayout(): boolean {
-    const codeStart = EMULATOR_CONFIG.CODE_SEGMENT_START; // Now 0x0
+    const codeStart = EMULATOR_CONFIG.CODE_SEGMENT_START;
     const codeSize = EMULATOR_CONFIG.CODE_SIZE;
-    const stackStart = EMULATOR_CONFIG.STACK_SEGMENT_START; // e.g. 0x3000_0000
-    const stackSize = EMULATOR_CONFIG.STACK_SIZE; // e.g. 1MB
-
-    console.log(
-      `Mapping default layout: code at 0x${codeStart.toString(
-        16
-      )}, stack at 0x${stackStart.toString(16)}`
-    );
+    const stackStart = EMULATOR_CONFIG.STACK_SEGMENT_START; 
+    const stackSize = EMULATOR_CONFIG.STACK_SIZE; 
 
     return (
       this.mapMemory(codeStart, codeSize) &&
@@ -214,96 +207,33 @@ export class UnicornEmulator {
       console.error("Emulator not initialized");
       return false;
     }
-    console.log(
-      `Writing ${data.length} bytes to memory at 0x${address.toString(16)}`
-    );
-    console.log(
-      "Data:",
-      Array.from(data)
-        .map((b) => "0x" + b.toString(16).padStart(2, "0"))
-        .join(" ")
-    );
     this.uc.mem_write(address, Array.from(data));
-    console.log(
-      `Successfully wrote ${data.length} bytes to 0x${address.toString(16)}`
-    );
     return true;
   }
 
   setRegister(registerId: number, value: number): boolean {
     if (!this.isInitialized) return false;
-    try {
-      console.log(
-        `Setting register ${registerId} to value 0x${value.toString(16)}`
-      );
-      this.uc.reg_write_i64(registerId, value);
-      console.log(`Successfully set register ${registerId}`);
-      return true;
-    } catch (error) {
-      console.error(`Failed to set register ${registerId}:`, error);
-      return false;
-    }
+    this.uc.reg_write_i64(registerId, value);
+    return true;
   }
   getRegister(registerId: number): number | null {
     if (!this.isInitialized) return null;
-    try {
-      const value = this.uc.reg_read_i64(registerId);
-      return value;
-    } catch (error) {
-      console.error(`Failed to read register ${registerId}:`, error);
-      return null;
-    }
+    const value = this.uc.reg_read_i64(registerId);
+    return value;
   }
 
-  /** Start with optional single-instruction count */
   start(begin: number, until: number, count: number = 1) {
-    // Check if the start address is accessible
-    const rip = this.getInstructionPointer();
-    console.log(
-      `Current RIP: ${rip !== null ? "0x" + rip.toString(16) : "null"}`
-    );
-
     this.uc.emu_start(begin, until, 0, count);
-    console.log(this.uc.mem_read(begin, 8));
-    console.log("Emulation started successfully");
   }
 
   getInstructionPointer(): number | null {
-    console.log(
-      `Getting instruction pointer, RIP register ID: ${window.uc.X86_REG_RIP}`
-    );
-    const rip = this.getRegister(window.uc.X86_REG_RIP);
-    console.log(
-      `RIP value from getRegister: ${
-        rip !== null ? "0x" + rip.toString(16) : "null"
-      }`
-    );
-    return rip;
+    return this.getRegister(window.uc.X86_REG_RIP);
   }
 
   stop(): boolean {
     if (!this.isInitialized) return false;
     try {
       this.uc.emu_stop();
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  addCodeHook(callback: (address: number, size: number) => void): boolean {
-    if (!this.isInitialized) return false;
-    try {
-      const HOOK_CODE = window.uc.HOOK_CODE ?? 4;
-      this.uc.hook_add(
-        HOOK_CODE,
-        (addr: number, size: number) => {
-          callback(addr, size);
-        },
-        null,
-        0,
-        0
-      );
       return true;
     } catch {
       return false;
@@ -319,23 +249,14 @@ export class UnicornEmulator {
     }
   }
 
-  /** Read memory for verification */
   readMemory(address: number, size: number): Uint8Array | null {
     if (!this.isInitialized) {
       console.error("Emulator not initialized");
       return null;
     }
 
-    try {
-      const data = this.uc.mem_read(address, size);
-      return new Uint8Array(data);
-    } catch (error) {
-      console.error(
-        `Failed to read memory at 0x${address.toString(16)}:`,
-        error
-      );
-      return null;
-    }
+    const data = this.uc.mem_read(address, size);
+    return new Uint8Array(data);
   }
 
   getInitialized() {
