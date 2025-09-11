@@ -34,8 +34,9 @@ import {
   X86_REGISTERS,
   UnicornEmulator,
   EMULATOR_CONFIG,
-} from "@/lib/emulatorConfig";
-import "@/lib/consoleExtension";
+  } from "@/lib/emulatorConfig";
+  import "@/lib/consoleExtension";
+  import { customConsole } from "@/lib/consoleExtension";
 
 // Custom highlight style that uses CSS classes
 const customHighlightStyle = HighlightStyle.define([
@@ -469,17 +470,35 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       clearInterval(runInterval.current);
 
     runInterval.current = setInterval(() => {
-      const programEnd =
-        EMULATOR_CONFIG.CODE_SEGMENT_START +
-        binaryLinesToMachineCode(binaryLines).length;
-      const currentIP = emulator.getInstructionPointer()!;
+      try {
+        const programEnd =
+          EMULATOR_CONFIG.CODE_SEGMENT_START +
+          binaryLinesToMachineCode(binaryLines).length;
+        const currentIP = emulator.getInstructionPointer()!;
 
-      if (!isPausedRef.current && !hasError && currentIP >= programEnd) {
-        clearInterval(runInterval.current!);
-        setIsExecuting(false);
-        return;
+        if (!isPausedRef.current && !hasError && currentIP >= programEnd) {
+          clearInterval(runInterval.current!);
+          setIsExecuting(false);
+          // Clear console when execution finishes normally
+          customConsole.clear();
+          return;
+        }
+        handleStep();
+      } catch (error) {
+        // Stop execution on any error in the interval
+        if (runInterval.current) {
+          clearInterval(runInterval.current);
+          runInterval.current = null;
+        }
+        console.emulationError(
+          `Execution interval error: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+          error,
+          "execution-interval-error"
+        );
+        handleEmulationError();
       }
-      handleStep();
     }, executionSpeed);
   };
 
@@ -532,45 +551,23 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         );
 
         if (startFunctionLine) {
-          // Find the next function label after main to determine the main function's end
-          const startFunctionIndex = binaryLines.findIndex(
-            (line) => line === startFunctionLine
-          );
-
-          // Look for the next function label after main
-          let nextFunctionIndex = -1;
-          for (let i = startFunctionIndex + 1; i < binaryLines.length; i++) {
-            if (
-              binaryLines[i].type === "label" &&
-              binaryLines[i].line &&
-              !binaryLines[i].line.startsWith(".")
-            ) {
-              // Skip local labels
-              nextFunctionIndex = i;
-              break;
-            }
-          }
-
-          // Determine the end of main function
-          const startFunctionEnd =
-            nextFunctionIndex !== -1
-              ? binaryLines[nextFunctionIndex].offset
-              : EMULATOR_CONFIG.CODE_SEGMENT_START +
-                binaryLinesToMachineCode(binaryLines).length;
-
-          // Check if current IP is within the main function
-          if (
-            currentIP >= startFunctionLine.offset &&
-            currentIP < startFunctionEnd
-          ) {
-            // We're in main function and about to execute ret
-            // Don't execute the ret, just reset the program
+          // Check if we're in the main function by seeing if we started from main
+          // and haven't called any other functions
+          const mainStartAddress = startFunctionLine.offset;
+          const programEnd = EMULATOR_CONFIG.CODE_SEGMENT_START + binaryLinesToMachineCode(binaryLines).length;
+          
+          // If we're executing a ret and we're at or near the end of the program,
+          // and we started from main, treat it as main function return
+          if (currentIP >= mainStartAddress && currentIP <= programEnd) {
 
             // Stop execution
             if (runInterval.current) {
               clearInterval(runInterval.current);
               setIsExecuting(false);
             }
+
+            // Clear console when execution finishes normally
+            customConsole.clear();
 
             // Reset for next run
             resetExecutionState();
@@ -631,11 +628,18 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         error,
         "step-execution-failed"
       );
+      // Stop execution immediately when error occurs
+      if (runInterval.current) {
+        clearInterval(runInterval.current);
+        runInterval.current = null;
+      }
+      
+      handleEmulationError();
+      
       // Mark the instruction that failed
       if (instructionLineIndex !== -1) {
         setLastExecutedLine(instructionLineIndex);
       }
-      handleEmulationError();
     } finally {
       // Only set isStepping to false for manual steps
       if (isManualStep) {
@@ -677,18 +681,36 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       
       // Restart the interval without calling handleRun (which would reset execution)
       runInterval.current = setInterval(() => {
-        if (!emulator) return;
-        const programEnd =
-          EMULATOR_CONFIG.CODE_SEGMENT_START +
-          binaryLinesToMachineCode(binaryLines).length;
-        const currentIP = emulator.getInstructionPointer()!;
+        try {
+          if (!emulator) return;
+          const programEnd =
+            EMULATOR_CONFIG.CODE_SEGMENT_START +
+            binaryLinesToMachineCode(binaryLines).length;
+          const currentIP = emulator.getInstructionPointer()!;
 
-        if (!isPausedRef.current && !hasError && currentIP >= programEnd) {
-          clearInterval(runInterval.current!);
-          setIsExecuting(false);
-          return;
+          if (!isPausedRef.current && !hasError && currentIP >= programEnd) {
+            clearInterval(runInterval.current!);
+            setIsExecuting(false);
+            // Clear console when execution finishes normally
+            customConsole.clear();
+            return;
+          }
+          handleStep();
+        } catch (error) {
+          // Stop execution on any error in the interval
+          if (runInterval.current) {
+            clearInterval(runInterval.current);
+            runInterval.current = null;
+          }
+          console.emulationError(
+            `Resume execution error: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+            error,
+            "resume-execution-error"
+          );
+          handleEmulationError();
         }
-        handleStep();
       }, executionSpeed);
     } else {
       // Pause
@@ -712,6 +734,8 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       emulator?.close();
       setEmulator(null);
     }
+    // Clear console runtime messages
+    customConsole.clear();
   };
 
   // Clean up editor when switching to machine code view
