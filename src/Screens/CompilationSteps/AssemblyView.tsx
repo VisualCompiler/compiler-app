@@ -98,6 +98,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   const [binaryLines, setBinaryLines] = useState<BinaryLine[]>([]);
   const [isConverting, setIsConverting] = useState(false);
   const [showMachineCode, setShowMachineCode] = useState(true);
+  const [hasMainFunction, setHasMainFunction] = useState(false);
 
   // Execution state
   const [emulator, setEmulator] = useState<UnicornEmulator | null>(null);
@@ -198,13 +199,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     }
   };
 
-  const getMainFunctionAddress = (): number | null => {
-    const mainFunctionLine = binaryLines.find(
-      (line) => line.type === "label" && line.line?.includes("main:")
-    );
-    return mainFunctionLine ? mainFunctionLine.offset : null;
-  };
-
   const scrollToExecutedLine = (lineIndex: number) => {
     if (!showMachineCode || !machineCodeContainerRef.current) return;
     
@@ -223,7 +217,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
   const resetProgramCounter = () => {
     if (emulator) {
-      const mainAddress = getMainFunctionAddress();
+      const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line?.includes("main:"))?.offset : null;
       const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
       emulator.setRegister(window.uc.X86_REG_RIP, startAddress);
     }
@@ -234,7 +228,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   };
 
   const resetExecutionState = () => {
-    const mainAddress = getMainFunctionAddress();
+    const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line?.includes("main:"))?.offset : null;
     const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
     updateExecutionState({
       currentInstruction: startAddress,
@@ -258,6 +252,12 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     try {
       const lines = await convertAssemblyToBinary(assemblyCode);
       setBinaryLines(lines);
+      
+      // Check if there's a main function
+      const mainExists = lines.some(
+        (line) => line.type === "label" && line.line?.includes("main:")
+      );
+      setHasMainFunction(mainExists);
     } catch (err) {
       console.assemblingError(
         `Assembly conversion failed: ${
@@ -266,6 +266,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         err
       );
       setBinaryLines([]);
+      setHasMainFunction(false);
     } finally {
       setIsConverting(false);
     }
@@ -346,7 +347,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
           (sum, line) => sum + line.bytes.length,
           0
         );
-        const mainAddress = getMainFunctionAddress();
+        const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line?.includes("main:"))?.offset : null;
         const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
         
         const initialState: ExecutionState = {
@@ -429,7 +430,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
       resetStackPointer();
 
-      const mainAddress = getMainFunctionAddress();
+      const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line?.includes("main:"))?.offset : null;
       const startAddress = mainAddress || codeStart;
       
       updateExecutionState({
@@ -457,8 +458,8 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     if (!emulator) return;
 
     // Check if there's a main function to execute
-    const mainAddress = getMainFunctionAddress();
-    if (!mainAddress) {
+    if (!hasMainFunction) {
+      console.log("Cannot execute - no main function found");
       return;
     }
 
@@ -494,8 +495,8 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     }
 
     // Check if there's a main function to execute
-    const mainAddress = getMainFunctionAddress();
-    if (!mainAddress) {
+    if (!hasMainFunction) {
+      console.log("Cannot execute step - no main function found");
       return;
     }
 
@@ -756,7 +757,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
                 />
                 <span className="text-muted-foreground">
                   {isExecuting ? "Executing" : "Ready"} | Step:{" "}
-                  {executionState.currentInstruction.toString(16)}
+                  {executionState.stepCount}
                 </span>
               </div>
             )}
@@ -780,7 +781,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
               variant="outline"
               className="px-6 border-emerald-700! bg-emerald-700/20! transition-colors"
               onClick={handleRun}
-              disabled={isExecuting || isStepping || !binaryLines.length || !getMainFunctionAddress()}
+              disabled={isExecuting || isStepping || !binaryLines.length || !hasMainFunction}
             >
               <Play className="h-4 w-4" />
               {isExecuting ? "Running..." : "Run"}
@@ -789,7 +790,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
               variant="outline"
               className="px-6 border-yellow-600! bg-yellow-600/20! transition-colors"
               onClick={() => handleStep(true)}
-              disabled={isExecuting || isStepping || !binaryLines.length || !getMainFunctionAddress()}
+              disabled={isExecuting || isStepping || !binaryLines.length || !hasMainFunction}
             >
               <StepForward className="h-4 w-4" />
               {isStepping ? "Stepping..." : "Step"}
