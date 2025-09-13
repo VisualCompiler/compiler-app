@@ -10,7 +10,7 @@ export const CreateCardModal = () => {
     e.preventDefault()
     const form = e.target as HTMLFormElement
     const title = (form.fileName as HTMLInputElement).value
-    createPlaygroundCard(modalPayload, title)
+    createPlaygroundCard(modalPayload, title, "")
     closeModal()
   }
   return (
