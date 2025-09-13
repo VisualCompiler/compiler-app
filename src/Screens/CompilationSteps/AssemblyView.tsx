@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import { EditorState } from "@codemirror/state";
 import {
   foldGutter,
@@ -133,6 +133,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
   const prevRegistersRef = useRef<Map<string, number>>(new Map());
   const prevMemoryRef = useRef<Map<number, number>>(new Map());
+  const runInterval = useRef<NodeJS.Timeout | null>(null);
   const [elevatedRegisters, setElevatedRegisters] = useState<Set<string>>(
     new Set()
   );
@@ -218,7 +219,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
   const resetProgramCounter = () => {
     if (emulator) {
-      const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line?.includes("main:"))?.offset : null;
+      const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line === "main")?.offset : null;
       const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
       emulator.setRegister(window.uc.X86_REG_RIP, startAddress);
     }
@@ -229,7 +230,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   };
 
   const resetExecutionState = () => {
-    const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line?.includes("main:"))?.offset : null;
+    const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line === "main")?.offset : null;
     const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
     updateExecutionState({
       currentInstruction: startAddress,
@@ -256,7 +257,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       
       // Check if there's a main function
       const mainExists = lines.some(
-        (line) => line.type === "label" && line.line?.includes("main:")
+        (line) => line.type === "label" && line.line === "main"
       );
       setHasMainFunction(mainExists);
     } catch (err) {
@@ -348,7 +349,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
           (sum, line) => sum + line.bytes.length,
           0
         );
-        const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line?.includes("main:"))?.offset : null;
+        const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line === "main")?.offset : null;
         const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START;
         
         const initialState: ExecutionState = {
@@ -369,6 +370,10 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
 
   useEffect(() => {
     return () => {
+      if (runInterval.current) {
+        clearInterval(runInterval.current);
+        runInterval.current = null;
+      }
       if (emulator) {
         emulator.close();
       }
@@ -412,6 +417,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     return new Uint8Array(bytes);
   };
 
+  // Cache machine code to prevent recomputation
+  const machineCode = useMemo(() => binaryLinesToMachineCode(binaryLines), [binaryLines]);
+
   // Load assembly code into emulator
   const loadAssemblyCode = async (): Promise<boolean> => {
     if (!emulator || !binaryLines.length) {
@@ -424,14 +432,13 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     }
 
     try {
-      const machineCode = binaryLinesToMachineCode(binaryLines);
       const codeStart = EMULATOR_CONFIG.CODE_SEGMENT_START;
 
       emulator.writeMemory(codeStart, machineCode);
 
       resetStackPointer();
 
-      const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line?.includes("main:"))?.offset : null;
+      const mainAddress = hasMainFunction ? binaryLines.find(line => line.type === "label" && line.line === "main")?.offset : null;
       const startAddress = mainAddress || codeStart;
       
       updateExecutionState({
@@ -453,9 +460,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     }
   };
 
-  const runInterval = useRef<NodeJS.Timeout | null>(null);
-
-  const handleRun = () => {
+  const handleRun = async () => {
     if (!emulator) return;
 
     // Check if there's a main function to execute
@@ -463,6 +468,12 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       console.log("Cannot execute - no main function found");
       return;
     }
+
+    // Reset execution state and reload assembly code before running
+    resetExecutionState();
+    await loadAssemblyCode();
+    resetProgramCounter();
+    resetStackPointer();
 
     setIsExecuting(true);
 
@@ -473,7 +484,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       try {
         const programEnd =
           EMULATOR_CONFIG.CODE_SEGMENT_START +
-          binaryLinesToMachineCode(binaryLines).length;
+          machineCode.length;
         const currentIP = emulator.getInstructionPointer()!;
 
         if (!isPausedRef.current && !hasError && currentIP >= programEnd) {
@@ -483,7 +494,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
           customConsole.clear();
           return;
         }
-        handleStep();
+        handleStep().catch(err => {
+          handleEmulationError();
+        });
       } catch (error) {
         // Stop execution on any error in the interval
         if (runInterval.current) {
@@ -532,10 +545,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     );
 
     try {
-      if (currentState.stepCount == 0) {
-        await loadAssemblyCode();
-        resetStackPointer();
-      }
+      // Assembly code is now loaded in handleRun, no need to reload here
 
       // Check if we're about to execute a ret instruction in the main function
       const currentIP = currentState.currentInstruction;
@@ -547,7 +557,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       if (currentLine && currentLine.line?.trim() === "ret") {
         // Find the main function label
         const startFunctionLine = binaryLines.find(
-          (line) => line.type === "label" && line.line?.includes("main:")
+          (line) => line.type === "label" && line.line === "main"
         );
 
         if (startFunctionLine) {
@@ -606,7 +616,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
         // Check if we've reached the end of the program or if main function returned
         const programEnd =
           EMULATOR_CONFIG.CODE_SEGMENT_START +
-          binaryLinesToMachineCode(binaryLines).length;
+          machineCode.length;
         const currentIP = emulator.getInstructionPointer()!;
 
         // Stop execution if we've reached the end of the program
@@ -616,8 +626,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
             clearInterval(runInterval.current);
             setIsExecuting(false);
           }
-          // Reset for next run
-          handleReset();
+          customConsole.clear();
         }
       }
     } catch (error) {
@@ -685,7 +694,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
           if (!emulator) return;
           const programEnd =
             EMULATOR_CONFIG.CODE_SEGMENT_START +
-            binaryLinesToMachineCode(binaryLines).length;
+            machineCode.length;
           const currentIP = emulator.getInstructionPointer()!;
 
           if (!isPausedRef.current && !hasError && currentIP >= programEnd) {
@@ -695,7 +704,10 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
             customConsole.clear();
             return;
           }
-          handleStep();
+          handleStep().catch(err => {
+            console.error("Execution step failed", err);
+            handleEmulationError();
+          });
         } catch (error) {
           // Stop execution on any error in the interval
           if (runInterval.current) {
@@ -724,16 +736,23 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   const handleReset = () => {
     if (emulator) {
       emulator.stop();
-      setCurrentRegisters(new Map());
-      setIsExecuting(false);
-      setIsStepping(false);
-      setIsPaused(false);
-      isPausedRef.current = false;
-      setLastExecutedLine(null);
-      setHasError(false);
-      emulator?.close();
+      emulator.close();
       setEmulator(null);
     }
+    
+    if (runInterval.current) {
+      clearInterval(runInterval.current);
+      runInterval.current = null;
+    }
+    
+    setCurrentRegisters(new Map());
+    setIsExecuting(false);
+    setIsStepping(false);
+    setIsPaused(false);
+    isPausedRef.current = false;
+    setLastExecutedLine(null);
+    setHasError(false);
+    
     // Clear console runtime messages
     customConsole.clear();
   };
@@ -813,7 +832,16 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
             <Button
               variant="outline"
               className="px-6 border-yellow-600! bg-yellow-600/20! transition-colors"
-              onClick={() => handleStep(true)}
+              onClick={async () => {
+                if (executionState.stepCount === 0) {
+                  // First step - reset and load assembly code
+                  resetExecutionState();
+                  await loadAssemblyCode();
+                  resetProgramCounter();
+                  resetStackPointer();
+                }
+                handleStep(true);
+              }}
               disabled={isExecuting || isStepping || !binaryLines.length || !hasMainFunction}
             >
               <StepForward className="h-4 w-4" />

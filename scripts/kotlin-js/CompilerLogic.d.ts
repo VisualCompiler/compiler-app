@@ -126,11 +126,14 @@ export declare namespace ParserOutput {
     }
 }
 export declare class TackyOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: string | undefined, tackyPretty: Nullable<string> | undefined, errors: Array<CompilationError>);
+    constructor(stage: string | undefined, tackyPretty: Nullable<string> | undefined, functionNames: Nullable<Array<string>> | undefined, optimizations: Nullable<Array<string>> | undefined, precomputedCFGs: Nullable<string> | undefined, errors: Array<CompilationError>);
     get stage(): string;
     get tackyPretty(): Nullable<string>;
+    get functionNames(): Nullable<Array<string>>;
+    get optimizations(): Nullable<Array<string>>;
+    get precomputedCFGs(): Nullable<string>;
     get errors(): Array<CompilationError>;
-    copy(stage?: string, tackyPretty?: Nullable<string>, errors?: Array<CompilationError>): TackyOutput;
+    copy(stage?: string, tackyPretty?: Nullable<string>, functionNames?: Nullable<Array<string>>, optimizations?: Nullable<Array<string>>, precomputedCFGs?: Nullable<string>, errors?: Array<CompilationError>): TackyOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -231,8 +234,48 @@ export declare class CompilerExport {
     constructor();
     exportCompilationResults(code: string): string;
     toJsonString(_this_: KtList<any/* Token */>): string;
+    getCFGForFunction(precomputed: Nullable<string>, fn: string, enabledOpts: Array<string>): string;
 }
 /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
 export declare namespace CompilerExport.$metadata$ {
     const constructor: abstract new () => CompilerExport;
+}
+export declare abstract class TackyNodeType {
+    private constructor();
+    static get Program(): TackyNodeType & {
+        get name(): "Program";
+        get ordinal(): 0;
+    };
+    static get Function(): TackyNodeType & {
+        get name(): "Function";
+        get ordinal(): 1;
+    };
+    static get Instruction(): TackyNodeType & {
+        get name(): "Instruction";
+        get ordinal(): 2;
+    };
+    static get Value(): TackyNodeType & {
+        get name(): "Value";
+        get ordinal(): 3;
+    };
+    static get Variable(): TackyNodeType & {
+        get name(): "Variable";
+        get ordinal(): 4;
+    };
+    static get Constant(): TackyNodeType & {
+        get name(): "Constant";
+        get ordinal(): 5;
+    };
+    static get Label(): TackyNodeType & {
+        get name(): "Label";
+        get ordinal(): 6;
+    };
+    get name(): "Program" | "Function" | "Instruction" | "Value" | "Variable" | "Constant" | "Label";
+    get ordinal(): 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    static values(): Array<TackyNodeType>;
+    static valueOf(value: string): TackyNodeType;
+}
+/** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+export declare namespace TackyNodeType.$metadata$ {
+    const constructor: abstract new () => TackyNodeType;
 }

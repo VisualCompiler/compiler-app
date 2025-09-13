@@ -20,6 +20,9 @@ export interface BinaryLine {
 export const convertAssemblyToBinary = async (
   assemblyCode: string
 ): Promise<BinaryLine[]> => {
+  let ks: any = null;
+  let cs: any = null;
+  
   try {
     if (!window.ks || !window.ks.Keystone) {
       throw new Error("Keystone.js not available");
@@ -27,12 +30,14 @@ export const convertAssemblyToBinary = async (
     if (!window.cs || !window.cs.Capstone) {
       throw new Error("Capstone.js not available");
     }
-    const lines = assemblyCode
-      .split("\n")
-      .map((line) => line.trim())
+    
+    const originalLines = assemblyCode.split("\n");
+    const lines = originalLines
+      .map((line, index) => ({ text: line.trim(), original: line, index: index + 1 }))
       .filter(
-        (line) => line && !line.startsWith(";") && !line.startsWith("//")
+        (line) => line.text && !line.text.startsWith(";") && !line.text.startsWith("//")
       );
+      
     if (lines.length === 0) {
       return [];
     }
@@ -42,7 +47,7 @@ export const convertAssemblyToBinary = async (
     const instructionLines: string[] = [];
     const labelLines: string[] = [];
 
-    for (const line of lines) {
+    for (const { text: line } of lines) {
       if (
         line.startsWith(".globl") ||
         line.startsWith(".data") ||
@@ -58,14 +63,15 @@ export const convertAssemblyToBinary = async (
     }
 
     const keystone = window.ks;
-    const ks = new keystone.Keystone(keystone.ARCH_X86, keystone.MODE_64);
+    ks = new keystone.Keystone(keystone.ARCH_X86, keystone.MODE_64);
     ks.option(keystone.OPT_SYNTAX, keystone.OPT_SYNTAX_INTEL);
 
     
     for (let i = 0; i < instructionLines.length; i++) {
       const instructionLine = instructionLines[i];
-      const lineNumber =
-        lines.findIndex((line) => line.trim() === instructionLine) + 1;
+      // Find the line number more efficiently
+      const lineInfo = lines.find(line => line.text === instructionLine);
+      const lineNumber = lineInfo?.index || i + 1;
       try {
         const singleResult = ks.asm(instructionLine);
         if (!singleResult.failed && singleResult.length === 0) {
@@ -91,7 +97,7 @@ export const convertAssemblyToBinary = async (
     }
     const machineBytes = result;
     const capstone = window.cs;
-    const cs = new capstone.Capstone(capstone.ARCH_X86, capstone.MODE_64);
+    cs = new capstone.Capstone(capstone.ARCH_X86, capstone.MODE_64);
     const instructions = cs.disasm(
       machineBytes,
       Number(EMULATOR_CONFIG.CODE_SEGMENT_START)
@@ -103,16 +109,14 @@ export const convertAssemblyToBinary = async (
     const unmappedLines: Array<{line: string, lineNumber: number}> = [];
 
     // Process all lines in order, handling directives and instructions appropriately
-    for (const rawLine of lines) {
-      const line = rawLine.trim();
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+      const { text: line, original: originalLine, index: lineNumber } = lines[lineIndex];
       if (line === "") continue; // skip blanks
-
-      const lineNumber = lines.findIndex((l) => l.trim() === line) + 1;
 
       if (line.startsWith(".globl")) {
         // Global symbol declaration - no machine code
         mapping.push({
-          line,
+          line: originalLine, // Keep original formatting
           offset: currentOffset,
           address: `0x${currentOffset.toString(16).padStart(16, "0")}`,
           bytes: [],
@@ -122,7 +126,7 @@ export const convertAssemblyToBinary = async (
       } else if (line.startsWith(".data")) {
         // Data section declaration - no machine code
         mapping.push({
-          line,
+          line: originalLine, // Keep original formatting
           offset: currentOffset,
           address: `0x${currentOffset.toString(16).padStart(16, "0")}`,
           bytes: [],
@@ -132,7 +136,7 @@ export const convertAssemblyToBinary = async (
       } else if (line.startsWith(".text")) {
         // Text section declaration - no machine code
         mapping.push({
-          line,
+          line: originalLine, // Keep original formatting
           offset: currentOffset,
           address: `0x${currentOffset.toString(16).padStart(16, "0")}`,
           bytes: [],
@@ -140,13 +144,14 @@ export const convertAssemblyToBinary = async (
           directiveType: "text",
         });
       } else if (line.endsWith(":")) {
-        // label → record current offset (if available)
+        // label → record current offset (if available) and normalize label name
         const offset =
           instIndex < instructions.length
             ? instructions[instIndex].address
             : currentOffset;
+        const labelName = line.slice(0, -1); // Remove trailing colon
         mapping.push({
-          line,
+          line: labelName, // Store bare label name
           offset,
           address: `0x${offset.toString(16).padStart(16, "0")}`,
           bytes: [],
@@ -156,7 +161,7 @@ export const convertAssemblyToBinary = async (
         // instruction line → map to Capstone instruction
         if (instIndex >= instructions.length) {
           // This instruction couldn't be mapped to disassembled code
-          unmappedLines.push({ line, lineNumber });
+          unmappedLines.push({ line: originalLine, lineNumber });
           continue;
         }
         
@@ -167,9 +172,9 @@ export const convertAssemblyToBinary = async (
         const offset = inst.address;
 
         mapping.push({
-          line,
+          line: originalLine, // Keep original formatting
           offset,
-          address: `0x${(EMULATOR_CONFIG.CODE_SEGMENT_START + inst.address)
+          address: `0x${(inst.address)
             .toString(16)
             .padStart(16, "0")}`,
           bytes,
@@ -178,7 +183,7 @@ export const convertAssemblyToBinary = async (
 
         instIndex++;
         currentOffset =
-          EMULATOR_CONFIG.CODE_SEGMENT_START + inst.address + inst.bytes.length;
+          inst.address + inst.bytes.length;
       }
     }
 
@@ -195,7 +200,7 @@ export const convertAssemblyToBinary = async (
 
     // Check if there's no main function and emit warning
     const hasMainFunction = mapping.some(
-      (line) => line.type === "label" && line.line.includes("main:")
+      (line) => line.type === "label" && line.line === "main"
     );
 
     if (!hasMainFunction) {
@@ -207,10 +212,24 @@ export const convertAssemblyToBinary = async (
       );
     }
 
-    ks.close();
-    cs.close();
     return mapping;
   } catch (error) {
     throw error;
+  } finally {
+    // Ensure proper cleanup even if exceptions occur
+    if (ks) {
+      try {
+        ks.close();
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    }
+    if (cs) {
+      try {
+        cs.close();
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+    }
   }
 };
