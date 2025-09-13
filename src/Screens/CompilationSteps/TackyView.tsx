@@ -2,41 +2,30 @@ import type {
   AstNode,
   SourceLocation,
   TackyInstruction,
+  AstNodeHashTable,
 } from '@/Hooks/useCompilationSteps'
 
 interface TackyViewProps {
   instructions: TackyInstruction[]
   prettyTacky: string
-  ast: AstNode | null
+  astNodeHashTable: AstNodeHashTable
   activeLocation: SourceLocation | null
   setActiveLocation: (location: SourceLocation | null) => void
 }
 
-const findAstNodeById = (node: AstNode | null, id: string): AstNode | null => {
-  if (!node) return null
-  if (node.id === id) return node
-
-  if (node.children) {
-    for (const childValue of Object.values(node.children)) {
-      // Child can be a single node or an array of nodes
-      if (Array.isArray(childValue)) {
-        for (const item of childValue) {
-          const result = findAstNodeById(item, id)
-          if (result) return result
-        }
-      } else if (childValue && typeof childValue === 'object') {
-        const result = findAstNodeById(childValue as AstNode, id)
-        if (result) return result
-      }
-    }
-  }
-  return null
+// Fast hash table lookup instead of recursive tree traversal
+const findAstNodeById = (
+  astNodeHashTable: AstNodeHashTable,
+  id: string
+): AstNode | null => {
+  const entry = astNodeHashTable[id]
+  return entry ? entry.node : null
 }
 
 export const TackyView: React.FC<TackyViewProps> = ({
   instructions,
   prettyTacky,
-  ast,
+  astNodeHashTable,
   activeLocation,
   setActiveLocation,
 }) => {
@@ -51,8 +40,7 @@ export const TackyView: React.FC<TackyViewProps> = ({
   }
 
   const handleMouseEnter = (astNodeId: string) => {
-    if (!ast) return
-    const targetNode = findAstNodeById(ast, astNodeId)
+    const targetNode = findAstNodeById(astNodeHashTable, astNodeId)
     if (targetNode && targetNode.location) {
       console.log('handleMouseEnter nodeId:', targetNode.id)
 
@@ -73,8 +61,9 @@ export const TackyView: React.FC<TackyViewProps> = ({
         const instr = !isHeader ? instructions[instructionIndex] : null
 
         const correspondingAstNode = instr
-          ? findAstNodeById(ast, instr.sourceId)
+          ? findAstNodeById(astNodeHashTable, instr.sourceId)
           : null
+        console.log()
         const isHighlighted =
           activeLocation &&
           correspondingAstNode &&

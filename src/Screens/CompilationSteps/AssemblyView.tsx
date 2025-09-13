@@ -42,6 +42,7 @@ import type {
   AssemblyInstruction,
   AstNode,
   SourceLocation,
+  AstNodeHashTable,
 } from '@/Hooks/useCompilationSteps'
 
 // Custom highlight style that uses CSS classes
@@ -88,7 +89,7 @@ const customHighlightStyle = HighlightStyle.define([
 interface AssemblyViewProps {
   asmCodeForEmulator: string
   instructions: AssemblyInstruction[]
-  ast: AstNode | null
+  astNodeHashTable: AstNodeHashTable
   activeLocation: SourceLocation | null
   setActiveLocation: (location: SourceLocation | null) => void
 }
@@ -101,31 +102,18 @@ interface ExecutionState {
 }
 
 const findAstNodeById = (
-  node: AstNode | null,
+  astNodeHashTable: AstNodeHashTable,
   id: string | null
 ): AstNode | null => {
-  if (!node || !id) return null
-  if (String(node.id) === String(id)) return node
-  if (node.children) {
-    for (const child of Object.values(node.children)) {
-      if (Array.isArray(child)) {
-        for (const c of child) {
-          const res = findAstNodeById(c, id)
-          if (res) return res
-        }
-      } else if (child && typeof child === 'object') {
-        const res = findAstNodeById(child as AstNode, id)
-        if (res) return res
-      }
-    }
-  }
-  return null
+  if (!id) return null
+  const entry = astNodeHashTable[id]
+  return entry ? entry.node : null
 }
 
 export const AssemblyView: React.FC<AssemblyViewProps> = ({
   asmCodeForEmulator,
   instructions,
-  ast,
+  astNodeHashTable,
   activeLocation,
   setActiveLocation,
 }) => {
@@ -356,16 +344,15 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
 
             if (matchingInstruction?.sourceId) {
               console.log('SourceId found:', matchingInstruction.sourceId)
-              if (ast) {
-                const node = findAstNodeById(ast, matchingInstruction.sourceId)
-                console.log('Found AST node:', node)
-                if (node?.location) {
-                  setActiveLocation(node.location)
-                } else {
-                  console.log('No location found on AST node')
-                }
+              const node = findAstNodeById(
+                astNodeHashTable,
+                matchingInstruction.sourceId
+              )
+              console.log('Found AST node:', node)
+              if (node?.location) {
+                setActiveLocation(node.location)
               } else {
-                console.log('No AST available')
+                console.log('No location found on AST node')
               }
             } else {
               console.log('No matching instruction or sourceId found')
@@ -1014,7 +1001,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                   : null
 
                 const correspondingAstNode = instr
-                  ? findAstNodeById(ast, instr.sourceId)
+                  ? findAstNodeById(astNodeHashTable, instr.sourceId)
                   : null
                 const isHighlighted =
                   activeLocation &&
@@ -1051,19 +1038,15 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                           'SourceId found:',
                           matchingInstruction.sourceId
                         )
-                        if (ast) {
-                          const node = findAstNodeById(
-                            ast,
-                            matchingInstruction.sourceId
-                          )
-                          console.log('Found AST node:', node)
-                          if (node?.location) {
-                            setActiveLocation(node.location)
-                          } else {
-                            console.log('No location found on AST node')
-                          }
+                        const node = findAstNodeById(
+                          astNodeHashTable,
+                          matchingInstruction.sourceId
+                        )
+                        console.log('Found AST node:', node)
+                        if (node?.location) {
+                          setActiveLocation(node.location)
                         } else {
-                          console.log('No AST available')
+                          console.log('No location found on AST node')
                         }
                       } else {
                         console.log('No matching instruction or sourceId found')

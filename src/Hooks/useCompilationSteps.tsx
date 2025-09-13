@@ -32,6 +32,13 @@ export interface AstNode {
   location: SourceLocation
 }
 
+export interface AstNodeHashTable {
+  [nodeId: string]: {
+    node: AstNode
+    sourceLocation: SourceLocation
+  }
+}
+
 export interface TackyInstruction {
   sourceId: string
   _raw: any
@@ -40,6 +47,65 @@ export interface TackyInstruction {
 export interface AssemblyInstruction {
   text: string
   sourceId?: string
+}
+
+// Function to extract all AST nodes and create a hash table
+const extractAstNodes = (ast: any): AstNodeHashTable => {
+  const hashTable: AstNodeHashTable = {}
+
+  const traverse = (node: any, depth = 0) => {
+    if (!node || typeof node !== 'object') return
+
+    if (node.id && node.location) {
+      console.log(
+        'Found AST node with ID:',
+        node.id,
+        'Location:',
+        node.location,
+        'Depth:',
+        depth
+      )
+      hashTable[node.id] = {
+        node: {
+          id: node.id,
+          location: node.location,
+        },
+        sourceLocation: node.location,
+      }
+    } else if (node.id) {
+      console.log(
+        'Found AST node with ID but no location:',
+        node.id,
+        'Node:',
+        node,
+        'Depth:',
+        depth
+      )
+    }
+
+    // Recursively traverse all object properties
+    for (const [key, value] of Object.entries(node)) {
+      if (key === 'id' || key === 'location') continue
+
+      if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+          console.log(`Traversing array item at ${key}[${index}]:`, item)
+          traverse(item, depth + 1)
+        })
+      } else if (value && typeof value === 'object') {
+        console.log(`Traversing object property ${key}:`, value)
+        traverse(value, depth + 1)
+      }
+    }
+  }
+
+  console.log('Starting AST traversal with root:', ast)
+  traverse(ast)
+  console.log(
+    'AST traversal complete. Total nodes found:',
+    Object.keys(hashTable).length
+  )
+  return hashTable
 }
 
 // Unified error handling function
@@ -61,6 +127,7 @@ export const useCompilationSteps = () => {
   const [compilationResult, setCompilationResult] = useState<{
     tokens: any[]
     ast: any
+    astNodeHashTable: AstNodeHashTable
     tackyPseudoCode: string
     tackyInstructions: TackyInstruction[]
     asmCode: string
@@ -71,6 +138,7 @@ export const useCompilationSteps = () => {
   }>({
     tokens: [],
     ast: null,
+    astNodeHashTable: {},
     tackyPseudoCode: '',
     tackyInstructions: [],
     asmCode: '',
@@ -85,6 +153,7 @@ export const useCompilationSteps = () => {
       setCompilationResult({
         tokens: [],
         ast: null,
+        astNodeHashTable: {},
         tackyPseudoCode: '',
         tackyInstructions: [],
         asmCode: '',
@@ -120,6 +189,13 @@ export const useCompilationSteps = () => {
       ? JSON.parse((parserOutput as any).ast)
       : null
 
+    // Generate hash table for AST nodes
+    const astNodeHashTable = ast ? extractAstNodes(ast) : {}
+    console.log('Generated AST node hash table:', astNodeHashTable)
+    console.log('Hash table keys:', Object.keys(astNodeHashTable))
+    console.log('Looking for sourceId: 8650988911001402694')
+    console.log('Found in hash table:', astNodeHashTable['8650988911001402694'])
+
     const tackyJsonString = (tackyOutput as any)?.tacky || null
     const tackyProgram = tackyJsonString ? JSON.parse(tackyJsonString) : null
 
@@ -137,6 +213,7 @@ export const useCompilationSteps = () => {
     setCompilationResult({
       tokens,
       ast,
+      astNodeHashTable,
       tackyPseudoCode,
       tackyInstructions,
       asmCode,
@@ -174,7 +251,7 @@ export const useCompilationSteps = () => {
         <TackyView
           instructions={compilationResult.tackyInstructions}
           prettyTacky={compilationResult.tackyPseudoCode}
-          ast={compilationResult.ast}
+          astNodeHashTable={compilationResult.astNodeHashTable}
           activeLocation={activeLocation}
           setActiveLocation={setActiveLocation}
         />
@@ -188,7 +265,7 @@ export const useCompilationSteps = () => {
           <AssemblyView
             asmCodeForEmulator={compilationResult.asmCode}
             instructions={compilationResult.asmInstructions}
-            ast={compilationResult.ast}
+            astNodeHashTable={compilationResult.astNodeHashTable}
             activeLocation={activeLocation}
             setActiveLocation={setActiveLocation}
           />
