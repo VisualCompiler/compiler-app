@@ -1,5 +1,21 @@
 type Nullable<T> = T | null | undefined
 declare function KtSingleton<T>(): T & (abstract new() => any);
+export declare interface KtList<E> /* extends Collection<E> */ {
+    asJsReadonlyArrayView(): ReadonlyArray<E>;
+    readonly __doNotUseOrImplementIt: {
+        readonly "kotlin.collections.KtList": unique symbol;
+    };
+}
+export declare abstract class KtList<E> extends KtSingleton<KtList.$metadata$.constructor>() {
+    private constructor();
+}
+/** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+export declare namespace KtList.$metadata$ {
+    abstract class constructor {
+        fromJsArray<E>(array: ReadonlyArray<E>): KtList<E>;
+        private constructor();
+    }
+}
 export declare abstract class NodeType {
     private constructor();
     static get Program(): NodeType & {
@@ -253,9 +269,35 @@ export declare namespace CompilationResult {
 export declare class CompilerExport {
     constructor();
     exportCompilationResults(code: string): string;
-    getCFGForFunction(precomputed: Nullable<string>, fn: string, enabledOpts: Array<string>): string;
 }
 /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
 export declare namespace CompilerExport.$metadata$ {
     const constructor: abstract new () => CompilerExport;
+}
+export declare namespace CompilerExport {
+    class AssemblyEntry {
+        constructor(functionName: string, optimizations: KtList<string>, asmCode: string);
+        get functionName(): string;
+        get optimizations(): KtList<string>;
+        get asmCode(): string;
+        copy(functionName?: string, optimizations?: KtList<string>, asmCode?: string): CompilerExport.AssemblyEntry;
+        toString(): string;
+        hashCode(): number;
+        equals(other: Nullable<any>): boolean;
+    }
+    /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+    namespace AssemblyEntry.$metadata$ {
+        const constructor: abstract new () => AssemblyEntry;
+    }
+    namespace AssemblyEntry {
+        abstract class Companion extends KtSingleton<Companion.$metadata$.constructor>() {
+            private constructor();
+        }
+        /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+        namespace Companion.$metadata$ {
+            abstract class constructor {
+                private constructor();
+            }
+        }
+    }
 }

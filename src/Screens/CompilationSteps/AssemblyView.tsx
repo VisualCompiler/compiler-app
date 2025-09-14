@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useMemo, useCallback } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import { EditorState } from "@codemirror/state";
 import {
   foldGutter,
@@ -81,9 +81,6 @@ const customHighlightStyle = HighlightStyle.define([
 
 interface AssemblyViewProps {
   asmCode: string;
-  precomputedAssembly?: string | null;
-  selectedFunction?: string;
-  enabledOptimizations?: Set<string>;
 }
 
 interface ExecutionState {
@@ -94,10 +91,7 @@ interface ExecutionState {
 }
 
 export const AssemblyView: React.FC<AssemblyViewProps> = ({ 
-  asmCode, 
-  precomputedAssembly, 
-  selectedFunction = '', 
-  enabledOptimizations = new Set() 
+  asmCode
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
@@ -147,9 +141,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   );
   const [elevatedMemory, setElevatedMemory] = useState<Set<number>>(new Set());
 
-  // Assembly state
-  const [currentAssembly, setCurrentAssembly] = useState<string>(asmCode);
-
   const updateExecutionState = (updates: Partial<ExecutionState>) => {
     setExecutionState((prev) => {
       const newState = { ...prev, ...updates };
@@ -158,48 +149,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     });
   };
 
-  // Get optimized assembly for selected function and optimizations
-  const getOptimizedAssembly = useCallback(async () => {
-    if (!selectedFunction || !precomputedAssembly) {
-      setCurrentAssembly(asmCode);
-      return;
-    }
-
-    try {
-      const compilerExport = new window.CompilerLogic.CompilerExport();
-      const optimizedAssembly = compilerExport.getOptimizedAssemblyForFunction(
-        precomputedAssembly,
-        selectedFunction,
-        Array.from(enabledOptimizations).sort()
-      );
-      
-      if (optimizedAssembly) {
-        setCurrentAssembly(optimizedAssembly);
-      } else {
-        setCurrentAssembly(asmCode);
-      }
-    } catch (error) {
-      console.error('Assembly: Error getting optimized assembly:', error);
-      setCurrentAssembly(asmCode);
-    }
-  }, [precomputedAssembly, selectedFunction, enabledOptimizations, asmCode]);
-
-
-  // Update assembly when optimization selection changes
-  useEffect(() => {
-    if (selectedFunction && precomputedAssembly) {
-      getOptimizedAssembly();
-    } else {
-      setCurrentAssembly(asmCode);
-    }
-  }, [selectedFunction, enabledOptimizations, precomputedAssembly, getOptimizedAssembly, asmCode]);
-
-  // Update assembly when asmCode prop changes
-  useEffect(() => {
-    if (!precomputedAssembly || !selectedFunction) {
-      setCurrentAssembly(asmCode);
-    }
-  }, [asmCode, precomputedAssembly, selectedFunction]);
 
   // Function to detect register changes and update elevation
   const detectRegisterChanges = (newRegisters: Map<string, number>) => {
@@ -295,7 +244,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     setLastExecutedLine(null);
   };
 
-  const handleAssemblyConversion = async (assemblyCode: string = currentAssembly) => {
+  const handleAssemblyConversion = async (assemblyCode: string = asmCode) => {
     /* assemblyCode = `
     push rbp
     mov rbp, rsp
@@ -382,14 +331,14 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   }, [asmCode, resolvedTheme, showMachineCode]);
 
   useEffect(() => {
-    if (currentAssembly && currentAssembly.trim()) {
-      handleAssemblyConversion(currentAssembly);
+    if (asmCode && asmCode.trim()) {
+      handleAssemblyConversion(asmCode);
     } else {
       setBinaryLines([]);
     }
     // Clean up line refs when binary lines change
     lineRefs.current.clear();
-  }, [currentAssembly]);
+  }, [asmCode]);
 
   // Initialize emulator when binary lines are available
   useEffect(() => {

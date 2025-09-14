@@ -25,8 +25,6 @@ declare global {
     CompilerLogic: {
       CompilerExport: new () => { 
         exportCompilationResults(code: string): string
-        getCFGForFunction(precomputedCFGs: string | null, functionName: string, enabledOptimizations: string[]): string
-        getOptimizedAssemblyForFunction(precomputedAssembly: string | null, functionName: string, enabledOptimizations: string[]): string
       }
       CompilationStage: any
       CompilationError: any
@@ -60,22 +58,29 @@ export const ControlFlowGraphView: React.FC<ControlFlowGraphViewProps> = ({
     }
   }, [functionNames])
 
-  // Get CFG for function when selections change
+  // Parse precomputed CFG data and get CFG for function when selections change
   const getCFGForFunction = useCallback(async () => {
     if (!selectedFunction || !precomputedCFGs) return
 
     setIsOptimizing(true)
     try {
-      const compilerExport = new window.CompilerLogic.CompilerExport()
-      const cfgJson = compilerExport.getCFGForFunction(
-        precomputedCFGs,
-        selectedFunction,
-        Array.from(enabledOptimizations).sort()
+      const precomputedData = JSON.parse(precomputedCFGs)
+      const sortedOpts = Array.from(enabledOptimizations).sort()
+      
+      // Find the CFG entry that matches the selected function and optimizations
+      const cfgEntry = precomputedData.find((entry: any) => 
+        entry.functionName === selectedFunction && 
+        JSON.stringify(entry.appliedOptimizations) === JSON.stringify(sortedOpts)
       )
-      const parsedCfg = JSON.parse(cfgJson)
-      setControlFlowGraph(parsedCfg)
+      
+      if (cfgEntry) {
+        const parsedCfg = JSON.parse(cfgEntry.cfg)
+        setControlFlowGraph(parsedCfg)
+      } else {
+        setControlFlowGraph(null)
+      }
     } catch (error) {
-      console.error('CFG: Error getting CFG:', error)
+      console.error('CFG: Error parsing precomputed CFG:', error)
       setControlFlowGraph(null)
     } finally {
       setIsOptimizing(false)

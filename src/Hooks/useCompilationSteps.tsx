@@ -128,6 +128,7 @@ export const useCompilationSteps = () => {
     const functionNames = (tackyOutput as any)?.functionNames || []
     const precomputedCFGs = (tackyOutput as any)?.precomputedCFGs || null
     const precomputedAssembly = (tackyOutput as any)?.precomputedAssembly || null
+    console.log('PRECOMPUTED ASSEMBLY...', precomputedAssembly)
     const availableOptimizations = (tackyOutput as any)?.optimizations || ['CONSTANT_FOLDING']
     const asmCode = (codeGenOutput as any)?.assembly || ''
     console.log('--- Final Parsed Data for UI ---', {
@@ -156,6 +157,32 @@ export const useCompilationSteps = () => {
   React.useEffect(() => {
     initializeOptimizationState()
   }, [initializeOptimizationState])
+
+  // Parse precomputed assembly data and get optimized assembly based on current selections
+  const getOptimizedAssembly = useCallback(() => {
+    if (!selectedFunction || !compilationResult.precomputedAssembly) {
+      return compilationResult.asmCode
+    }
+
+    try {
+      const precomputedData = JSON.parse(compilationResult.precomputedAssembly)
+      const sortedOpts = Array.from(enabledOptimizations).sort()
+      
+      // Find the assembly entry that matches the selected function and optimizations
+      const assemblyEntry = precomputedData.find((entry: any) => 
+        entry.functionName === selectedFunction && 
+        JSON.stringify(entry.optimizations) === JSON.stringify(sortedOpts)
+      )
+      
+      return assemblyEntry?.asmCode || compilationResult.asmCode
+    } catch (error) {
+      console.error('Error parsing precomputed assembly:', error)
+      return compilationResult.asmCode
+    }
+  }, [selectedFunction, enabledOptimizations, compilationResult.precomputedAssembly, compilationResult.asmCode])
+
+  // Current assembly based on optimization selections
+  const currentAssembly = getOptimizedAssembly()
 
   const stages = [
     {
@@ -190,10 +217,7 @@ export const useCompilationSteps = () => {
       title: 'Program Execution',
       description: 'Generate x86-64 assembly code and trace execution',
       content: <AssemblyView 
-        asmCode={compilationResult.asmCode} 
-        precomputedAssembly={compilationResult.precomputedAssembly}
-        selectedFunction={selectedFunction}
-        enabledOptimizations={enabledOptimizations}
+        asmCode={currentAssembly} 
       />,
     },
   ]
