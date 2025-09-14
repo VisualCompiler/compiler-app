@@ -1,8 +1,9 @@
 import { AssemblyView } from '@/Screens/CompilationSteps/AssemblyView'
 import { TackyView } from '@/Screens/CompilationSteps/TackyView'
+import { ControlFlowGraphView } from '@/Screens/CompilationSteps/ControlFlowGraphView'
 import { ASTViewer } from '@/Screens/CompilationSteps/ASTView'
 import { TokenListContent } from '@/Screens/CompilationSteps/TokenListView'
-import { useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { XCircle } from 'lucide-react'
 import type {
   CompilationError,
@@ -10,15 +11,6 @@ import type {
   CompilationResult,
 } from '../../scripts/kotlin-js/CompilerLogic'
 
-declare global {
-  interface Window {
-    CompilerLogic: {
-      CompilerExport: new () => {
-        exportCompilationResults(code: string): string
-      }
-    }
-  }
-}
 
 // Unified error handling function
 const getErrorInfo = (errorStage: string) => {
@@ -33,7 +25,10 @@ export const useCompilationSteps = () => {
     tokens: any[]
     ast: any
     tackyPseudoCode: string
-
+    functionNames: string[]
+    precomputedCFGs: any
+    precomputedAssembly: any
+    availableOptimizations: string[]
     asmCode: string
     errors: CompilationError[]
     stageOutputs: CompilationOutput[]
@@ -42,11 +37,50 @@ export const useCompilationSteps = () => {
     tokens: [],
     ast: null,
     tackyPseudoCode: '',
+    functionNames: [],
+    precomputedCFGs: null,
+    precomputedAssembly: null,
+    availableOptimizations: [],
     asmCode: '',
     errors: [],
     stageOutputs: [],
     hasCompiled: false,
   })
+
+  // Shared optimization state
+  const [selectedFunction, setSelectedFunction] = useState<string>('')
+  const [enabledOptimizations, setEnabledOptimizations] = useState<Set<string>>(new Set())
+
+  // Initialize optimization state when compilation result changes
+  const initializeOptimizationState = useCallback(() => {
+    if (compilationResult.functionNames.length > 0) {
+      const defaultFunction = compilationResult.functionNames.includes('main') 
+        ? 'main' 
+        : compilationResult.functionNames[0]
+      setSelectedFunction(defaultFunction)
+    }
+    if (compilationResult.availableOptimizations.length > 0) {
+      setEnabledOptimizations(new Set(compilationResult.availableOptimizations))
+    }
+  }, [compilationResult.functionNames, compilationResult.availableOptimizations])
+
+  // Handle optimization toggle
+  const handleOptimizationToggle = useCallback((optimization: string) => {
+    setEnabledOptimizations(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(optimization)) {
+        newSet.delete(optimization)
+      } else {
+        newSet.add(optimization)
+      }
+      return newSet
+    })
+  }, [])
+
+  // Handle function selection
+  const handleFunctionSelection = useCallback((functionName: string) => {
+    setSelectedFunction(functionName)
+  }, [])
 
   const compileCode = useCallback((sourceCode: string) => {
     if (!sourceCode.trim()) {
@@ -54,6 +88,10 @@ export const useCompilationSteps = () => {
         tokens: [],
         ast: null,
         tackyPseudoCode: '',
+        functionNames: [],
+        precomputedCFGs: null,
+        precomputedAssembly: null,
+        availableOptimizations: [],
         asmCode: '',
         errors: [],
         stageOutputs: [],
@@ -87,7 +125,10 @@ export const useCompilationSteps = () => {
       : null
 
     const tackyPseudoCode = (tackyOutput as any)?.tackyPretty || ''
-    console.log(tackyPseudoCode)
+    const functionNames = (tackyOutput as any)?.functionNames || []
+    const precomputedCFGs = (tackyOutput as any)?.precomputedCFGs || null
+    const precomputedAssembly = (tackyOutput as any)?.precomputedAssembly || null
+    const availableOptimizations = (tackyOutput as any)?.optimizations || ['CONSTANT_FOLDING']
     const asmCode = (codeGenOutput as any)?.assembly || ''
     console.log('--- Final Parsed Data for UI ---', {
       tokens,
@@ -100,12 +141,21 @@ export const useCompilationSteps = () => {
       tokens,
       ast,
       tackyPseudoCode,
+      functionNames,
+      precomputedCFGs,
+      precomputedAssembly,
+      availableOptimizations,
       asmCode,
       errors: result.overallErrors,
       stageOutputs: result.outputs,
       hasCompiled: true,
     })
   }, [])
+
+  // Initialize optimization state when compilation result changes
+  React.useEffect(() => {
+    initializeOptimizationState()
+  }, [initializeOptimizationState])
 
   const stages = [
     {
@@ -121,12 +171,30 @@ export const useCompilationSteps = () => {
     {
       title: 'Intermediate Representation (TACKY)',
       description: 'Building the Tacky Instructions from the AST',
-      content: <TackyView tackyCode={compilationResult.tackyPseudoCode} />,
+      content: <TackyView 
+        tackyCode={compilationResult.tackyPseudoCode}
+        functionNames={compilationResult.functionNames}
+        availableOptimizations={compilationResult.availableOptimizations}
+        selectedFunction={selectedFunction}
+        enabledOptimizations={enabledOptimizations}
+        onFunctionSelect={handleFunctionSelection}
+        onOptimizationToggle={handleOptimizationToggle}
+      />,
+    },
+    {
+      title: 'Optimizations',
+      description: 'Analyze control flow and apply optimizations',
+      content: <ControlFlowGraphView functionNames={compilationResult.functionNames} precomputedCFGs={compilationResult.precomputedCFGs} availableOptimizations={compilationResult.availableOptimizations} />,
     },
     {
       title: 'Program Execution',
       description: 'Generate x86-64 assembly code and trace execution',
-      content: <AssemblyView asmCode={compilationResult.asmCode} />,
+      content: <AssemblyView 
+        asmCode={compilationResult.asmCode} 
+        precomputedAssembly={compilationResult.precomputedAssembly}
+        selectedFunction={selectedFunction}
+        enabledOptimizations={enabledOptimizations}
+      />,
     },
   ]
 

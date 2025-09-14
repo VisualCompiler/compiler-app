@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useMemo } from "react";
+import React, { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { EditorState } from "@codemirror/state";
 import {
   foldGutter,
@@ -81,6 +81,9 @@ const customHighlightStyle = HighlightStyle.define([
 
 interface AssemblyViewProps {
   asmCode: string;
+  precomputedAssembly?: string | null;
+  selectedFunction?: string;
+  enabledOptimizations?: Set<string>;
 }
 
 interface ExecutionState {
@@ -90,7 +93,12 @@ interface ExecutionState {
   memory: Map<number, number>;
 }
 
-export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
+export const AssemblyView: React.FC<AssemblyViewProps> = ({ 
+  asmCode, 
+  precomputedAssembly, 
+  selectedFunction = '', 
+  enabledOptimizations = new Set() 
+}) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const machineCodeContainerRef = useRef<HTMLDivElement>(null);
@@ -139,6 +147,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   );
   const [elevatedMemory, setElevatedMemory] = useState<Set<number>>(new Set());
 
+  // Assembly state
+  const [currentAssembly, setCurrentAssembly] = useState<string>(asmCode);
+
   const updateExecutionState = (updates: Partial<ExecutionState>) => {
     setExecutionState((prev) => {
       const newState = { ...prev, ...updates };
@@ -146,6 +157,49 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
       return newState;
     });
   };
+
+  // Get optimized assembly for selected function and optimizations
+  const getOptimizedAssembly = useCallback(async () => {
+    if (!selectedFunction || !precomputedAssembly) {
+      setCurrentAssembly(asmCode);
+      return;
+    }
+
+    try {
+      const compilerExport = new window.CompilerLogic.CompilerExport();
+      const optimizedAssembly = compilerExport.getOptimizedAssemblyForFunction(
+        precomputedAssembly,
+        selectedFunction,
+        Array.from(enabledOptimizations).sort()
+      );
+      
+      if (optimizedAssembly) {
+        setCurrentAssembly(optimizedAssembly);
+      } else {
+        setCurrentAssembly(asmCode);
+      }
+    } catch (error) {
+      console.error('Assembly: Error getting optimized assembly:', error);
+      setCurrentAssembly(asmCode);
+    }
+  }, [precomputedAssembly, selectedFunction, enabledOptimizations, asmCode]);
+
+
+  // Update assembly when optimization selection changes
+  useEffect(() => {
+    if (selectedFunction && precomputedAssembly) {
+      getOptimizedAssembly();
+    } else {
+      setCurrentAssembly(asmCode);
+    }
+  }, [selectedFunction, enabledOptimizations, precomputedAssembly, getOptimizedAssembly, asmCode]);
+
+  // Update assembly when asmCode prop changes
+  useEffect(() => {
+    if (!precomputedAssembly || !selectedFunction) {
+      setCurrentAssembly(asmCode);
+    }
+  }, [asmCode, precomputedAssembly, selectedFunction]);
 
   // Function to detect register changes and update elevation
   const detectRegisterChanges = (newRegisters: Map<string, number>) => {
@@ -241,7 +295,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
     setLastExecutedLine(null);
   };
 
-  const handleAssemblyConversion = async (assemblyCode: string) => {
+  const handleAssemblyConversion = async (assemblyCode: string = currentAssembly) => {
     /* assemblyCode = `
     push rbp
     mov rbp, rsp
@@ -328,14 +382,14 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
   }, [asmCode, resolvedTheme, showMachineCode]);
 
   useEffect(() => {
-    if (asmCode && asmCode.trim()) {
-      handleAssemblyConversion(asmCode);
+    if (currentAssembly && currentAssembly.trim()) {
+      handleAssemblyConversion(currentAssembly);
     } else {
       setBinaryLines([]);
     }
     // Clean up line refs when binary lines change
     lineRefs.current.clear();
-  }, [asmCode]);
+  }, [currentAssembly]);
 
   // Initialize emulator when binary lines are available
   useEffect(() => {
@@ -494,9 +548,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
           customConsole.clear();
           return;
         }
-        handleStep().catch(err => {
-          handleEmulationError();
-        });
+        handleStep().catch(handleEmulationError);
       } catch (error) {
         // Stop execution on any error in the interval
         if (runInterval.current) {
@@ -789,6 +841,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({ asmCode }) => {
             >
               {showMachineCode ? "Hide Machine Code" : "Display Machine Code"}
             </Toggle>
+
 
             {/* Execution Status */}
             {executionState && (
