@@ -1,4 +1,3 @@
-// import { AssemblyView } from '@/Screens/CompilationSteps/AssemblyView'
 import { TackyView } from '@/Screens/CompilationSteps/TackyView'
 import { ASTViewer } from '@/Screens/CompilationSteps/ASTView'
 import { TokenListContent } from '@/Screens/CompilationSteps/TokenListView'
@@ -9,6 +8,7 @@ import {
   type CompilationOutput,
   type CompilationResult,
 } from '../../scripts/kotlin-js/CompilerLogic'
+import { AssemblyView } from '@/Screens/CompilationSteps/AssemblyView'
 
 declare global {
   interface Window {
@@ -208,6 +208,8 @@ export const useCompilationSteps = () => {
     //console.log(tackyPseudoCode)
     const rawAsmInstructions = (codeGenOutput as any)?.rawAssembly
     console.log('rawAsmInstructions:', rawAsmInstructions)
+    console.log('codeGenOutput keys:', Object.keys(codeGenOutput || {}))
+    console.log('full codeGenOutput:', codeGenOutput)
 
     // Parse the raw assembly instructions if it's a string
     let asmInstructions: AssemblyInstruction = { body: [] }
@@ -215,13 +217,46 @@ export const useCompilationSteps = () => {
       if (typeof rawAsmInstructions === 'string') {
         try {
           const parsed = JSON.parse(rawAsmInstructions)
-          asmInstructions = parsed
+          console.log('Parsed raw assembly:', parsed)
+          
+          // Handle the case where rawAssembly is a RawFunction object
+          if (parsed.body && Array.isArray(parsed.body)) {
+            // It's already in the correct format
+            asmInstructions = parsed
+          } else if (parsed.name && parsed.body) {
+            // It's a RawFunction, convert to AssemblyInstruction format
+            asmInstructions = {
+              body: parsed.body.map((inst: any) => ({
+                code: inst.code,
+                sourceId: inst.sourceId,
+                astNodeId: undefined
+              }))
+            }
+          } else {
+            // Try to parse as an array of functions
+            asmInstructions = parsed
+          }
         } catch (e) {
           console.warn('Failed to parse assembly instructions:', e)
           asmInstructions = { body: [] }
         }
       } else {
         asmInstructions = rawAsmInstructions
+      }
+    } else {
+      // If rawAssembly is not available, try to generate instructions from the assembly code
+      const asmCode = (codeGenOutput as any)?.assembly
+      if (asmCode && typeof asmCode === 'string') {
+        // Generate basic instruction structure from assembly code
+        const lines = asmCode.split('\n').filter(line => line.trim() && !line.trim().startsWith('.'))
+        asmInstructions = {
+          body: lines.map(line => ({
+            code: line.trim(),
+            sourceId: undefined, // No source mapping available
+            astNodeId: undefined
+          }))
+        }
+        console.log('Generated asmInstructions from assembly code:', asmInstructions)
       }
     }
     console.log('asmInstructions:', asmInstructions)
@@ -280,11 +315,13 @@ export const useCompilationSteps = () => {
       title: 'Program Execution',
       description: 'Generate x86-64 assembly code and trace execution',
       content: (
-        <div className="w-full h-full flex items-center justify-center">
-          <p className="text-muted-foreground">
-            Assembly View temporarily unavailable
-          </p>
-        </div>
+        <AssemblyView
+            asmCode={compilationResult.asmCode}
+            instructions={compilationResult.asmInstructions}
+            astNodeHashTable={compilationResult.astNodeHashTable}
+            activeLocation={activeLocation}
+            setActiveLocation={setActiveLocation}
+          />
       ),
     },
   ]
