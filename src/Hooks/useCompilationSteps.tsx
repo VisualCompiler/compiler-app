@@ -211,7 +211,15 @@ export const useCompilationSteps = () => {
     {
       title: 'Optimizations',
       description: 'Analyze control flow and apply optimizations',
-      content: <ControlFlowGraphView functionNames={compilationResult.functionNames} precomputedCFGs={compilationResult.precomputedCFGs} availableOptimizations={compilationResult.availableOptimizations} />,
+      content: <ControlFlowGraphView 
+        functionNames={compilationResult.functionNames} 
+        precomputedCFGs={compilationResult.precomputedCFGs} 
+        availableOptimizations={compilationResult.availableOptimizations}
+        selectedFunction={selectedFunction}
+        enabledOptimizations={enabledOptimizations}
+        onFunctionSelect={handleFunctionSelection}
+        onOptimizationToggle={handleOptimizationToggle}
+      />,
     },
     {
       title: 'Program Execution',

@@ -38,25 +38,24 @@ interface ControlFlowGraphViewProps {
   functionNames: string[]
   precomputedCFGs: string | null
   availableOptimizations: string[]
+  selectedFunction?: string
+  enabledOptimizations?: Set<string>
+  onFunctionSelect?: (functionName: string) => void
+  onOptimizationToggle?: (optimization: string) => void
 }
 
 export const ControlFlowGraphView: React.FC<ControlFlowGraphViewProps> = ({ 
   functionNames,
   precomputedCFGs,
-  availableOptimizations
+  availableOptimizations,
+  selectedFunction = '',
+  enabledOptimizations = new Set(),
+  onFunctionSelect,
+  onOptimizationToggle
 }) => {
-  const [selectedFunction, setSelectedFunction] = useState<string>('')
-  const [enabledOptimizations, setEnabledOptimizations] = useState<Set<string>>(new Set(availableOptimizations))
   const [controlFlowGraph, setControlFlowGraph] = useState<any>(null)
   const [isOptimizing, setIsOptimizing] = useState(false)
 
-  // Initialize selected function when functionNames change
-  useEffect(() => {
-    if (functionNames.length > 0) {
-      const defaultFunction = functionNames.includes('main') ? 'main' : functionNames[0]
-      setSelectedFunction(defaultFunction)
-    }
-  }, [functionNames])
 
   // Parse precomputed CFG data and get CFG for function when selections change
   const getCFGForFunction = useCallback(async () => {
@@ -94,19 +93,6 @@ export const ControlFlowGraphView: React.FC<ControlFlowGraphViewProps> = ({
     }
   }, [selectedFunction, enabledOptimizations, precomputedCFGs, getCFGForFunction])
 
-  const handleOptimizationToggle = (optimization: string) => {
-    setEnabledOptimizations(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(optimization)) {
-        newSet.delete(optimization)
-      } else {
-        newSet.add(optimization)
-      }
-      return newSet
-    })
-  }
-console.log(availableOptimizations)
-
   return (
     <div className="w-full h-full flex flex-col">
       <div className="flex items-center gap-4 p-2 border-b bg-secondary/30">
@@ -121,13 +107,13 @@ console.log(availableOptimizations)
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               {functionNames.map((name) => (
-                <DropdownMenuItem
-                  key={name}
-                  onClick={() => setSelectedFunction(name)}
-                  className={selectedFunction === name ? 'bg-accent' : ''}
-                >
-                  {name}
-                </DropdownMenuItem>
+                  <DropdownMenuItem
+                    key={name}
+                    onClick={() => onFunctionSelect?.(name)}
+                    className={selectedFunction === name ? 'bg-accent' : ''}
+                  >
+                    {name}
+                  </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -149,13 +135,13 @@ console.log(availableOptimizations)
               <DropdownMenuSeparator />
               {availableOptimizations.map((optimization: string) => (
                 
-                <DropdownMenuCheckboxItem
-                  key={optimization}
-                  checked={enabledOptimizations.has(optimization)}
-                  onCheckedChange={() => handleOptimizationToggle(optimization)}
-                >
-                  {optimization.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    key={optimization}
+                    checked={enabledOptimizations.has(optimization)}
+                    onCheckedChange={() => onOptimizationToggle?.(optimization)}
+                  >
+                    {optimization.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                  </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
