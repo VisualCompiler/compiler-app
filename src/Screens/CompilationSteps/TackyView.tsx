@@ -48,22 +48,44 @@ export const TackyView: React.FC<TackyViewProps> = ({
     }
   }
 
-  // Event handler for when the mouse leaves
   const handleMouseLeave = () => {
     setActiveLocation(null)
   }
-  const tackyLines = prettyTacky.split('\n')
+  const tackyLines = prettyTacky
+    .split('\n')
+    .filter((line) => line.trim() !== '')
   return (
     <div className="p-2 font-mono text-sm overflow-auto h-full">
       {tackyLines.map((line, index) => {
         const isHeader = index === 0
-        const instructionIndex = index - 1
-        const instr = !isHeader ? instructions[instructionIndex] : null
+        const isFunctionDef = line.startsWith('def ') && line.endsWith(':')
+
+        // skip header and function definitions
+        let instructionIndex = -1
+        if (!isHeader && !isFunctionDef) {
+          let functionDefCount = 0
+          for (let i = 1; i < index; i++) {
+            if (
+              tackyLines[i].startsWith('def ') &&
+              tackyLines[i].endsWith(':')
+            ) {
+              functionDefCount++
+            }
+          }
+          instructionIndex = index - 1 - functionDefCount
+        }
+
+        const instr =
+          !isHeader &&
+          !isFunctionDef &&
+          instructionIndex >= 0 &&
+          instructionIndex < instructions.length
+            ? instructions[instructionIndex]
+            : null
 
         const correspondingAstNode = instr
           ? findAstNodeById(astNodeHashTable, instr.sourceId)
           : null
-        console.log()
         const isHighlighted =
           activeLocation &&
           correspondingAstNode &&
@@ -77,10 +99,11 @@ export const TackyView: React.FC<TackyViewProps> = ({
         return (
           <div
             key={index}
-            // Add the event handlers
             onMouseEnter={() => {
-              console.log('TackyView received nodeId:', instr.sourceId)
-              handleMouseEnter(instr.sourceId)
+              if (instr && instr.sourceId) {
+                console.log('TackyView received nodeId:', instr.sourceId)
+                handleMouseEnter(instr.sourceId)
+              }
             }}
             onMouseLeave={handleMouseLeave}
             // Apply conditional styling

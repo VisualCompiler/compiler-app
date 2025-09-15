@@ -118,6 +118,15 @@ const getErrorInfo = (errorStage: string) => {
   }
 }
 
+const parseInstructions = (raw: string | object) => {
+  if (typeof raw === 'string') {
+    // Ensure it's valid JSON by wrapping in []
+    const fixed = `[${raw.trim().replace(/}\s*{/g, '},{')}]`
+    return JSON.parse(fixed)
+  }
+  return raw
+}
+
 export const useCompilationSteps = () => {
   const [activeAstId, setActiveAstId] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<SourceLocation | null>(
@@ -201,13 +210,36 @@ export const useCompilationSteps = () => {
     const tackyJsonString = (tackyOutput as any)?.tacky || null
     const tackyProgram = tackyJsonString ? JSON.parse(tackyJsonString) : null
 
-    const tackyInstructions = tackyProgram?.functions?.[0]?.body || []
+    // Flatten all functions into a single array of instructions
+    const tackyInstructions =
+      tackyProgram?.functions?.flatMap((func: any) => func.body || []) || []
     const tackyPseudoCode = (tackyOutput as any)?.tackyPretty || ''
+    // Remove empty lines from the pretty TACKY code
+    const cleanTackyPseudoCode = tackyPseudoCode
+      .split('\n')
+      .filter((line: string) => line.trim() !== '')
+      .join('\n')
+
+    console.log('Tacky program:', tackyProgram)
+    console.log('Tacky functions count:', tackyProgram?.functions?.length || 0)
+    console.log('Tacky functions:', tackyProgram?.functions)
+    tackyProgram?.functions?.forEach((func: any, index: number) => {
+      console.log(
+        `Function ${index}:`,
+        func.name,
+        'body length:',
+        func.body?.length || 0
+      )
+      console.log(`Function ${index} body:`, func.body)
+    })
+    console.log('Tacky instructions:', tackyInstructions)
+    console.log('Tacky instructions length:', tackyInstructions.length)
     //const tacky = (tackyOutput as any)?.tacky || ''
 
     //console.log(tackyPseudoCode)
     const rawAsmInstructions = (codeGenOutput as any)?.rawAssembly
     console.log('rawAsmInstructions:', rawAsmInstructions)
+    console.log('rawAsmInstructions type:', typeof rawAsmInstructions)
     console.log('codeGenOutput keys:', Object.keys(codeGenOutput || {}))
     console.log('full codeGenOutput:', codeGenOutput)
 
@@ -216,24 +248,52 @@ export const useCompilationSteps = () => {
     if (rawAsmInstructions) {
       if (typeof rawAsmInstructions === 'string') {
         try {
-          const parsed = JSON.parse(rawAsmInstructions)
+          const parsed = parseInstructions(rawAsmInstructions)
           console.log('Parsed raw assembly:', parsed)
-          
+          console.log('Is array?', Array.isArray(parsed))
+          if (Array.isArray(parsed)) {
+            console.log('Array length:', parsed.length)
+            console.log('First function:', parsed[0])
+          }
+
           // Handle the case where rawAssembly is a RawFunction object
           if (parsed.body && Array.isArray(parsed.body)) {
             // It's already in the correct format
+            console.log('Using parsed as-is (single function with body)')
             asmInstructions = parsed
           } else if (parsed.name && parsed.body) {
             // It's a RawFunction, convert to AssemblyInstruction format
+            console.log('Converting RawFunction to AssemblyInstruction format')
             asmInstructions = {
               body: parsed.body.map((inst: any) => ({
                 code: inst.code,
                 sourceId: inst.sourceId,
-                astNodeId: undefined
-              }))
+                astNodeId: undefined,
+              })),
             }
+          } else if (Array.isArray(parsed)) {
+            // Handle array of functions - flatten all instructions into single body
+            console.log('Processing array of functions')
+            const allInstructions: any[] = []
+            parsed.forEach((func: any) => {
+              if (func.body && Array.isArray(func.body)) {
+                allInstructions.push(...func.body)
+              }
+            })
+            asmInstructions = {
+              body: allInstructions.map((inst: any) => ({
+                code: inst.code,
+                sourceId: inst.sourceId,
+                astNodeId: undefined,
+              })),
+            }
+            console.log(
+              'Flattened instructions for multiple functions:',
+              asmInstructions
+            )
           } else {
             // Try to parse as an array of functions
+            console.log('Using parsed as-is (fallback)')
             asmInstructions = parsed
           }
         } catch (e) {
@@ -241,22 +301,46 @@ export const useCompilationSteps = () => {
           asmInstructions = { body: [] }
         }
       } else {
+        console.log(
+          'rawAsmInstructions is not a string, using as-is:',
+          rawAsmInstructions
+        )
         asmInstructions = rawAsmInstructions
       }
     } else {
       // If rawAssembly is not available, try to generate instructions from the assembly code
+      console.log(
+        'No rawAsmInstructions, trying to generate from assembly code'
+      )
       const asmCode = (codeGenOutput as any)?.assembly
+      console.log('Assembly code available:', asmCode)
       if (asmCode && typeof asmCode === 'string') {
         // Generate basic instruction structure from assembly code
-        const lines = asmCode.split('\n').filter(line => line.trim() && !line.trim().startsWith('.'))
+        const lines = asmCode.split('\n')
+        const instructionLines = lines.filter((line) => {
+          const trimmed = line.trim()
+          return (
+            trimmed &&
+            !trimmed.startsWith('.') &&
+            !trimmed.endsWith(':') &&
+            !trimmed.startsWith('//') &&
+            !trimmed.startsWith(';')
+          )
+        })
+
+        console.log('Filtered instruction lines:', instructionLines)
+
         asmInstructions = {
-          body: lines.map(line => ({
+          body: instructionLines.map((line, index) => ({
             code: line.trim(),
-            sourceId: undefined, // No source mapping available
-            astNodeId: undefined
-          }))
+            sourceId: `generated_${index}`, // Generate a unique ID for each instruction
+            astNodeId: undefined,
+          })),
         }
-        console.log('Generated asmInstructions from assembly code:', asmInstructions)
+        console.log(
+          'Generated asmInstructions from assembly code:',
+          asmInstructions
+        )
       }
     }
     console.log('asmInstructions:', asmInstructions)
@@ -264,11 +348,17 @@ export const useCompilationSteps = () => {
     const asmCode = (codeGenOutput as any)?.assembly
     console.log('asmCode:', asmCode)
 
+    console.log('Final asmInstructions:', asmInstructions)
+    console.log(
+      'Final asmInstructions.body length:',
+      asmInstructions.body?.length
+    )
+
     setCompilationResult({
       tokens,
       ast,
       astNodeHashTable,
-      tackyPseudoCode,
+      tackyPseudoCode: cleanTackyPseudoCode,
       tackyInstructions,
       asmCode,
       asmInstructions,
@@ -316,12 +406,12 @@ export const useCompilationSteps = () => {
       description: 'Generate x86-64 assembly code and trace execution',
       content: (
         <AssemblyView
-            asmCode={compilationResult.asmCode}
-            instructions={compilationResult.asmInstructions}
-            astNodeHashTable={compilationResult.astNodeHashTable}
-            activeLocation={activeLocation}
-            setActiveLocation={setActiveLocation}
-          />
+          asmCode={compilationResult.asmCode}
+          instructions={compilationResult.asmInstructions}
+          astNodeHashTable={compilationResult.astNodeHashTable}
+          activeLocation={activeLocation}
+          setActiveLocation={setActiveLocation}
+        />
       ),
     },
   ]
