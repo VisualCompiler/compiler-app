@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from 'react'
 import { EditorState, StateField, StateEffect } from '@codemirror/state'
 import { autocompletion } from '@codemirror/autocomplete'
-import { solarizedDark } from '@uiw/codemirror-theme-solarized'
 import { nord } from '@uiw/codemirror-theme-nord'
 import { foldGutter } from '@codemirror/language'
 import {
@@ -178,8 +177,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         autocompletion(),
         foldGutter(),
         highlightActiveLine(),
-        //syntaxHighlighting(customHighlightStyle),
-        nord,
+        syntaxHighlighting(customHighlightStyle),
+        //nord,
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         cpp(),
         highlightField,

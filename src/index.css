@@ -227,10 +227,29 @@
   .cm-error-line {
     @apply bg-red-500/20;
   }
+  .cm-editor {
+    background: transparent !important;
+  }
+  .cm-scroller {
+    background: transparent !important;
+  }
+
+  .cm-gutters {
+    background: transparent !important;
+  }
 
   .cm-highlighted-range {
-    background-color: rgba(255, 255, 0, 0.102); /* yellow highlight */
+    background-color: rgba(255, 193, 7, 0.3); /* darker amber highlight */
     border-radius: 2px;
+  }
+
+  .dark .cm-highlighted-range {
+    background-color: rgba(
+      255,
+      193,
+      7,
+      0.355
+    ); /* slightly more opaque for dark mode */
   }
 
   .cm-error-underline .cm-line {

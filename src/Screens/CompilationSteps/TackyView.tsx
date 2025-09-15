@@ -122,7 +122,7 @@ export const TackyView: React.FC<TackyViewProps> = ({
             // Apply conditional styling
             className={`whitespace-pre px-2 py-1 rounded-md transition-colors ${
               isHighlighted
-                ? 'bg-yellow-200 dark:bg-yellow-800'
+                ? 'cm-highlighted-range'
                 : 'hover:bg-gray-100 dark:hover:bg-gray-800'
             }`}
           >
