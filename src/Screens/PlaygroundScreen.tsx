@@ -19,6 +19,25 @@ import { Modal } from '../Providers/Modals/Modal'
 import { modalConstants, ModalContext } from '../Providers/ModalProvider'
 import { useCompilationSteps } from '@/Hooks/useCompilationSteps'
 
+const defaultCodeFibonacci = `int fib_next(int n) {
+  if(n == 1) {return 1;}
+  if(n == 2) {return 1;}
+
+  int t1 = 1; int t2 = 1;
+  int next = t1 + t2;
+  for (int i = 3; i <= n; i = i+1) {
+    t1 = t2;
+    t2 = next;
+    next = t1 + t2;
+  }
+
+  return next;
+}
+
+int main(void) {
+  return fib_next(5);
+}`
+
 export const PlaygroundScreen = () => {
   const { folderId, fileId } = useParams()
   const navigate = useNavigate()
@@ -28,7 +47,7 @@ export const PlaygroundScreen = () => {
   const [, setIsUnsaved] = useState(false)
   const [isCompiling, setIsCompiling] = useState(false)
 
-  const { getCode, saveCode } = usePlayground()
+  const { getCode, saveCode, folders } = usePlayground()
   const modalFeatures = useContext(ModalContext)
 
   const {
@@ -39,6 +58,8 @@ export const PlaygroundScreen = () => {
     errors,
     hasCompiled,
     compileCode,
+    activeLocation,
+    setActiveLocation,
   } = useCompilationSteps()
 
   // This function updates the component's local state
@@ -78,8 +99,19 @@ export const PlaygroundScreen = () => {
       setCode(code)
       // When a file is loaded, it is considered saved
       setIsUnsaved(false)
+    } else {
+      // If no folderId/fileId, load the first available playground file
+      if (folders.length > 0 && folders[0].files.length > 0) {
+        const firstFile = folders[0].files[0]
+        const code = getCode(firstFile.id, folders[0].id)
+        setCode(code)
+        setIsUnsaved(false)
+        navigate(`/playground/${folders[0].id}/${firstFile.id}`)
+      } else {
+        setCode(defaultCodeFibonacci)
+      }
     }
-  }, [folderId, fileId, getCode])
+  }, [folderId, fileId, getCode, navigate, folders])
 
   // to prevent that both are full at the same time
   useEffect(() => {
@@ -153,6 +185,7 @@ export const PlaygroundScreen = () => {
                 value={code}
                 onChange={handleCodeChange}
                 errors={errors}
+                activeLocation={activeLocation}
               />
             </ResizablePanel>
 
@@ -181,7 +214,7 @@ export const PlaygroundScreen = () => {
                   onClick={prev}
                   className="flex-1 rounded-none"
                 >
-                  <ChevronLeft color='orange' />
+                  <ChevronLeft color="orange" />
                 </Button>
                 <Separator orientation="vertical" />
                 <Button
@@ -189,7 +222,7 @@ export const PlaygroundScreen = () => {
                   onClick={next}
                   className="flex-1 rounded-none"
                 >
-                  <ChevronRight color='orange' />
+                  <ChevronRight color="orange" />
                 </Button>
               </div>
             </ResizablePanel>

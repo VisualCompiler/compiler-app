@@ -41,6 +41,34 @@ export const PlaygroundContext = createContext<
   PlaygroundContextType | undefined
 >(undefined)
 
+const defaultCodeFibonacci = `int fib_next(int n) {
+  if(n == 1) {return 1;}
+  if(n == 2) {return 1;}
+
+  int t1 = 1; int t2 = 1;
+  int next = t1 + t2;
+  for (int i = 3; i <= n; i = i+1) {
+    t1 = t2;
+    t2 = next;
+    next = t1 + t2;
+  }
+
+  return next;
+}
+
+int main(void) {
+  return fib_next(5);
+}`
+
+const defaultCodeVariablesAndIf = `int main(void) {
+  int a = 10;
+  int b = 0;
+  if (a > 5)
+    b = a - 5;
+  else
+    b = 5 - a;
+  return b;
+}`
 // preview some initial data (folder, file)
 const initialData = [
   {
@@ -49,8 +77,13 @@ const initialData = [
     files: [
       {
         id: v4(),
-        title: 'index',
-        code: '',
+        title: 'Fibonacci',
+        code: defaultCodeFibonacci,
+      },
+      {
+        id: v4(),
+        title: 'VariablesAndIf',
+        code: defaultCodeVariablesAndIf,
       },
     ],
   },

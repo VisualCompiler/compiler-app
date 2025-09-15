@@ -42,12 +42,8 @@ export declare abstract class NodeType {
         get name(): "Block";
         get ordinal(): 5;
     };
-    static get Declaration(): NodeType & {
-        get name(): "Declaration";
-        get ordinal(): 6;
-    };
-    get name(): "Program" | "Statement" | "Function" | "Expression" | "ASTNode" | "Block" | "Declaration";
-    get ordinal(): 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    get name(): "Program" | "Statement" | "Function" | "Expression" | "ASTNode" | "Block";
+    get ordinal(): 0 | 1 | 2 | 3 | 4 | 5;
     static values(): Array<NodeType>;
     static valueOf(value: string): NodeType;
 }
