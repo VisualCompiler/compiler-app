@@ -588,8 +588,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     )
 
     try {
-      // Assembly code is now loaded in handleRun, no need to reload here
-
       // Check if we're about to execute a ret instruction in the main function
       const currentIP = currentState.currentInstruction
       const currentLine = binaryLines.find(
@@ -1038,118 +1036,88 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
             </div>
           ) : (
             <div className="p-2 font-mono text-sm overflow-auto h-full">
-              {asmCode.split('\n').map((line, index) => {
-                const isHeader = index === 0
+              {(() => {
+                const asmLines = asmCode.split('\n')
+                let instructionPointer = 0
 
-                // Find the matching instruction by comparing line text
-                const lineText = line.trim()
-                const matchingInstruction =
-                  !isHeader && instructions?.body
-                    ? instructions.body.find(
-                        (inst: any) =>
-                          inst.code && inst.code.trim() === lineText
+                return asmLines.map((line, index) => {
+                  const isHeader = index === 0
+                  const lineText = line.trim()
+
+                  let matchingInstruction = null
+                  if (
+                    !isHeader &&
+                    instructions?.body &&
+                    instructionPointer < instructions.body.length
+                  ) {
+                    // Skip empty instructions in the array
+                    while (
+                      instructionPointer < instructions.body.length &&
+                      instructions.body[instructionPointer]?.code?.trim() === ''
+                    ) {
+                      instructionPointer++
+                    }
+
+                    // check if current instruction matches the line
+                    if (instructionPointer < instructions.body.length) {
+                      const currentInstruction =
+                        instructions.body[instructionPointer]
+                      if (
+                        currentInstruction?.code &&
+                        currentInstruction.code.trim() === lineText
+                      ) {
+                        matchingInstruction = currentInstruction
+                        instructionPointer++
+                      }
+                    }
+                  }
+
+                  const correspondingAstNode = matchingInstruction
+                    ? findAstNodeById(
+                        astNodeHashTable,
+                        matchingInstruction.sourceId || null
                       )
                     : null
 
-                const correspondingAstNode = matchingInstruction
-                  ? findAstNodeById(
-                      astNodeHashTable,
-                      matchingInstruction.sourceId || null
-                    )
-                  : null
-                const isHighlighted =
-                  activeLocation &&
-                  correspondingAstNode &&
-                  correspondingAstNode.location.startLine ===
-                    activeLocation.startLine &&
-                  correspondingAstNode.location.endLine ===
-                    activeLocation.endLine &&
-                  correspondingAstNode.location.startColumn ===
-                    activeLocation.startColumn &&
-                  correspondingAstNode.location.endColumn ===
-                    activeLocation.endColumn
+                  const isHighlighted =
+                    activeLocation &&
+                    correspondingAstNode &&
+                    (activeLocation as any).astNodeId ===
+                      correspondingAstNode.id
 
-                // Debug logging for highlighting issues
-                if (activeLocation && correspondingAstNode) {
-                  console.log(`Line ${index} (${lineText}):`, {
-                    activeLocation,
-                    correspondingAstNode: correspondingAstNode.location,
-                    isHighlighted,
-                    sourceId: matchingInstruction?.sourceId,
-                  })
-                }
-
-                return (
-                  <div
-                    key={index}
-                    onMouseEnter={() => {
-                      const lineText = line.trim()
-                      console.log('Looking for line:', lineText)
-                      console.log('Available instructions:', instructions?.body)
-
-                      console.log(
-                        'instructions?.body length:',
-                        instructions?.body?.length
-                      )
-
-                      if (instructions?.body) {
-                        instructions.body.forEach((inst, idx) => {
-                          console.log(`Instruction ${idx}:`, {
-                            code: inst.code,
-                            trimmed: inst.code?.trim(),
-                            matches: inst.code?.trim() === lineText,
-                            sourceId: inst.sourceId,
-                          })
-                        })
-                      }
-
-                      const matchingInstruction = instructions?.body?.find(
-                        (inst: any) =>
-                          inst.code && inst.code.trim() === lineText
-                      )
-
-                      console.log('Matching instruction:', matchingInstruction)
-
-                      if (matchingInstruction?.sourceId) {
-                        console.log(
-                          'SourceId found:',
-                          matchingInstruction.sourceId
-                        )
-                        console.log(
-                          'Available AST nodes:',
-                          Object.keys(astNodeHashTable)
-                        )
-                        const node = findAstNodeById(
-                          astNodeHashTable,
-                          matchingInstruction.sourceId || null
-                        )
-                        console.log('Found AST node:', node)
-                        if (node?.location) {
-                          console.log(
-                            'Setting active location to:',
-                            node.location
+                  return (
+                    <div
+                      key={index}
+                      onMouseEnter={() => {
+                        if (matchingInstruction?.sourceId) {
+                          const node = findAstNodeById(
+                            astNodeHashTable,
+                            matchingInstruction.sourceId || null
                           )
-                          setActiveLocation(node.location)
+                          if (node?.location) {
+                            const locationWithId = {
+                              ...node.location,
+                              astNodeId: node.id,
+                            }
+                            setActiveLocation(locationWithId)
+                          }
                         } else {
-                          console.log('No location found on AST node')
+                          setActiveLocation(null)
                         }
-                      } else {
-                        console.log('No matching instruction or sourceId found')
-                        setActiveLocation(null)
-                      }
-                    }}
-                    onMouseLeave={handleMouseLeave}
-                    // Apply conditional styling
-                    className={`whitespace-pre px-2 py-1 rounded-md transition-colors cursor-pointer ${
-                      isHighlighted
-                        ? 'bg-yellow-200 dark:bg-yellow-800'
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
-                  >
-                    {line}
-                  </div>
-                )
-              })}
+                      }}
+                      onMouseLeave={handleMouseLeave}
+                      // Apply conditional styling
+                      className={`whitespace-pre px-2 py-1 rounded-md transition-colors cursor-pointer ${
+                        isHighlighted
+                          ? 'bg-yellow-200 dark:bg-yellow-800'
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      {line}
+                    </div>
+                  )
+                })
+              })()}
             </div>
           )}
         </div>
