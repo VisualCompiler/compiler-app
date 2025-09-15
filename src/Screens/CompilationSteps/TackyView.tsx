@@ -43,8 +43,12 @@ export const TackyView: React.FC<TackyViewProps> = ({
     const targetNode = findAstNodeById(astNodeHashTable, astNodeId)
     if (targetNode && targetNode.location) {
       console.log('handleMouseEnter nodeId:', targetNode.id)
-
-      setActiveLocation(targetNode.location)
+      // Store the AST node ID in the location object for precise matching
+      const locationWithId = {
+        ...targetNode.location,
+        astNodeId: targetNode.id,
+      }
+      setActiveLocation(locationWithId)
     }
   }
 
@@ -86,15 +90,24 @@ export const TackyView: React.FC<TackyViewProps> = ({
         const correspondingAstNode = instr
           ? findAstNodeById(astNodeHashTable, instr.sourceId)
           : null
+
+        // Debug sourceId mapping for the problematic lines
+        if (
+          line.includes('tmp.0 = n.0 = 1') ||
+          line.includes('if (tmp.0 == 0) goto .L_end_0') ||
+          line.includes('return 1') ||
+          line.includes('.L_end_0:')
+        ) {
+          console.log(`Line "${line}" has sourceId: ${instr?.sourceId}`)
+          console.log(`Corresponding AST node:`, correspondingAstNode)
+          if (correspondingAstNode) {
+            console.log(`AST node location:`, correspondingAstNode.location)
+          }
+        }
         const isHighlighted =
           activeLocation &&
           correspondingAstNode &&
-          correspondingAstNode.location.startLine ===
-            activeLocation.startLine &&
-          correspondingAstNode.location.endLine === activeLocation.endLine &&
-          correspondingAstNode.location.startColumn ===
-            activeLocation.startColumn &&
-          correspondingAstNode.location.endColumn === activeLocation.endColumn
+          (activeLocation as any).astNodeId === correspondingAstNode.id
 
         return (
           <div
