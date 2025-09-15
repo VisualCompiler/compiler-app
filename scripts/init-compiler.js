@@ -3,6 +3,7 @@ import('./kotlin-js/CompilerLogic.mjs')
   .then((module) => {
     window.CompilerLogic = {
       CompilerExport: module.CompilerExport,
+      OptimizationTypeExport: module.OptimizationTypeExport,
       CompilationStage: module.CompilationStage,
       CompilationError: module.CompilationError,
       CompilationOutput: module.CompilationOutput,
