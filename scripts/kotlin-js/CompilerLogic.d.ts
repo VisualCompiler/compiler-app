@@ -1,21 +1,5 @@
 type Nullable<T> = T | null | undefined
 declare function KtSingleton<T>(): T & (abstract new() => any);
-export declare interface KtList<E> /* extends Collection<E> */ {
-    asJsReadonlyArrayView(): ReadonlyArray<E>;
-    readonly __doNotUseOrImplementIt: {
-        readonly "kotlin.collections.KtList": unique symbol;
-    };
-}
-export declare abstract class KtList<E> extends KtSingleton<KtList.$metadata$.constructor>() {
-    private constructor();
-}
-/** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
-export declare namespace KtList.$metadata$ {
-    abstract class constructor {
-        fromJsArray<E>(array: ReadonlyArray<E>): KtList<E>;
-        private constructor();
-    }
-}
 export declare abstract class NodeType {
     private constructor();
     static get Program(): NodeType & {
@@ -128,17 +112,16 @@ export declare namespace ParserOutput {
     }
 }
 export declare class TackyOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: string | undefined, tacky: Nullable<string> | undefined, tackyPretty: Nullable<string> | undefined, precomputedCFGs: string | undefined, precomputedAssembly: string | undefined, optimizations: Array<Nullable<string>> | undefined, functionNames: Array<Nullable<string>> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
+    constructor(stage: string | undefined, tacky: Nullable<string> | undefined, tackyPretty: Nullable<string> | undefined, precomputedCFGs: string | undefined, optimizations: Array<Nullable<string>> | undefined, functionNames: Array<Nullable<string>> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
     get stage(): string;
     get tacky(): Nullable<string>;
     get tackyPretty(): Nullable<string>;
     get precomputedCFGs(): string;
-    get precomputedAssembly(): string;
     get optimizations(): Array<Nullable<string>>;
     get functionNames(): Array<Nullable<string>>;
     get errors(): Array<CompilationError>;
     get sourceLocation(): Nullable<SourceLocationInfo>;
-    copy(stage?: string, tacky?: Nullable<string>, tackyPretty?: Nullable<string>, precomputedCFGs?: string, precomputedAssembly?: string, optimizations?: Array<Nullable<string>>, functionNames?: Array<Nullable<string>>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): TackyOutput;
+    copy(stage?: string, tacky?: Nullable<string>, tackyPretty?: Nullable<string>, precomputedCFGs?: string, optimizations?: Array<Nullable<string>>, functionNames?: Array<Nullable<string>>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): TackyOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -159,15 +142,13 @@ export declare namespace TackyOutput {
     }
 }
 export declare class AssemblyOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: string | undefined, assembly: Nullable<string> | undefined, rawAssembly: Nullable<string> | undefined, precomputedAssembly: string | undefined, selectedOptimizations: Array<string> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
+    constructor(stage: string | undefined, assembly: Nullable<string> | undefined, rawAssembly: Nullable<string> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
     get stage(): string;
     get assembly(): Nullable<string>;
     get rawAssembly(): Nullable<string>;
-    get precomputedAssembly(): string;
-    get selectedOptimizations(): Array<string>;
     get errors(): Array<CompilationError>;
     get sourceLocation(): Nullable<SourceLocationInfo>;
-    copy(stage?: string, assembly?: Nullable<string>, rawAssembly?: Nullable<string>, precomputedAssembly?: string, selectedOptimizations?: Array<string>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): AssemblyOutput;
+    copy(stage?: string, assembly?: Nullable<string>, rawAssembly?: Nullable<string>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): AssemblyOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -269,35 +250,9 @@ export declare namespace CompilationResult {
 export declare class CompilerExport {
     constructor();
     exportCompilationResults(code: string): string;
+    getCFGForFunction(precomputed: Nullable<string>, fn: string, enabledOpts: Array<string>): string;
 }
 /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
 export declare namespace CompilerExport.$metadata$ {
     const constructor: abstract new () => CompilerExport;
-}
-export declare namespace CompilerExport {
-    class AssemblyEntry {
-        constructor(functionName: string, optimizations: KtList<string>, asmCode: string);
-        get functionName(): string;
-        get optimizations(): KtList<string>;
-        get asmCode(): string;
-        copy(functionName?: string, optimizations?: KtList<string>, asmCode?: string): CompilerExport.AssemblyEntry;
-        toString(): string;
-        hashCode(): number;
-        equals(other: Nullable<any>): boolean;
-    }
-    /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
-    namespace AssemblyEntry.$metadata$ {
-        const constructor: abstract new () => AssemblyEntry;
-    }
-    namespace AssemblyEntry {
-        abstract class Companion extends KtSingleton<Companion.$metadata$.constructor>() {
-            private constructor();
-        }
-        /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
-        namespace Companion.$metadata$ {
-            abstract class constructor {
-                private constructor();
-            }
-        }
-    }
 }
