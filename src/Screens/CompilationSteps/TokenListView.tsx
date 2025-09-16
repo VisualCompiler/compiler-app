@@ -14,13 +14,17 @@ const TokenListContent: React.FC<TokenListContentProps> = ({ tokenList }) => {
   }
 
   // Convert tokens to a format suitable for display
-  const tokenLines = tokenList.reduce((acc: Record<number, any[]>, token: any) => {  
-    if (!acc[token.line]) {
-      acc[token.line] = [];
-    }
-    acc[token.line].push(token);
-    return acc;
-  }, {});
+  const tokenLines = tokenList
+    .filter(token => token && token.type && token.lexeme !== undefined) // Filter out invalid tokens
+    .reduce((acc: Record<number, any[]>, token: any) => {  
+      // Use location.startLine instead of token.line
+      const lineNumber = token.location?.startLine || 0;
+      if (!acc[lineNumber]) {
+        acc[lineNumber] = [];
+      }
+      acc[lineNumber].push(token);
+      return acc;
+    }, {});
 
   const getTokenClass = (type: any): string => {
     const typeStr = type.toString();
@@ -65,14 +69,17 @@ const TokenListContent: React.FC<TokenListContentProps> = ({ tokenList }) => {
 
   return (
     <div className='text-sm font-mono space-y-1 p-2'>
-      {Object.entries(tokenLines).map(([line, tokens]) => (
+      {Object.entries(tokenLines)
+        .filter(([line]) => line && line !== 'undefined' && !isNaN(Number(line))) // Filter out invalid line numbers
+        .sort(([a], [b]) => Number(a) - Number(b)) // Sort by line number
+        .map(([line, tokens]) => (
         <div key={line} className='flex flex-wrap'>
           <span className='text-muted-foreground pr-2 w-6 flex-shrink-0'>
             {line}
           </span>
           <div className='flex flex-wrap flex-1'>
             {tokens.map((t: any, i: number) => (
-              <span key={i} title={`Column ${t.column}`} className='mr-1 mb-1'>
+              <span key={i} title={`Column ${t.location?.startCol || 'N/A'}`} className='mr-1 mb-1'>
                 <span className={getTokenClass(t.type)}>{t.type.toString()}(</span>
                 <span className='text-foreground'>{t.lexeme}</span>
                 <span className={getTokenClass(t.type)}>)</span>

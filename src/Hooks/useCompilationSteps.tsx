@@ -219,6 +219,10 @@ export const useCompilationSteps = () => {
     const tokens = (lexerOutput as any)?.tokens
       ? JSON.parse((lexerOutput as any).tokens)
       : []
+    
+    // Debug: Log token structure
+    console.log('Raw tokens from lexer:', tokens.slice(0, 3));
+    console.log('First token structure:', tokens[0]);
     const ast = (parserOutput as any)?.ast
       ? JSON.parse((parserOutput as any).ast)
       : null
