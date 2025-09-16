@@ -27,9 +27,9 @@ declare global {
 
 export interface SourceLocation {
   startLine: number
-  startColumn: number
+  startCol: number
   endLine: number
-  endColumn: number
+  endCol: number
 }
 export interface AstNode {
   id: string
@@ -133,7 +133,6 @@ const parseInstructions = (raw: string | object) => {
 }
 
 export const useCompilationSteps = () => {
-  const [activeAstId, setActiveAstId] = useState<string | null>(null)
   const [activeLocation, setActiveLocation] = useState<SourceLocation | null>(
     null
   )
@@ -500,8 +499,6 @@ export const useCompilationSteps = () => {
       content: (
         <ASTViewer
           ast={compilationResult.ast}
-          activeAstId={activeAstId}
-          setActiveAstId={setActiveAstId}
           activeLocation={activeLocation}
           setActiveLocation={setActiveLocation}
         />

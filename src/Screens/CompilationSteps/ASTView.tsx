@@ -13,9 +13,6 @@ import ReactFlow, {
   useEdgesState,
 } from 'react-flow-renderer'
 
-const nodeTypes = {
-  astNode: (props) => <ASTNodeComponent {...props.data} />,
-}
 
 const generateGraph = (
   root: any,
@@ -37,11 +34,6 @@ const generateGraph = (
     }
 
     const nodeId = node.id || `node-${nodeIdCounter++}`
-    const nodeType = node.type || node.label || 'Unknown'
-    const nodeLabel = node.label || node.type || 'Unknown'
-
-    // Get the color for the node type (CSS variable or hex)
-    const nodeHexColor = getNodeHexColor(nodeType)
 
     nodes.push({
       id: nodeId,
@@ -162,16 +154,12 @@ const generateGraph = (
 
 interface ASTViewerProps {
   ast: any
-  activeAstId: string | null
-  setActiveAstId: (id: string | null) => void
   activeLocation: SourceLocation | null
   setActiveLocation: (location: SourceLocation | null) => void
 }
 
 export const ASTViewer: React.FC<ASTViewerProps> = ({
   ast,
-  activeAstId,
-  setActiveAstId,
   activeLocation,
   setActiveLocation,
 }) => {
@@ -189,7 +177,7 @@ export const ASTViewer: React.FC<ASTViewerProps> = ({
   // We need a custom nodeTypes wrapper to pass props correctly
   const nodeTypes = useMemo(
     () => ({
-      astNode: (props) => (
+      astNode: (props: any) => (
         <ASTNodeComponent
           {...props.data}
           // Pass the activeLocation to check if this node should be highlighted
@@ -230,8 +218,8 @@ export const ASTViewer: React.FC<ASTViewerProps> = ({
           activeLocation &&
           node.data.location?.startLine === activeLocation.startLine &&
           node.data.location?.endLine === activeLocation.endLine &&
-          node.data.location?.startColumn === activeLocation.startColumn &&
-          node.data.location?.endColumn === activeLocation.endColumn
+          node.data.location?.startCol === activeLocation.startCol &&
+          node.data.location?.endCol === activeLocation.endCol
 
         // Return a new node object with the updated 'isActive' status.
         return {

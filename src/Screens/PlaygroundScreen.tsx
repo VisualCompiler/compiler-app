@@ -59,7 +59,6 @@ export const PlaygroundScreen = () => {
     hasCompiled,
     compileCode,
     activeLocation,
-    setActiveLocation,
   } = useCompilationSteps()
 
   // This function updates the component's local state

@@ -1,4 +1,3 @@
-import type { SourceLocation } from '@/Hooks/useCompilationSteps'
 import { Handle, Position } from 'react-flow-renderer'
 
 // Single source of truth for AST node colors using theme-dependent CSS variables
@@ -35,13 +34,6 @@ export const getNodeHexColor = (nodeType: string): string => {
   }
   return colorMap[cssVar] || '#6b7280'
 }
-interface ASTNodeComponentProps {
-  label: string
-  type: string
-  location?: SourceLocation // Location is optional
-  setActiveLocation: (location: SourceLocation | null) => void
-  isActive: boolean
-}
 
 export const ASTNodeComponent = ({
   label,
@@ -52,7 +44,6 @@ export const ASTNodeComponent = ({
 }: any) => {
   const isHighlighted = isActive
 
-  const backgroundColor = getNodeColor(type)
 
   if (location) {
     console.log(

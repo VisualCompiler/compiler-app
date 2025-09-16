@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from 'react'
 import { EditorState, StateField, StateEffect } from '@codemirror/state'
 import { autocompletion } from '@codemirror/autocomplete'
-import { nord } from '@uiw/codemirror-theme-nord'
 import { foldGutter } from '@codemirror/language'
 import {
   EditorView,
