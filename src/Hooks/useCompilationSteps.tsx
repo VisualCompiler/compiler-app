@@ -2,7 +2,7 @@ import { TackyView } from '@/Screens/CompilationSteps/TackyView'
 import { ControlFlowGraphView } from '@/Screens/CompilationSteps/ControlFlowGraphView'
 import { ASTViewer } from '@/Screens/CompilationSteps/ASTView'
 import { TokenListContent } from '@/Screens/CompilationSteps/TokenListView'
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { XCircle } from 'lucide-react'
 import {
   type CompilationError,
@@ -150,6 +150,7 @@ export const useCompilationSteps = () => {
     tackyPseudoCode: string
     tackyInstructions: TackyInstruction[]
     functionNames: string[]
+    hasMain: boolean
     precomputedCFGs: any
     precomputedAssembly: any
     availableOptimizations: string[]
@@ -166,6 +167,7 @@ export const useCompilationSteps = () => {
     tackyInstructions: [],
     asmCode: '',
     functionNames: [],
+    hasMain: false,
     precomputedCFGs: null,
     precomputedAssembly: null,
     availableOptimizations: [],
@@ -184,6 +186,7 @@ export const useCompilationSteps = () => {
         tackyPseudoCode: '',
         tackyInstructions: [],
         functionNames: [],
+        hasMain: false,
         precomputedCFGs: null,
         precomputedAssembly: null,
         availableOptimizations: [],
@@ -202,16 +205,10 @@ export const useCompilationSteps = () => {
 
     // Extract data from each stage
     const lexerOutput = result.outputs.find((o) => o.stage === 'lexer')
-    console.log('1. Raw Lexer Output:', lexerOutput)
 
     const parserOutput = result.outputs.find((o) => o.stage === 'parser')
-    console.log('2. Raw Parser Output:', parserOutput)
 
     const tackyOutput = result.outputs.find((o) => o.stage === 'tacky')
-    console.log('3. Raw Tacky Output:', tackyOutput)
-    console.log('3. Tacky Output optimizations:', (tackyOutput as any)?.optimizations)
-    console.log('3. Tacky Output functionNames:', (tackyOutput as any)?.functionNames)
-
     const codeGenOutput = result.outputs.find((o) => o.stage === 'assembly')
     console.log('4. Raw Code Generator Output:', codeGenOutput)
 
@@ -372,9 +369,26 @@ export const useCompilationSteps = () => {
     console.log('asmInstructions:', asmInstructions)
 
     const functionNames = (tackyOutput as any)?.functionNames || []
+    const hasMain = functionNames.includes('main')
     const precomputedCFGs = (tackyOutput as any)?.precomputedCFGs || null
     const precomputedAssembly = (tackyOutput as any)?.precomputedAssembly || null
     console.log('PRECOMPUTED ASSEMBLY...', precomputedAssembly)
+    console.log('PRECOMPUTED ASSEMBLY TYPE:', typeof precomputedAssembly)
+    console.log('PRECOMPUTED ASSEMBLY LENGTH:', precomputedAssembly?.length)
+    if (precomputedAssembly) {
+      try {
+        const parsed = JSON.parse(precomputedAssembly)
+        console.log('PARSED PRECOMPUTED ASSEMBLY:', parsed)
+        console.log('NUMBER OF ASSEMBLY ENTRIES:', parsed.length)
+        if (parsed.length > 0) {
+          console.log('FIRST ASSEMBLY ENTRY:', parsed[0])
+          console.log('FIRST ENTRY OPTIMIZATIONS:', parsed[0].optimizations)
+          console.log('FIRST ENTRY ASM CODE LENGTH:', parsed[0].asmCode?.length)
+        }
+      } catch (e) {
+        console.error('ERROR PARSING PRECOMPUTED ASSEMBLY:', e)
+      }
+    }
     const availableOptimizations = (tackyOutput as any)?.optimizations || ['CONSTANT_FOLDING', 'DEAD_STORE_ELIMINATION']
     const asmCode = (codeGenOutput as any)?.assembly || ''
     console.log('asmCode:', asmCode)
@@ -392,6 +406,7 @@ export const useCompilationSteps = () => {
       tackyPseudoCode: cleanTackyPseudoCode,
       tackyInstructions,
       functionNames,
+      hasMain,
       precomputedCFGs,
       precomputedAssembly,
       availableOptimizations,
@@ -448,7 +463,14 @@ export const useCompilationSteps = () => {
 
   // Parse precomputed assembly data and get optimized assembly based on current selections
   const getOptimizedAssembly = useCallback(() => {
+    console.log('getOptimizedAssembly called with:', {
+      selectedFunction,
+      enabledOptimizations: Array.from(enabledOptimizations),
+      hasPrecomputedAssembly: !!compilationResult.precomputedAssembly
+    })
+    
     if (!selectedFunction || !compilationResult.precomputedAssembly) {
+      console.log('Returning default assembly - no selectedFunction or precomputedAssembly')
       return compilationResult.asmCode
     }
 
@@ -475,7 +497,9 @@ export const useCompilationSteps = () => {
       })
       
       console.log('Found assembly entry:', assemblyEntry)
-      return assemblyEntry?.asmCode || compilationResult.asmCode
+      const result = assemblyEntry?.asmCode || compilationResult.asmCode
+      console.log('Returning assembly with length:', result.length)
+      return result
     } catch (error) {
       console.error('Error parsing precomputed assembly:', error)
       return compilationResult.asmCode
@@ -484,9 +508,19 @@ export const useCompilationSteps = () => {
 
   // Current assembly based on optimization selections
   const currentAssembly = getOptimizedAssembly()
+  
+  // Debug: Log when currentAssembly changes
+  React.useEffect(() => {
+    console.log('currentAssembly changed:', {
+      length: currentAssembly.length,
+      firstLine: currentAssembly.split('\n')[0],
+      selectedFunction,
+      enabledOptimizations: Array.from(enabledOptimizations)
+    })
+  }, [currentAssembly, selectedFunction, enabledOptimizations])
 
-
-  const stages = [
+  // Create stages array that updates when currentAssembly changes
+  const stages = useMemo(() => [
     {
       title: 'Lexer',
       description: 'Building a token list from the source code',
@@ -540,10 +574,11 @@ export const useCompilationSteps = () => {
           astNodeHashTable={compilationResult.astNodeHashTable}
           activeLocation={activeLocation}
           setActiveLocation={setActiveLocation}
+          hasMain={compilationResult.hasMain}
         />
       ),
     },
-  ]
+  ], [compilationResult, activeLocation, setActiveLocation, selectedFunction, enabledOptimizations, handleFunctionSelection, handleOptimizationToggle, currentAssembly])
 
   const [index, setIndex] = useState(0)
 
