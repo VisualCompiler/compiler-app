@@ -121,7 +121,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     console.log('AssemblyView asmCode changed:', {
       length: asmCode.length,
       firstLine: asmCode.split('\n')[0],
-      hasMain
+      hasMain,
     })
   }, [asmCode, hasMain])
   const editorRef = useRef<HTMLDivElement>(null)
@@ -259,9 +259,14 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
             (line) => line.type === 'label' && line.line === 'main:'
           )?.offset
         : null
-      
+
       // If hasMain is true but no main label found, start from the first instruction
-      const startAddress = mainAddress || (hasMain ? binaryLines.find(line => line.type === 'instruction')?.offset || EMULATOR_CONFIG.CODE_SEGMENT_START : EMULATOR_CONFIG.CODE_SEGMENT_START)
+      const startAddress =
+        mainAddress ||
+        (hasMain
+          ? binaryLines.find((line) => line.type === 'instruction')?.offset ||
+            EMULATOR_CONFIG.CODE_SEGMENT_START
+          : EMULATOR_CONFIG.CODE_SEGMENT_START)
       emulator.setRegister(window.uc.X86_REG_RIP, startAddress)
     }
   }
@@ -301,7 +306,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     try {
       const lines = await convertAssemblyToBinary(assemblyCode, hasMain)
       setBinaryLines(lines)
-
     } catch (err) {
       console.assemblingError(
         `Assembly conversion failed: ${
@@ -399,9 +403,14 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
               (line) => line.type === 'label' && line.line === 'main:'
             )?.offset
           : null
-        
+
         // If hasMain is true but no main label found, start from the first instruction
-        const startAddress = mainAddress || (hasMain ? binaryLines.find(line => line.type === 'instruction')?.offset || EMULATOR_CONFIG.CODE_SEGMENT_START : EMULATOR_CONFIG.CODE_SEGMENT_START)
+        const startAddress =
+          mainAddress ||
+          (hasMain
+            ? binaryLines.find((line) => line.type === 'instruction')?.offset ||
+              EMULATOR_CONFIG.CODE_SEGMENT_START
+            : EMULATOR_CONFIG.CODE_SEGMENT_START)
 
         const initialState: ExecutionState = {
           currentInstruction: startAddress,
@@ -496,9 +505,14 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
             (line) => line.type === 'label' && line.line === 'main:'
           )?.offset
         : null
-      
+
       // If hasMain is true but no main label found, start from the first instruction
-      const startAddress = mainAddress || (hasMain ? binaryLines.find(line => line.type === 'instruction')?.offset || codeStart : codeStart)
+      const startAddress =
+        mainAddress ||
+        (hasMain
+          ? binaryLines.find((line) => line.type === 'instruction')?.offset ||
+            codeStart
+          : codeStart)
 
       updateExecutionState({
         stepCount: 0,
@@ -549,7 +563,11 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
         const currentIP = emulator.getInstructionPointer()!
         const currentStepCount = executionStateRef.current.stepCount
 
-        if (!isPausedRef.current && !hasError && (currentIP >= programEnd || currentStepCount >= maxSteps)) {
+        if (
+          !isPausedRef.current &&
+          !hasError &&
+          (currentIP >= programEnd || currentStepCount >= maxSteps)
+        ) {
           clearInterval(runInterval.current!)
           setIsExecuting(false)
           setHasRun(false)
@@ -621,13 +639,13 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
       if (currentLine && currentLine.line?.trim() === 'ret') {
         // Find the main function label
         const startFunctionLine = binaryLines.find(
-          (line) => line.type === 'label' && (
-            line.line?.includes('main:') || 
-            line.line?.includes('_main:') ||
-            line.line?.includes('main') ||
-            line.line?.trim() === 'main' ||
-            line.line?.trim() === '_main'
-          )
+          (line) =>
+            line.type === 'label' &&
+            (line.line?.includes('main:') ||
+              line.line?.includes('_main:') ||
+              line.line?.includes('main') ||
+              line.line?.trim() === 'main' ||
+              line.line?.trim() === '_main')
         )
 
         if (startFunctionLine) {
@@ -769,7 +787,12 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
             EMULATOR_CONFIG.CODE_SEGMENT_START + machineCode.length
           const currentIP = emulator.getInstructionPointer()!
 
-          if (!isPausedRef.current && !hasError && (currentIP >= programEnd || executionStateRef.current.stepCount >= maxSteps)) {
+          if (
+            !isPausedRef.current &&
+            !hasError &&
+            (currentIP >= programEnd ||
+              executionStateRef.current.stepCount >= maxSteps)
+          ) {
             clearInterval(runInterval.current!)
             setIsExecuting(false)
             // Clear console when execution finishes normally
@@ -930,10 +953,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                 handleStep(true)
               }}
               disabled={
-                isExecuting ||
-                isStepping ||
-                !binaryLines.length ||
-                !hasMain
+                isExecuting || isStepping || !binaryLines.length || !hasMain
               }
             >
               <StepForward className="h-4 w-4" />
@@ -1074,36 +1094,46 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
             <div className="p-2 font-mono text-sm overflow-auto h-full">
               {(() => {
                 const asmLines = asmCode.split('\n')
-                let instructionPointer = 0
 
                 return asmLines.map((line, index) => {
                   const isHeader = index === 0
                   const lineText = line.trim()
-
+                  console.log('ASM Instructions:', instructions)
                   let matchingInstruction = null
+
                   if (
                     !isHeader &&
                     instructions?.body &&
-                    instructionPointer < instructions.body.length
+                    lineText && // Only process non-empty lines
+                    !lineText.startsWith('.') && // Skip directives
+                    !lineText.endsWith(':') && // Skip labels
+                    !lineText.startsWith('//') && // Skip comments
+                    !lineText.startsWith(';') // Skip comments
                   ) {
-                    // Skip empty instructions in the array
-                    while (
-                      instructionPointer < instructions.body.length &&
-                      instructions.body[instructionPointer]?.code?.trim() === ''
-                    ) {
-                      instructionPointer++
+                    for (const instruction of instructions.body) {
+                      if (
+                        instruction?.code &&
+                        instruction.code.trim() === lineText
+                      ) {
+                        matchingInstruction = instruction
+                        break
+                      }
                     }
 
-                    // check if current instruction matches the line
-                    if (instructionPointer < instructions.body.length) {
-                      const currentInstruction =
-                        instructions.body[instructionPointer]
-                      if (
-                        currentInstruction?.code &&
-                        currentInstruction.code.trim() === lineText
-                      ) {
-                        matchingInstruction = currentInstruction
-                        instructionPointer++
+                    // If no exact match, look for partial matches (in case of whitespace differences)
+                    if (!matchingInstruction) {
+                      for (const instruction of instructions.body) {
+                        if (instruction?.code) {
+                          const instructionCode = instruction.code.trim()
+                          // Check if the line contains the instruction or vice versa
+                          if (
+                            lineText.includes(instructionCode) ||
+                            instructionCode.includes(lineText)
+                          ) {
+                            matchingInstruction = instruction
+                            break
+                          }
+                        }
                       }
                     }
                   }

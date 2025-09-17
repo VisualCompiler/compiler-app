@@ -526,7 +526,8 @@ protoOf(Companion).y1c = function (tackyProgram, optimizations) {
 protoOf(Companion).r1d = function (tacky) {
   var asm = this.t1b_1.s1d(tacky);
   var asmWithStackSizes = this.v1b_1.t1d(asm);
-  var finalAsmProgram = this.u1b_1.u1d(asmWithStackSizes);
+  var tmp = this.u1b_1.u1d(asmWithStackSizes);
+  var finalAsmProgram = tmp instanceof AsmProgram ? tmp : THROW_CCE();
   return finalAsmProgram;
 };
 var Companion_instance;
@@ -6941,8 +6942,9 @@ protoOf(CompilerExport).exportCompilationResults = function (code) {
     outputs.e(new TackyOutput(VOID, tmp7_tacky, tmp2_tackyPretty, tmp4_precomputedCFGs, tmp5_precomputedAssembly, VOID, tmp3_functionNames, tmp6_errors, sourceLocationInfo));
     var optimizedTacky = Companion_getInstance().y1c(tacky, setOf([OptimizationType_CONSTANT_FOLDING_getInstance(), OptimizationType_DEAD_STORE_ELIMINATION_getInstance(), OptimizationType_COPY_PROPAGATION_getInstance(), OptimizationType_UNREACHABLE_CODE_ELIMINATION_getInstance()]));
     var asm = Companion_getInstance().r1d(optimizedTacky);
+    var rawAsm = Companion_getInstance().r1d(tacky);
     var finalAssemblyString = codeEmitter.l1g(asm instanceof AsmProgram ? asm : THROW_CCE());
-    var rawAssembly = codeEmitter.n1g(asm);
+    var rawAssembly = codeEmitter.n1g(rawAsm);
     // Inline function 'kotlin.emptyArray' call
     var tmp8_errors = [];
     outputs.e(new AssemblyOutput(VOID, finalAssemblyString, rawAssembly, tmp8_errors, sourceLocationInfo));
@@ -12958,6 +12960,9 @@ function TackyRet(value, sourceId) {
 protoOf(TackyRet).n1s = function (indentationLevel) {
   return this.x1w(indentationLevel) + 'return ' + this.b1v_1.o1s();
 };
+protoOf(TackyRet).a1d = function () {
+  return new TackyRet(this.b1v_1.a1d(), this.c1v_1);
+};
 protoOf(TackyRet).toString = function () {
   return 'TackyRet(value=' + toString(this.b1v_1) + ', sourceId=' + this.c1v_1 + ')';
 };
@@ -13138,6 +13143,11 @@ function TackyUnary(operator, src, dest, sourceId) {
 }
 protoOf(TackyUnary).n1s = function (indentationLevel) {
   return this.x1w(indentationLevel) + this.y1t_1.o1s() + ' = ' + this.w1t_1.e1x_1 + this.x1t_1.o1s();
+};
+protoOf(TackyUnary).a1d = function () {
+  var tmp = this.x1t_1.a1d();
+  var tmp_0 = this.y1t_1.a1d();
+  return new TackyUnary(this.w1t_1, tmp, tmp_0 instanceof TackyVar ? tmp_0 : THROW_CCE(), this.z1t_1);
 };
 protoOf(TackyUnary).toString = function () {
   return 'TackyUnary(operator=' + this.w1t_1.toString() + ', src=' + toString(this.x1t_1) + ', dest=' + this.y1t_1.toString() + ', sourceId=' + this.z1t_1 + ')';
@@ -13358,6 +13368,12 @@ function TackyBinary(operator, src1, src2, dest, sourceId) {
 protoOf(TackyBinary).n1s = function (indentationLevel) {
   return this.x1w(indentationLevel) + this.e1u_1.o1s() + ' = ' + this.c1u_1.o1s() + ' ' + this.b1u_1.k1x_1 + ' ' + this.d1u_1.o1s();
 };
+protoOf(TackyBinary).a1d = function () {
+  var tmp = this.c1u_1.a1d();
+  var tmp_0 = this.d1u_1.a1d();
+  var tmp_1 = this.e1u_1.a1d();
+  return new TackyBinary(this.b1u_1, tmp, tmp_0, tmp_1 instanceof TackyVar ? tmp_1 : THROW_CCE(), this.f1u_1);
+};
 protoOf(TackyBinary).toString = function () {
   return 'TackyBinary(operator=' + this.b1u_1.toString() + ', src1=' + toString(this.c1u_1) + ', src2=' + toString(this.d1u_1) + ', dest=' + this.e1u_1.toString() + ', sourceId=' + this.f1u_1 + ')';
 };
@@ -13512,6 +13528,11 @@ function TackyCopy(src, dest, sourceId) {
 protoOf(TackyCopy).n1s = function (indentationLevel) {
   return this.x1w(indentationLevel) + this.e1v_1.o1s() + ' = ' + this.d1v_1.o1s();
 };
+protoOf(TackyCopy).a1d = function () {
+  var tmp = this.d1v_1.a1d();
+  var tmp_0 = this.e1v_1.a1d();
+  return new TackyCopy(tmp, tmp_0 instanceof TackyVar ? tmp_0 : THROW_CCE(), this.f1v_1);
+};
 protoOf(TackyCopy).toString = function () {
   return 'TackyCopy(src=' + toString(this.d1v_1) + ', dest=' + this.e1v_1.toString() + ', sourceId=' + this.f1v_1 + ')';
 };
@@ -13633,6 +13654,10 @@ function TackyJump(target, sourceId) {
 }
 protoOf(TackyJump).n1s = function (indentationLevel) {
   return this.x1w(indentationLevel) + 'goto ' + this.r1u_1.t1u_1;
+};
+protoOf(TackyJump).a1d = function () {
+  var tmp = this.r1u_1.a1d();
+  return new TackyJump(tmp instanceof TackyLabel ? tmp : THROW_CCE(), this.s1u_1);
 };
 protoOf(TackyJump).toString = function () {
   return 'TackyJump(target=' + this.r1u_1.toString() + ', sourceId=' + this.s1u_1 + ')';
@@ -13778,6 +13803,11 @@ function JumpIfZero(condition, target, sourceId) {
 }
 protoOf(JumpIfZero).n1s = function (indentationLevel) {
   return this.x1w(indentationLevel) + 'if (' + this.t1t_1.o1s() + ' == 0) goto ' + this.u1t_1.t1u_1;
+};
+protoOf(JumpIfZero).a1d = function () {
+  var tmp = this.t1t_1.a1d();
+  var tmp_0 = this.u1t_1.a1d();
+  return new JumpIfZero(tmp, tmp_0 instanceof TackyLabel ? tmp_0 : THROW_CCE(), this.v1t_1);
 };
 protoOf(JumpIfZero).toString = function () {
   return 'JumpIfZero(condition=' + toString(this.t1t_1) + ', target=' + this.u1t_1.toString() + ', sourceId=' + this.v1t_1 + ')';
@@ -13926,6 +13956,11 @@ function JumpIfNotZero(condition, target, sourceId) {
 }
 protoOf(JumpIfNotZero).n1s = function (indentationLevel) {
   return this.x1w(indentationLevel) + 'if (' + this.q1t_1.o1s() + ' != 0) goto ' + this.r1t_1.t1u_1;
+};
+protoOf(JumpIfNotZero).a1d = function () {
+  var tmp = this.q1t_1.a1d();
+  var tmp_0 = this.r1t_1.a1d();
+  return new JumpIfNotZero(tmp, tmp_0 instanceof TackyLabel ? tmp_0 : THROW_CCE(), this.s1t_1);
 };
 protoOf(JumpIfNotZero).toString = function () {
   return 'JumpIfNotZero(condition=' + toString(this.q1t_1) + ', target=' + this.r1t_1.toString() + ', sourceId=' + this.s1t_1 + ')';
@@ -14091,6 +14126,21 @@ protoOf(TackyFunCall).n1s = function (indentationLevel) {
   var argString = joinToString(this.y1u_1, ', ', VOID, VOID, VOID, VOID, TackyFunCall$toPseudoCode$lambda);
   return this.x1w(indentationLevel) + this.z1u_1.o1s() + ' = ' + this.x1u_1 + '(' + argString + ')';
 };
+protoOf(TackyFunCall).a1d = function () {
+  // Inline function 'kotlin.collections.map' call
+  var this_0 = this.y1u_1;
+  // Inline function 'kotlin.collections.mapTo' call
+  var destination = ArrayList_init_$Create$(collectionSizeOrDefault(this_0, 10));
+  var _iterator__ex2g4s = this_0.j();
+  while (_iterator__ex2g4s.k()) {
+    var item = _iterator__ex2g4s.l();
+    var tmp$ret$0 = item.a1d();
+    destination.e(tmp$ret$0);
+  }
+  var tmp = destination;
+  var tmp_0 = this.z1u_1.a1d();
+  return new TackyFunCall(this.x1u_1, tmp, tmp_0 instanceof TackyVar ? tmp_0 : THROW_CCE(), this.a1v_1);
+};
 protoOf(TackyFunCall).toString = function () {
   return 'TackyFunCall(funName=' + this.x1u_1 + ', args=' + toString(this.y1u_1) + ', dest=' + this.z1u_1.toString() + ', sourceId=' + this.a1v_1 + ')';
 };
@@ -14215,6 +14265,9 @@ function TackyLabel(name, sourceId) {
 }
 protoOf(TackyLabel).n1s = function (indentationLevel) {
   return this.t1u_1 + ':';
+};
+protoOf(TackyLabel).a1d = function () {
+  return new TackyLabel(this.t1u_1, this.u1u_1);
 };
 protoOf(TackyLabel).toString = function () {
   return 'TackyLabel(name=' + this.t1u_1 + ', sourceId=' + this.u1u_1 + ')';
@@ -14469,6 +14522,9 @@ function TackyConstant(value) {
 protoOf(TackyConstant).n1s = function (indentationLevel) {
   return this.a1u_1.toString();
 };
+protoOf(TackyConstant).a1d = function () {
+  return new TackyConstant(this.a1u_1);
+};
 protoOf(TackyConstant).toString = function () {
   return 'TackyConstant(value=' + this.a1u_1 + ')';
 };
@@ -14566,6 +14622,9 @@ function TackyVar(name) {
 }
 protoOf(TackyVar).n1s = function (indentationLevel) {
   return this.w1u_1;
+};
+protoOf(TackyVar).a1d = function () {
+  return new TackyVar(this.w1u_1);
 };
 protoOf(TackyVar).toString = function () {
   return 'TackyVar(name=' + this.w1u_1 + ')';
@@ -14685,12 +14744,18 @@ function TackyProgram(functions) {
 protoOf(TackyProgram).n1s = function (indentationLevel) {
   return joinToString(this.z1c_1, '\n\n', VOID, VOID, VOID, VOID, TackyProgram$toPseudoCode$lambda(indentationLevel));
 };
-protoOf(TackyProgram).m1y = function (functions) {
-  return new TackyProgram(functions);
-};
-protoOf(TackyProgram).a1d = function (functions, $super) {
-  functions = functions === VOID ? this.z1c_1 : functions;
-  return $super === VOID ? this.m1y(functions) : $super.m1y.call(this, functions);
+protoOf(TackyProgram).a1d = function () {
+  // Inline function 'kotlin.collections.map' call
+  var this_0 = this.z1c_1;
+  // Inline function 'kotlin.collections.mapTo' call
+  var destination = ArrayList_init_$Create$(collectionSizeOrDefault(this_0, 10));
+  var _iterator__ex2g4s = this_0.j();
+  while (_iterator__ex2g4s.k()) {
+    var item = _iterator__ex2g4s.l();
+    var tmp$ret$0 = item.a1d();
+    destination.e(tmp$ret$0);
+  }
+  return new TackyProgram(destination);
 };
 protoOf(TackyProgram).toString = function () {
   return 'TackyProgram(functions=' + toString(this.z1c_1) + ')';
@@ -14723,7 +14788,7 @@ function Companion_57() {
   // Inline function 'kotlin.arrayOf' call
   // Inline function 'kotlin.js.unsafeCast' call
   // Inline function 'kotlin.js.asDynamic' call
-  tmp.n1y_1 = [null, tmp_1, lazy(tmp_2, TackyFunction$Companion$$childSerializers$_anonymous__hvalua_0), null];
+  tmp.m1y_1 = [null, tmp_1, lazy(tmp_2, TackyFunction$Companion$$childSerializers$_anonymous__hvalua_0), null];
 }
 var Companion_instance_57;
 function Companion_getInstance_57() {
@@ -14738,12 +14803,12 @@ function $serializer_46() {
   tmp0_serialDesc.kr('args', false);
   tmp0_serialDesc.kr('body', false);
   tmp0_serialDesc.kr('sourceId', true);
-  this.o1y_1 = tmp0_serialDesc;
+  this.n1y_1 = tmp0_serialDesc;
 }
-protoOf($serializer_46).p1y = function (encoder, value) {
-  var tmp0_desc = this.o1y_1;
+protoOf($serializer_46).o1y = function (encoder, value) {
+  var tmp0_desc = this.n1y_1;
   var tmp1_output = encoder.yj(tmp0_desc);
-  var tmp2_cached = Companion_getInstance_57().n1y_1;
+  var tmp2_cached = Companion_getInstance_57().m1y_1;
   tmp1_output.nl(tmp0_desc, 0, value.b1d_1);
   tmp1_output.pl(tmp0_desc, 1, tmp2_cached[1].s1(), value.c1d_1);
   tmp1_output.pl(tmp0_desc, 2, tmp2_cached[2].s1(), value.d1d_1);
@@ -14753,10 +14818,10 @@ protoOf($serializer_46).p1y = function (encoder, value) {
   tmp1_output.zj(tmp0_desc);
 };
 protoOf($serializer_46).rg = function (encoder, value) {
-  return this.p1y(encoder, value instanceof TackyFunction ? value : THROW_CCE());
+  return this.o1y(encoder, value instanceof TackyFunction ? value : THROW_CCE());
 };
 protoOf($serializer_46).sg = function (decoder) {
-  var tmp0_desc = this.o1y_1;
+  var tmp0_desc = this.n1y_1;
   var tmp1_flag = true;
   var tmp2_index = 0;
   var tmp3_bitMask0 = 0;
@@ -14765,7 +14830,7 @@ protoOf($serializer_46).sg = function (decoder) {
   var tmp6_local2 = null;
   var tmp7_local3 = null;
   var tmp8_input = decoder.yj(tmp0_desc);
-  var tmp9_cached = Companion_getInstance_57().n1y_1;
+  var tmp9_cached = Companion_getInstance_57().m1y_1;
   if (tmp8_input.ok()) {
     tmp4_local0 = tmp8_input.ik(tmp0_desc, 0);
     tmp3_bitMask0 = tmp3_bitMask0 | 1;
@@ -14806,10 +14871,10 @@ protoOf($serializer_46).sg = function (decoder) {
   return TackyFunction_init_$Create$(tmp3_bitMask0, tmp4_local0, tmp5_local1, tmp6_local2, tmp7_local3, null);
 };
 protoOf($serializer_46).qg = function () {
-  return this.o1y_1;
+  return this.n1y_1;
 };
 protoOf($serializer_46).zr = function () {
-  var tmp0_cached = Companion_getInstance_57().n1y_1;
+  var tmp0_cached = Companion_getInstance_57().m1y_1;
   // Inline function 'kotlin.arrayOf' call
   // Inline function 'kotlin.js.unsafeCast' call
   // Inline function 'kotlin.js.asDynamic' call
@@ -14823,7 +14888,7 @@ function $serializer_getInstance_46() {
 }
 function TackyFunction_init_$Init$(seen0, name, args, body, sourceId, serializationConstructorMarker, $this) {
   if (!(7 === (7 & seen0))) {
-    throwMissingFieldException(seen0, 7, $serializer_getInstance_46().o1y_1);
+    throwMissingFieldException(seen0, 7, $serializer_getInstance_46().n1y_1);
   }
   TackyConstruct_init_$Init$(seen0, serializationConstructorMarker, $this);
   $this.b1d_1 = name;
@@ -14866,6 +14931,20 @@ protoOf(TackyFunction).n1s = function (indentationLevel) {
   this_0.h7(bodyAsCode);
   return this_0.toString();
 };
+protoOf(TackyFunction).a1d = function () {
+  var tmp = toList(this.c1d_1);
+  // Inline function 'kotlin.collections.map' call
+  var this_0 = this.d1d_1;
+  // Inline function 'kotlin.collections.mapTo' call
+  var destination = ArrayList_init_$Create$(collectionSizeOrDefault(this_0, 10));
+  var _iterator__ex2g4s = this_0.j();
+  while (_iterator__ex2g4s.k()) {
+    var item = _iterator__ex2g4s.l();
+    var tmp$ret$0 = item.a1d();
+    destination.e(tmp$ret$0);
+  }
+  return new TackyFunction(this.b1d_1, tmp, destination, this.e1d_1);
+};
 protoOf(TackyFunction).toString = function () {
   return 'TackyFunction(name=' + this.b1d_1 + ', args=' + toString(this.c1d_1) + ', body=' + toString(this.d1d_1) + ', sourceId=' + this.e1d_1 + ')';
 };
@@ -14893,13 +14972,13 @@ protoOf(TackyFunction).equals = function (other) {
   return true;
 };
 function newTemporary_0($this) {
-  var _unary__edvuaz = $this.q1y_1;
-  $this.q1y_1 = _unary__edvuaz + 1 | 0;
+  var _unary__edvuaz = $this.p1y_1;
+  $this.p1y_1 = _unary__edvuaz + 1 | 0;
   return new TackyVar('tmp.' + _unary__edvuaz);
 }
 function newLabel_0($this, base, sourceId) {
-  var _unary__edvuaz = $this.r1y_1;
-  $this.r1y_1 = _unary__edvuaz + 1 | 0;
+  var _unary__edvuaz = $this.q1y_1;
+  $this.q1y_1 = _unary__edvuaz + 1 | 0;
   return new TackyLabel('.L_' + base + '_' + _unary__edvuaz, sourceId);
 }
 function convertUnaryOp($this, tokenType) {
@@ -14941,19 +15020,19 @@ function convertBinaryOp($this, tokenType) {
   }
 }
 function TackyGenVisitor() {
+  this.p1y_1 = 0;
   this.q1y_1 = 0;
-  this.r1y_1 = 0;
   var tmp = this;
   // Inline function 'kotlin.collections.mutableListOf' call
-  tmp.s1y_1 = ArrayList_init_$Create$_0();
+  tmp.r1y_1 = ArrayList_init_$Create$_0();
 }
-protoOf(TackyGenVisitor).t1y = function () {
+protoOf(TackyGenVisitor).s1y = function () {
+  this.p1y_1 = 0;
   this.q1y_1 = 0;
-  this.r1y_1 = 0;
-  this.s1y_1.y1();
+  this.r1y_1.y1();
 };
 protoOf(TackyGenVisitor).f1j = function (node) {
-  this.t1y();
+  this.s1y();
   // Inline function 'kotlin.collections.filter' call
   var tmp0 = node.i1j_1;
   // Inline function 'kotlin.collections.filterTo' call
@@ -14983,7 +15062,7 @@ protoOf(TackyGenVisitor).r1j = function (node) {
   var value = tmp instanceof TackyVal ? tmp : THROW_CCE();
   var instr = new TackyRet(value, node.q1j());
   // Inline function 'kotlin.collections.plusAssign' call
-  this.s1y_1.e(instr);
+  this.r1y_1.e(instr);
   return instr;
 };
 protoOf(TackyGenVisitor).w1j = function (node) {
@@ -14996,7 +15075,7 @@ protoOf(TackyGenVisitor).b1k = function (node) {
 };
 protoOf(TackyGenVisitor).f1k = function (node) {
   var breakLabel = new TackyLabel('break_' + node.i1k_1, node.q1j());
-  var tmp0 = this.s1y_1;
+  var tmp0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element = new TackyJump(breakLabel, node.q1j());
   tmp0.e(element);
@@ -15004,7 +15083,7 @@ protoOf(TackyGenVisitor).f1k = function (node) {
 };
 protoOf(TackyGenVisitor).k1k = function (node) {
   var continueLabel = new TackyLabel('continue_' + node.n1k_1, node.q1j());
-  var tmp0 = this.s1y_1;
+  var tmp0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element = new TackyJump(continueLabel, node.q1j());
   tmp0.e(element);
@@ -15014,20 +15093,20 @@ protoOf(TackyGenVisitor).p1k = function (node) {
   var continueLabel = new TackyLabel('continue_' + node.u1k_1, node.q1j());
   var breakLabel = new TackyLabel('break_' + node.u1k_1, node.q1j());
   // Inline function 'kotlin.collections.plusAssign' call
-  this.s1y_1.e(continueLabel);
+  this.r1y_1.e(continueLabel);
   var tmp = node.s1k_1.x1c(this);
   var condition = tmp instanceof TackyVal ? tmp : THROW_CCE();
-  var tmp0 = this.s1y_1;
+  var tmp0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element = new JumpIfZero(condition, breakLabel, node.q1j());
   tmp0.e(element);
   node.t1k_1.x1c(this);
-  var tmp0_0 = this.s1y_1;
+  var tmp0_0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element_0 = new TackyJump(continueLabel, node.q1j());
   tmp0_0.e(element_0);
   // Inline function 'kotlin.collections.plusAssign' call
-  this.s1y_1.e(breakLabel);
+  this.r1y_1.e(breakLabel);
   return null;
 };
 protoOf(TackyGenVisitor).w1k = function (node) {
@@ -15035,18 +15114,18 @@ protoOf(TackyGenVisitor).w1k = function (node) {
   var continueLabel = new TackyLabel('continue_' + node.b1l_1, node.q1j());
   var breakLabel = new TackyLabel('break_' + node.b1l_1, node.q1j());
   // Inline function 'kotlin.collections.plusAssign' call
-  this.s1y_1.e(startLabel);
+  this.r1y_1.e(startLabel);
   node.a1l_1.x1c(this);
   // Inline function 'kotlin.collections.plusAssign' call
-  this.s1y_1.e(continueLabel);
+  this.r1y_1.e(continueLabel);
   var tmp = node.z1k_1.x1c(this);
   var condition = tmp instanceof TackyVal ? tmp : THROW_CCE();
-  var tmp0 = this.s1y_1;
+  var tmp0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element = new JumpIfNotZero(condition, startLabel, node.q1j());
   tmp0.e(element);
   // Inline function 'kotlin.collections.plusAssign' call
-  this.s1y_1.e(breakLabel);
+  this.r1y_1.e(breakLabel);
   return null;
 };
 protoOf(TackyGenVisitor).d1l = function (node) {
@@ -15055,29 +15134,29 @@ protoOf(TackyGenVisitor).d1l = function (node) {
   var breakLabel = new TackyLabel('break_' + node.k1l_1, node.q1j());
   node.g1l_1.x1c(this);
   // Inline function 'kotlin.collections.plusAssign' call
-  this.s1y_1.e(startLabel);
+  this.r1y_1.e(startLabel);
   if (!(node.h1l_1 == null)) {
     var tmp = node.h1l_1.x1c(this);
     var condition = tmp instanceof TackyVal ? tmp : THROW_CCE();
-    var tmp0 = this.s1y_1;
+    var tmp0 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element = new JumpIfZero(condition, breakLabel, node.q1j());
     tmp0.e(element);
   }
   node.j1l_1.x1c(this);
   // Inline function 'kotlin.collections.plusAssign' call
-  this.s1y_1.e(continueLabel);
+  this.r1y_1.e(continueLabel);
   var tmp0_safe_receiver = node.i1l_1;
   if (tmp0_safe_receiver == null)
     null;
   else
     tmp0_safe_receiver.x1c(this);
-  var tmp0_0 = this.s1y_1;
+  var tmp0_0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element_0 = new TackyJump(startLabel, node.q1j());
   tmp0_0.e(element_0);
   // Inline function 'kotlin.collections.plusAssign' call
-  this.s1y_1.e(breakLabel);
+  this.r1y_1.e(breakLabel);
   return null;
 };
 protoOf(TackyGenVisitor).m1l = function (node) {
@@ -15095,20 +15174,20 @@ protoOf(TackyGenVisitor).w1l = function (node) {
 protoOf(TackyGenVisitor).b1m = function (node) {
   var functionName = node.m1j_1;
   var functionParams = node.n1j_1;
-  this.s1y_1.y1();
+  this.r1y_1.y1();
   var tmp0_safe_receiver = node.o1j_1;
   if (tmp0_safe_receiver == null)
     null;
   else
     tmp0_safe_receiver.x1c(this);
-  var tmp = lastOrNull(this.s1y_1);
+  var tmp = lastOrNull(this.r1y_1);
   if (!(tmp instanceof TackyRet)) {
-    var tmp0 = this.s1y_1;
+    var tmp0 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element = new TackyRet(new TackyConstant(0), node.q1j());
     tmp0.e(element);
   }
-  return new TackyFunction(functionName, functionParams, toList(this.s1y_1), node.q1j());
+  return new TackyFunction(functionName, functionParams, toList(this.r1y_1), node.q1j());
 };
 protoOf(TackyGenVisitor).g1m = function (node) {
   node.j1m_1.x1c(this);
@@ -15126,7 +15205,7 @@ protoOf(TackyGenVisitor).u1m = function (node) {
   var src = tmp instanceof TackyVal ? tmp : THROW_CCE();
   var dst = newTemporary_0(this);
   var op = convertUnaryOp(this, node.x1m_1.a1n_1);
-  var tmp0 = this.s1y_1;
+  var tmp0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element = new TackyUnary(op, src, dst, node.q1j());
   tmp0.e(element);
@@ -15140,32 +15219,32 @@ protoOf(TackyGenVisitor).g1n = function (node) {
     var resultVar = newTemporary_0(this);
     var tmp = node.j1n_1.x1c(this);
     var left = tmp instanceof TackyVal ? tmp : THROW_CCE();
-    var tmp0 = this.s1y_1;
+    var tmp0 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element = new JumpIfZero(left, falseLabel, node.q1j());
     tmp0.e(element);
     var tmp_0 = node.l1n_1.x1c(this);
     var right = tmp_0 instanceof TackyVal ? tmp_0 : THROW_CCE();
-    var tmp0_0 = this.s1y_1;
+    var tmp0_0 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_0 = new JumpIfZero(right, falseLabel, node.q1j());
     tmp0_0.e(element_0);
-    var tmp0_1 = this.s1y_1;
+    var tmp0_1 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_1 = new TackyCopy(new TackyConstant(1), resultVar, node.q1j());
     tmp0_1.e(element_1);
-    var tmp0_2 = this.s1y_1;
+    var tmp0_2 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_2 = new TackyJump(endLabel, node.q1j());
     tmp0_2.e(element_2);
     // Inline function 'kotlin.collections.plusAssign' call
-    this.s1y_1.e(falseLabel);
-    var tmp0_3 = this.s1y_1;
+    this.r1y_1.e(falseLabel);
+    var tmp0_3 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_3 = new TackyCopy(new TackyConstant(0), resultVar, node.q1j());
     tmp0_3.e(element_3);
     // Inline function 'kotlin.collections.plusAssign' call
-    this.s1y_1.e(endLabel);
+    this.r1y_1.e(endLabel);
     return resultVar;
   } else if (equals(tmp0_subject, OR_getInstance())) {
     var trueLabel = newLabel_0(this, 'or_true', node.q1j());
@@ -15173,32 +15252,32 @@ protoOf(TackyGenVisitor).g1n = function (node) {
     var resultVar_0 = newTemporary_0(this);
     var tmp_1 = node.j1n_1.x1c(this);
     var left_0 = tmp_1 instanceof TackyVal ? tmp_1 : THROW_CCE();
-    var tmp0_4 = this.s1y_1;
+    var tmp0_4 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_4 = new JumpIfNotZero(left_0, trueLabel, node.q1j());
     tmp0_4.e(element_4);
     var tmp_2 = node.l1n_1.x1c(this);
     var right_0 = tmp_2 instanceof TackyVal ? tmp_2 : THROW_CCE();
-    var tmp0_5 = this.s1y_1;
+    var tmp0_5 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_5 = new JumpIfNotZero(right_0, trueLabel, node.q1j());
     tmp0_5.e(element_5);
-    var tmp0_6 = this.s1y_1;
+    var tmp0_6 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_6 = new TackyCopy(new TackyConstant(0), resultVar_0, node.q1j());
     tmp0_6.e(element_6);
-    var tmp0_7 = this.s1y_1;
+    var tmp0_7 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_7 = new TackyJump(endLabel_0, node.q1j());
     tmp0_7.e(element_7);
     // Inline function 'kotlin.collections.plusAssign' call
-    this.s1y_1.e(trueLabel);
-    var tmp0_8 = this.s1y_1;
+    this.r1y_1.e(trueLabel);
+    var tmp0_8 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_8 = new TackyCopy(new TackyConstant(1), resultVar_0, node.q1j());
     tmp0_8.e(element_8);
     // Inline function 'kotlin.collections.plusAssign' call
-    this.s1y_1.e(endLabel_0);
+    this.r1y_1.e(endLabel_0);
     return resultVar_0;
   } else {
     var tmp_3 = node.j1n_1.x1c(this);
@@ -15207,7 +15286,7 @@ protoOf(TackyGenVisitor).g1n = function (node) {
     var src2 = tmp_4 instanceof TackyVal ? tmp_4 : THROW_CCE();
     var op = convertBinaryOp(this, node.k1n_1.a1n_1);
     var dst = newTemporary_0(this);
-    var tmp0_9 = this.s1y_1;
+    var tmp0_9 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_9 = new TackyBinary(op, src1, src2, dst, node.q1j());
     tmp0_9.e(element_9);
@@ -15222,29 +15301,29 @@ protoOf(TackyGenVisitor).s1n = function (node) {
   var tmp = node.v1n_1.x1c(this);
   var condition = tmp instanceof TackyVal ? tmp : THROW_CCE();
   if (node.x1n_1 == null) {
-    var tmp0 = this.s1y_1;
+    var tmp0 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element = new JumpIfZero(condition, endLabel, node.q1j());
     tmp0.e(element);
     node.w1n_1.x1c(this);
     // Inline function 'kotlin.collections.plusAssign' call
-    this.s1y_1.e(endLabel);
+    this.r1y_1.e(endLabel);
   } else {
     var elseLabel = newLabel_0(this, 'else_label', node.q1j());
-    var tmp0_0 = this.s1y_1;
+    var tmp0_0 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_0 = new JumpIfZero(condition, elseLabel, node.q1j());
     tmp0_0.e(element_0);
     node.w1n_1.x1c(this);
-    var tmp0_1 = this.s1y_1;
+    var tmp0_1 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element_1 = new TackyJump(endLabel, node.q1j());
     tmp0_1.e(element_1);
     // Inline function 'kotlin.collections.plusAssign' call
-    this.s1y_1.e(elseLabel);
+    this.r1y_1.e(elseLabel);
     node.x1n_1.x1c(this);
     // Inline function 'kotlin.collections.plusAssign' call
-    this.s1y_1.e(endLabel);
+    this.r1y_1.e(endLabel);
   }
   return null;
 };
@@ -15254,34 +15333,34 @@ protoOf(TackyGenVisitor).z1n = function (node) {
   var endLabel = newLabel_0(this, 'cond_end', node.q1j());
   var tmp = node.c1o_1.x1c(this);
   var conditionResult = tmp instanceof TackyVal ? tmp : THROW_CCE();
-  var tmp0 = this.s1y_1;
+  var tmp0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element = new JumpIfZero(conditionResult, elseLabel, node.q1j());
   tmp0.e(element);
   var tmp_0 = node.d1o_1.x1c(this);
   var thenResult = tmp_0 instanceof TackyVal ? tmp_0 : THROW_CCE();
-  var tmp0_0 = this.s1y_1;
+  var tmp0_0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element_0 = new TackyCopy(thenResult, resultVar, node.q1j());
   tmp0_0.e(element_0);
-  var tmp0_1 = this.s1y_1;
+  var tmp0_1 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element_1 = new TackyJump(endLabel, node.q1j());
   tmp0_1.e(element_1);
   // Inline function 'kotlin.collections.plusAssign' call
-  this.s1y_1.e(elseLabel);
+  this.r1y_1.e(elseLabel);
   var tmp_1 = node.e1o_1.x1c(this);
   var elseResult = tmp_1 instanceof TackyVal ? tmp_1 : THROW_CCE();
-  var tmp0_2 = this.s1y_1;
+  var tmp0_2 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element_2 = new TackyCopy(elseResult, resultVar, node.q1j());
   tmp0_2.e(element_2);
   // Inline function 'kotlin.collections.plusAssign' call
-  this.s1y_1.e(endLabel);
+  this.r1y_1.e(endLabel);
   return resultVar;
 };
 protoOf(TackyGenVisitor).g1o = function (node) {
-  var tmp0 = this.s1y_1;
+  var tmp0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element = new TackyJump(new TackyLabel(node.j1o_1, node.q1j()), node.q1j());
   tmp0.e(element);
@@ -15289,7 +15368,7 @@ protoOf(TackyGenVisitor).g1o = function (node) {
 };
 protoOf(TackyGenVisitor).l1o = function (node) {
   var label = node.o1o_1;
-  var tmp0 = this.s1y_1;
+  var tmp0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element = new TackyLabel(node.o1o_1, node.q1j());
   tmp0.e(element);
@@ -15300,7 +15379,7 @@ protoOf(TackyGenVisitor).r1o = function (node) {
   var tmp = node.v1o_1.x1c(this);
   var rvalue = tmp instanceof TackyVal ? tmp : THROW_CCE();
   var dest = new TackyVar(node.u1o_1.s1m_1);
-  var tmp0 = this.s1y_1;
+  var tmp0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element = new TackyCopy(rvalue, dest, node.q1j());
   tmp0.e(element);
@@ -15310,7 +15389,7 @@ protoOf(TackyGenVisitor).x1o = function (node) {
   if (!(node.u1l_1 == null)) {
     var tmp = node.u1l_1.x1c(this);
     var initVal = tmp instanceof TackyVal ? tmp : THROW_CCE();
-    var tmp0 = this.s1y_1;
+    var tmp0 = this.r1y_1;
     // Inline function 'kotlin.collections.plusAssign' call
     var element = new TackyCopy(initVal, new TackyVar(node.t1l_1), node.q1j());
     tmp0.e(element);
@@ -15352,7 +15431,7 @@ protoOf(TackyGenVisitor).m1p = function (node) {
   }
   var args = destination;
   var dest = newTemporary_0(this);
-  var tmp0 = this.s1y_1;
+  var tmp0 = this.r1y_1;
   // Inline function 'kotlin.collections.plusAssign' call
   var element = new TackyFunCall(node.p1p_1, args, dest, node.q1j());
   tmp0.e(element);
