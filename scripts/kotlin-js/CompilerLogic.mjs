@@ -6942,9 +6942,8 @@ protoOf(CompilerExport).exportCompilationResults = function (code) {
     outputs.e(new TackyOutput(VOID, tmp7_tacky, tmp2_tackyPretty, tmp4_precomputedCFGs, tmp5_precomputedAssembly, VOID, tmp3_functionNames, tmp6_errors, sourceLocationInfo));
     var optimizedTacky = Companion_getInstance().y1c(tacky, setOf([OptimizationType_CONSTANT_FOLDING_getInstance(), OptimizationType_DEAD_STORE_ELIMINATION_getInstance(), OptimizationType_COPY_PROPAGATION_getInstance(), OptimizationType_UNREACHABLE_CODE_ELIMINATION_getInstance()]));
     var asm = Companion_getInstance().r1d(optimizedTacky);
-    var rawAsm = Companion_getInstance().r1d(tacky);
     var finalAssemblyString = codeEmitter.l1g(asm instanceof AsmProgram ? asm : THROW_CCE());
-    var rawAssembly = codeEmitter.n1g(rawAsm);
+    var rawAssembly = codeEmitter.n1g(asm);
     // Inline function 'kotlin.emptyArray' call
     var tmp8_errors = [];
     outputs.e(new AssemblyOutput(VOID, finalAssemblyString, rawAssembly, tmp8_errors, sourceLocationInfo));
@@ -8415,7 +8414,7 @@ function foldUnary($this, inst) {
       break;
   }
   var result = tmp_1;
-  return new TackyCopy(new TackyConstant(result), inst.y1t_1);
+  return new TackyCopy(new TackyConstant(result), inst.y1t_1, inst.z1t_1);
 }
 function foldBinary($this, inst) {
   var tmp = inst.c1u_1;
@@ -8490,7 +8489,7 @@ function foldBinary($this, inst) {
       break;
   }
   var result = tmp_3;
-  return new TackyCopy(new TackyConstant(result), inst.e1u_1);
+  return new TackyCopy(new TackyConstant(result), inst.e1u_1, inst.f1u_1);
 }
 function foldJump($this, condition, expectZero, target) {
   var tmp0_elvis_lhs = condition instanceof TackyConstant ? condition : null;
@@ -9108,7 +9107,7 @@ protoOf(CopyPropagation).l1d = function (cfg) {
           // Inline function 'kotlin.collections.set' call
           var key = instr.e1v_1.w1u_1;
           copyMap.c2(key, newSrc);
-          newInstructions.e(new TackyCopy(newSrc, instr.e1v_1));
+          newInstructions.e(new TackyCopy(newSrc, instr.e1v_1, instr.f1v_1));
         }
       } else {
         if (instr instanceof TackyRet) {
@@ -9126,7 +9125,7 @@ protoOf(CopyPropagation).l1d = function (cfg) {
             tmp_4 = instr.b1v_1;
           }
           var newValue = tmp_4;
-          newInstructions.e(new TackyRet(newValue));
+          newInstructions.e(new TackyRet(newValue, instr.c1v_1));
         } else {
           if (instr instanceof TackyUnary) {
             var tmp_7;
@@ -9144,7 +9143,7 @@ protoOf(CopyPropagation).l1d = function (cfg) {
             }
             var newSrc_0 = tmp_7;
             copyMap.d2(instr.y1t_1.w1u_1);
-            newInstructions.e(new TackyUnary(instr.w1t_1, newSrc_0, instr.y1t_1));
+            newInstructions.e(new TackyUnary(instr.w1t_1, newSrc_0, instr.y1t_1, instr.z1t_1));
           } else {
             if (instr instanceof TackyBinary) {
               var tmp_10;
@@ -9176,7 +9175,7 @@ protoOf(CopyPropagation).l1d = function (cfg) {
               }
               var newSrc2 = tmp_13;
               copyMap.d2(instr.e1u_1.w1u_1);
-              newInstructions.e(new TackyBinary(instr.b1u_1, newSrc1, newSrc2, instr.e1u_1));
+              newInstructions.e(new TackyBinary(instr.b1u_1, newSrc1, newSrc2, instr.e1u_1, instr.f1u_1));
             } else {
               if (instr instanceof TackyFunCall) {
                 // Inline function 'kotlin.collections.map' call
@@ -9203,7 +9202,7 @@ protoOf(CopyPropagation).l1d = function (cfg) {
                 }
                 var newArgs = destination_0;
                 copyMap.d2(instr.z1u_1.w1u_1);
-                newInstructions.e(new TackyFunCall(instr.x1u_1, newArgs, instr.z1u_1));
+                newInstructions.e(new TackyFunCall(instr.x1u_1, newArgs, instr.z1u_1, instr.a1v_1));
               } else {
                 if (instr instanceof JumpIfZero) {
                   var tmp_18;
@@ -9220,7 +9219,7 @@ protoOf(CopyPropagation).l1d = function (cfg) {
                     tmp_18 = instr.t1t_1;
                   }
                   var newCondition = tmp_18;
-                  newInstructions.e(new JumpIfZero(newCondition, instr.u1t_1));
+                  newInstructions.e(new JumpIfZero(newCondition, instr.u1t_1, instr.v1t_1));
                 } else {
                   if (instr instanceof JumpIfNotZero) {
                     var tmp_21;
@@ -9237,7 +9236,7 @@ protoOf(CopyPropagation).l1d = function (cfg) {
                       tmp_21 = instr.q1t_1;
                     }
                     var newCondition_0 = tmp_21;
-                    newInstructions.e(new JumpIfNotZero(newCondition_0, instr.r1t_1));
+                    newInstructions.e(new JumpIfNotZero(newCondition_0, instr.r1t_1, instr.s1t_1));
                   } else {
                     newInstructions.e(instr);
                   }

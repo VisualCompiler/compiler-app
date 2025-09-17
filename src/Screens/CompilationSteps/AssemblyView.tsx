@@ -1095,42 +1095,75 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
               {(() => {
                 const asmLines = asmCode.split('\n')
 
+                // Pre-process instructions for faster matching
+                const processedInstructions =
+                  instructions?.body?.map((inst, idx) => ({
+                    ...inst,
+                    index: idx,
+                    normalizedCode:
+                      inst?.code?.replace(/\s+/g, ' ').trim() || '',
+                    originalCode: inst?.code?.trim() || '',
+                  })) || []
+
+                // Create a map for faster lookup by normalized code
+                const instructionMap = new Map<
+                  string,
+                  typeof processedInstructions
+                >()
+                processedInstructions.forEach((inst) => {
+                  if (inst.normalizedCode) {
+                    if (!instructionMap.has(inst.normalizedCode)) {
+                      instructionMap.set(inst.normalizedCode, [])
+                    }
+                    instructionMap.get(inst.normalizedCode)!.push(inst)
+                  }
+                })
+
+                // Track which instructions have been used
+                const usedInstructions = new Set<number>()
+
                 return asmLines.map((line, index) => {
                   const isHeader = index === 0
                   const lineText = line.trim()
-                  console.log('ASM Instructions:', instructions)
                   let matchingInstruction = null
 
                   if (
                     !isHeader &&
-                    instructions?.body &&
                     lineText && // Only process non-empty lines
                     !lineText.startsWith('.') && // Skip directives
                     !lineText.endsWith(':') && // Skip labels
                     !lineText.startsWith('//') && // Skip comments
                     !lineText.startsWith(';') // Skip comments
                   ) {
-                    for (const instruction of instructions.body) {
-                      if (
-                        instruction?.code &&
-                        instruction.code.trim() === lineText
-                      ) {
-                        matchingInstruction = instruction
+                    const normalizedLineText = lineText
+                      .replace(/\s+/g, ' ')
+                      .trim()
+
+                    // Try exact match first
+                    const exactMatches =
+                      instructionMap.get(normalizedLineText) || []
+                    for (const inst of exactMatches) {
+                      if (!usedInstructions.has(inst.index)) {
+                        matchingInstruction = inst
+                        usedInstructions.add(inst.index)
                         break
                       }
                     }
 
-                    // If no exact match, look for partial matches (in case of whitespace differences)
+                    // If no exact match, try partial matching with original code
                     if (!matchingInstruction) {
-                      for (const instruction of instructions.body) {
-                        if (instruction?.code) {
-                          const instructionCode = instruction.code.trim()
-                          // Check if the line contains the instruction or vice versa
+                      for (const inst of processedInstructions) {
+                        if (
+                          !usedInstructions.has(inst.index) &&
+                          inst.originalCode
+                        ) {
+                          // Check if one contains the other (for minor formatting differences)
                           if (
-                            lineText.includes(instructionCode) ||
-                            instructionCode.includes(lineText)
+                            lineText.includes(inst.originalCode) ||
+                            inst.originalCode.includes(lineText)
                           ) {
-                            matchingInstruction = instruction
+                            matchingInstruction = inst
+                            usedInstructions.add(inst.index)
                             break
                           }
                         }
