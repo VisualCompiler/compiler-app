@@ -41,34 +41,70 @@ export const PlaygroundContext = createContext<
   PlaygroundContextType | undefined
 >(undefined)
 
-const defaultCodeFibonacci = `int fibonacci(int n) {
-  if(n == 1) {return 1;}
-  if(n == 2) {return 1;}
+const defaultCodeFibonacci = `int fib(int n) {
+    if (n == 0) {
+        return 0;
+    }
+    if (n == 1) {
+        return 1;
+    }
 
-  int t1 = 1; int t2 = 1;
-  int next = t1 + t2;
-  for (int i = 3; i < n; i = i+1) {
-    t1 = t2;
-    t2 = next;
-    next = t1 + t2;
-  }
+    int a = 0;
+    int b = 1;
+    int i = 2;
 
-  return next;
+    while (i <= n) {
+        int next = a + b;
+        a = b;
+        b = next;
+        i = i + 1;
+    }
+
+    return b;
 }
 
 int main(void) {
-  return fibonacci(5);
+    int x = 10;
+    int result = fib(x); 
+    return result;
 }`
 
-const defaultCodeVariablesAndIf = `int main(void) {
-  int a = 10;
-  int b = 0;
-  if (a > 5)
-    b = a - 5;
-  else
-    b = 5 - a;
-  return b;
-}`
+const defaultCodeVariablesAndIf = `
+int popcount(int n) {
+    int count = 0;
+    while (n > 0) {
+        int rem = n - (n / 2) * 2;   
+        if (rem) {
+            count = count + 1;
+        }
+        n = n / 2;                   
+    }
+    return count;
+}
+
+int parity(int n) {
+    int p = 0;
+    while (n > 0) {
+        int rem = n - (n / 2) * 2;  
+        if (rem) {
+            if (p) {
+                p = 0;
+            } else {
+                p = 1;
+            }
+        }
+        n = n / 2;
+    }
+    return p;
+}
+
+int main() {
+    int x = 29;         
+    int c = popcount(x); 
+    int p = parity(c);  
+    return c + p;        
+}
+`
 // preview some initial data (folder, file)
 const initialData = [
   {
@@ -82,7 +118,7 @@ const initialData = [
       },
       {
         id: v4(),
-        title: 'VariablesAndIf',
+        title: 'CountBits',
         code: defaultCodeVariablesAndIf,
       },
     ],
