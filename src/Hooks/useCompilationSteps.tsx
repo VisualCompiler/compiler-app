@@ -392,16 +392,7 @@ export const useCompilationSteps = () => {
 
   // Parse precomputed assembly data and get optimized assembly based on current selections
   const getOptimizedAssembly = useCallback(() => {
-    console.log('getOptimizedAssembly called with:', {
-      selectedFunction,
-      enabledOptimizations: Array.from(enabledOptimizations),
-      hasPrecomputedAssembly: !!compilationResult.precomputedAssembly,
-    })
-
-    if (!selectedFunction || !compilationResult.precomputedAssembly) {
-      console.log(
-        'Returning default assembly - no selectedFunction or precomputedAssembly'
-      )
+    if (!compilationResult.precomputedAssembly) {
       return compilationResult.asmCode
     }
 
@@ -409,27 +400,20 @@ export const useCompilationSteps = () => {
       const precomputedData = JSON.parse(compilationResult.precomputedAssembly)
       const sortedOpts = Array.from(enabledOptimizations).sort()
 
-      console.log('Looking for assembly with:', {
-        selectedFunction,
-        enabledOptimizations: sortedOpts,
-        precomputedData: precomputedData,
+
+      // Find the assembly entry that matches the optimization set
+      const assemblyEntry = precomputedData.find((entry: any) => {
+        const matches = JSON.stringify(entry.optimizations) === JSON.stringify(sortedOpts)
+        return matches
       })
 
-      // Find the assembly entry that matches the selected function and optimizations
-      const assemblyEntry = precomputedData.find((entry: any) =>
-        JSON.stringify(entry.optimizations) === JSON.stringify(sortedOpts)
-      )
-
-      console.log('Found assembly entry:', assemblyEntry)
       const result = assemblyEntry?.asmCode || compilationResult.asmCode
-      console.log('Returning assembly with length:', result.length)
       return result
     } catch (error) {
       console.error('Error parsing precomputed assembly:', error)
       return compilationResult.asmCode
     }
   }, [
-    selectedFunction,
     enabledOptimizations,
     compilationResult.precomputedAssembly,
     compilationResult.asmCode,
@@ -437,20 +421,9 @@ export const useCompilationSteps = () => {
 
   // Current assembly based on optimization selections
   const currentAssembly = getOptimizedAssembly()
-  console.log('current assembly:', currentAssembly)
-  console.log(
-    'Computed optimized assembly :',
-    compilationResult.precomputedAssembly
-  )
 
   // Debug: Log when currentAssembly changes
   React.useEffect(() => {
-    console.log('currentAssembly changed:', {
-      length: currentAssembly.length,
-      firstLine: currentAssembly.split('\n')[0],
-      selectedFunction,
-      enabledOptimizations: Array.from(enabledOptimizations),
-    })
   }, [currentAssembly, selectedFunction, enabledOptimizations])
 
   // Create stages array that updates when currentAssembly changes
@@ -503,7 +476,7 @@ export const useCompilationSteps = () => {
       },
       {
         title: 'Program Execution',
-        description: 'Generate x86-64 assembly code and trace execution',
+        description: 'Generate x86-64 assembly code and trace execution | Active optimizations: ' + enabledOptimizations.size,
         content: (
           <AssemblyView
             asmCode={currentAssembly}
