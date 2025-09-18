@@ -209,6 +209,12 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
         )?.offset
       : null
     const startAddress = mainAddress || EMULATOR_CONFIG.CODE_SEGMENT_START
+    
+    // Reset all registers to ensure clean state
+    if (emulator) {
+      resetAllRegisters()
+    }
+    
     updateExecutionState({
       currentInstruction: startAddress,
       stepCount: 0,
@@ -367,8 +373,12 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     try {
       const codeStart = EMULATOR_CONFIG.CODE_SEGMENT_START
 
+      // Clear memory before writing new code
+      emulator.writeMemory(codeStart, new Uint8Array(machineCode.length))
       emulator.writeMemory(codeStart, machineCode)
 
+      // Reset all registers to ensure clean state
+      resetAllRegisters()
       resetStackPointer()
 
       // Try to find main function label if hasMain is true
@@ -617,6 +627,14 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
       window.uc.X86_REG_RSP,
       EMULATOR_CONFIG.STACK_SEGMENT_START + EMULATOR_CONFIG.STACK_SIZE - 0x8
     )
+  }
+
+  function resetAllRegisters() {
+    if (!emulator) return
+    
+    X86_REGISTERS.forEach(reg => {
+      emulator.setRegister(reg.id, 0)
+    })
   }
 
   const handleEmulationError = () => {
@@ -925,7 +943,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                           </span>
                         )}
                         <span className="text-muted-foreground text-xs">
-                          L{index}
+                          L{index+1}
                         </span>
                       </div>
                       <div className="mb-1">

@@ -41,13 +41,13 @@ export const PlaygroundContext = createContext<
   PlaygroundContextType | undefined
 >(undefined)
 
-const defaultCodeFibonacci = `int fib_next(int n) {
+const defaultCodeFibonacci = `int fibonacci(int n) {
   if(n == 1) {return 1;}
   if(n == 2) {return 1;}
 
   int t1 = 1; int t2 = 1;
   int next = t1 + t2;
-  for (int i = 3; i <= n; i = i+1) {
+  for (int i = 3; i < n; i = i+1) {
     t1 = t2;
     t2 = next;
     next = t1 + t2;
@@ -57,7 +57,7 @@ const defaultCodeFibonacci = `int fib_next(int n) {
 }
 
 int main(void) {
-  return fib_next(5);
+  return fibonacci(5);
 }`
 
 const defaultCodeVariablesAndIf = `int main(void) {
