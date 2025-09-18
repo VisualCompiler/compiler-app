@@ -52,6 +52,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@types/dagre": "^0.7.53",
     "@types/node": "^24.0.15",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
@@ -64,6 +65,7 @@
     "esbuild": "^0.25.8",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "gh-pages": "^6.3.0",
     "globals": "^16.3.0",
     "sass-embedded": "^1.69.5",
     "tailwindcss": "^4.1.11",
@@ -77,7 +79,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "build": "tsc -b && vite build",
-    "copy-kotlin": "node scripts/copy-kotlin.js"
+    "copy-kotlin": "node scripts/copy-kotlin.js",
+    "deploy": "npm run build && gh-pages -d dist"
   },
   "eslintConfig": {
     "extends": [

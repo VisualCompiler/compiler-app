@@ -127,7 +127,7 @@ export const PlaygroundScreen = () => {
           className="text-2xl font-semibold"
           aria-label="Back to Home Screen"
         >
-          <img src="/favicon.svg" alt="logo" className="w-8 mr-2" />
+          <img src="/compiler-app/favicon.svg" alt="logo" className="w-8 mr-2" />
           Visual Compiler
         </Button>
         <span className="right-12 absolute">

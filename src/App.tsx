@@ -18,7 +18,7 @@ function App() {
     >
       <ModalProvider>
         <PlaygroundProvider>
-          <BrowserRouter>
+          <BrowserRouter basename="/compiler-app">
             <Routes>
               <Route path="/" element={<PlaygroundScreen />} />
               <Route

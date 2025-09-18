@@ -8,7 +8,7 @@ import {
   CompilationResult,
   type CompilationError,
   type CompilationOutput,
-} from '../../scripts/kotlin-js/CompilerLogic'
+} from '../../public/scripts/kotlin-js/CompilerLogic'
 import { AssemblyView } from '@/Screens/CompilationSteps/AssemblyView'
 
 declare global {

@@ -11,4 +11,8 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  base: "/compiler-app/",
+  build: {
+    outDir: "dist",
+  },
 })
