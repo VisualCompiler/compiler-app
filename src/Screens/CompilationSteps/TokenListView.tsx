@@ -74,7 +74,7 @@ const TokenListContent: React.FC<TokenListContentProps> = ({ tokenList }) => {
         .sort(([a], [b]) => Number(a) - Number(b)) // Sort by line number
         .map(([line, tokens]) => (
         <div key={line} className='flex flex-wrap'>
-          <span className='text-muted-foreground pr-2 w-6 flex-shrink-0'>
+          <span className='text-muted-foreground pr-2 w-8 flex-shrink-0'>
             {line}
           </span>
           <div className='flex flex-wrap flex-1'>

@@ -79,7 +79,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "build": "tsc -b && vite build",
-    "copy-kotlin": "node scripts/copy-kotlin.js",
+    "copy-kotlin": "node public/scripts/copy-kotlin.js",
     "deploy": "npm run build && gh-pages -d dist"
   },
   "eslintConfig": {
