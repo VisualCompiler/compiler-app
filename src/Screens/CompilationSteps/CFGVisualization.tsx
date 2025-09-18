@@ -6,6 +6,7 @@ import ReactFlow, {
   useEdgesState,
   Handle,
   Position,
+  MarkerType,
   type Node,
   type Edge,
 } from 'react-flow-renderer'
@@ -86,6 +87,16 @@ const applyLayout = (cfg: CFGData): { nodes: Node[]; edges: Edge[] } => {
     sourceHandle: 'source',
     targetHandle: 'target',
     animated: false,
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 15,
+      height: 20,
+      color: '#64748b',
+    },
+    style: {
+      strokeWidth: 2,
+      stroke: '#64748b',
+    },
   }))
 
   return { nodes, edges }
