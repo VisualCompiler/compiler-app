@@ -98,7 +98,7 @@ int parity(int n) {
     return p;
 }
 
-int main() {
+int main(void) {
     int x = 29;         
     int c = popcount(x); 
     int p = parity(c);  
