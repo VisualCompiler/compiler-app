@@ -1,3 +1,4 @@
+
 import { TackyView } from '@/Screens/CompilationSteps/TackyView'
 import { ControlFlowGraphView } from '@/Screens/CompilationSteps/ControlFlowGraphView'
 import { ASTViewer } from '@/Screens/CompilationSteps/ASTView'
@@ -90,7 +91,7 @@ const extractAstNodes = (ast: any): AstNodeHashTable => {
       if (key === 'id' || key === 'location') continue
 
       if (Array.isArray(value)) {
-        value.forEach((item, index) => {
+        value.forEach((item, _) => {
           traverse(item, depth + 1)
         })
       } else if (value && typeof value === 'object') {
@@ -226,7 +227,7 @@ export const useCompilationSteps = () => {
       .filter((line: string) => line.trim() !== '')
       .join('\n')
 
-    tackyProgram?.functions?.forEach((func: any, index: number) => {})
+    //tackyProgram?.functions?.forEach((func: any, index: number) => {})
 
     //const tacky = (tackyOutput as any)?.tacky || ''
 

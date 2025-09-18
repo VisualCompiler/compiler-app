@@ -110,12 +110,6 @@ export const convertAssemblyToBinary = async (
         }
         validInstructionLines.push(instructionLine)
       } catch (error) {
-        // Skip instructions that cause exceptions
-        ;(window as any).console.assemblingWarning(
-          `Skipping problematic instruction in line ${lineNumber}: "${instructionLine}" - ${error}`,
-          { instruction: instructionLine, lineNumber, error },
-          'problematic-instruction-skipped'
-        )
         continue
       }
     }

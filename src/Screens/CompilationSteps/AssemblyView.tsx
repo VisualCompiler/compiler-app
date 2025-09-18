@@ -1,30 +1,7 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react'
-import { EditorState } from '@codemirror/state'
-import {
-  foldGutter,
-  syntaxHighlighting,
-  indentOnInput,
-  bracketMatching,
-  HighlightStyle,
-} from '@codemirror/language'
-import { tags as t } from '@lezer/highlight'
 import {
   EditorView,
-  keymap,
-  highlightSpecialChars,
-  drawSelection,
-  highlightActiveLine,
-  lineNumbers,
 } from '@codemirror/view'
-import {
-  defaultKeymap,
-  history,
-  historyKeymap,
-  indentWithTab,
-} from '@codemirror/commands'
-import { StreamLanguage } from '@codemirror/language'
-import { gas } from '@codemirror/legacy-modes/mode/gas'
-import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { Play, StepForward, RotateCcw, Pause } from 'lucide-react'
 import { convertAssemblyToBinary } from '@/lib/assemblyUtils'
@@ -43,47 +20,6 @@ import type {
   SourceLocation,
   AstNodeHashTable,
 } from '@/Hooks/useCompilationSteps'
-// Custom highlight style that uses CSS classes
-const customHighlightStyle = HighlightStyle.define([
-  { tag: t.keyword, class: 'cm-keyword' },
-  { tag: t.name, class: 'cm-identifier' },
-  { tag: t.variableName, class: 'cm-variable' },
-  { tag: t.function(t.variableName), class: 'cm-function' },
-  { tag: t.function(t.propertyName), class: 'cm-function' },
-  { tag: t.propertyName, class: 'cm-property' },
-  { tag: t.typeName, class: 'cm-type' },
-  { tag: t.className, class: 'cm-type' },
-  { tag: t.number, class: 'cm-number' },
-  { tag: t.string, class: 'cm-string' },
-  { tag: t.regexp, class: 'cm-string' },
-  { tag: t.escape, class: 'cm-string' },
-  { tag: t.special(t.string), class: 'cm-string' },
-  { tag: t.comment, class: 'cm-comment' },
-  { tag: t.lineComment, class: 'cm-comment' },
-  { tag: t.blockComment, class: 'cm-comment' },
-  { tag: t.docComment, class: 'cm-comment' },
-  { tag: t.operator, class: 'cm-operator' },
-  { tag: t.operatorKeyword, class: 'cm-operator' },
-  { tag: t.punctuation, class: 'cm-punctuation' },
-  { tag: t.separator, class: 'cm-punctuation' },
-  { tag: t.bracket, class: 'cm-punctuation' },
-  { tag: t.squareBracket, class: 'cm-punctuation' },
-  { tag: t.paren, class: 'cm-punctuation' },
-  { tag: t.brace, class: 'cm-punctuation' },
-  { tag: t.definition(t.variableName), class: 'cm-definition' },
-  { tag: t.definition(t.propertyName), class: 'cm-definition' },
-  { tag: t.constant(t.variableName), class: 'cm-constant' },
-  { tag: t.standard(t.variableName), class: 'cm-builtin' },
-  { tag: t.standard(t.tagName), class: 'cm-builtin' },
-  { tag: t.local(t.variableName), class: 'cm-variable' },
-  { tag: t.meta, class: 'cm-keyword' },
-  { tag: t.link, class: 'cm-string' },
-  { tag: t.heading, class: 'cm-keyword' },
-  { tag: t.emphasis, class: 'cm-identifier' },
-  { tag: t.strong, class: 'cm-keyword' },
-  { tag: t.strikethrough, class: 'cm-comment' },
-])
-
 interface AssemblyViewProps {
   asmCode: string
   instructions: AssemblyInstruction
@@ -116,19 +52,9 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   setActiveLocation,
   hasMain,
 }) => {
-  // Debug: Log when asmCode changes
-  React.useEffect(() => {
-    console.log('AssemblyView asmCode changed:', {
-      length: asmCode.length,
-      firstLine: asmCode.split('\n')[0],
-      hasMain,
-    })
-  }, [asmCode, hasMain])
-  const editorRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
   const machineCodeContainerRef = useRef<HTMLDivElement>(null)
   const lineRefs = useRef<Map<number, HTMLDivElement>>(new Map())
-  const { resolvedTheme } = useTheme()
 
   const [binaryLines, setBinaryLines] = useState<BinaryLine[]>([])
   const [isConverting, setIsConverting] = useState(false)
@@ -293,7 +219,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   }
 
   const handleAssemblyConversion = async (assemblyCode: string) => {
-    console.log('handleAssemblyConversion', assemblyCode, hasMain)
     /* assemblyCode = `
     push rbp
     mov rbp, rsp
@@ -321,59 +246,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   const handleMouseLeave = () => {
     setActiveLocation(null)
   }
-
-  useEffect(() => {
-    if (!editorRef.current || showMachineCode) return
-
-    const state = EditorState.create({
-      doc: asmCode,
-      extensions: [
-        lineNumbers(),
-        highlightSpecialChars(),
-        history(),
-        drawSelection(),
-        indentOnInput(),
-        bracketMatching(),
-        foldGutter(),
-        highlightActiveLine(),
-        syntaxHighlighting(customHighlightStyle),
-        keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
-        StreamLanguage.define(gas),
-        EditorState.readOnly.of(true),
-        EditorView.theme({
-          '&': {
-            height: '100%',
-            backgroundColor: 'transparent !important',
-          },
-          '.cm-scroller': {
-            fontFamily: 'Fira Code, monospace',
-            fontSize: '14px',
-          },
-          '.cm-gutters': {
-            backgroundColor: 'var(--color-secondary)',
-            borderRight: '1px solid var(--color-border)',
-          },
-          '.cm-lineNumbers': {
-            backgroundColor: 'var(--color-secondary)',
-          },
-          '.cm-content': {
-            backgroundColor: 'transparent',
-          },
-          '.cm-line': {
-            backgroundColor: 'transparent',
-          },
-        }),
-      ],
-    })
-
-    const view = new EditorView({ state, parent: editorRef.current })
-    viewRef.current = view
-
-    return () => {
-      view.destroy()
-      viewRef.current = null
-    }
-  }, [asmCode, resolvedTheme, showMachineCode])
 
   useEffect(() => {
     if (asmCode && asmCode.trim()) {
@@ -538,7 +410,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
 
     // Check if there's a main function to execute
     if (!hasMain) {
-      console.log('Cannot execute - no main function found')
       return
     }
 
@@ -573,9 +444,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
           setHasRun(false)
           // Clear console when execution finishes normally
           customConsole.clear()
-          if (currentStepCount >= maxSteps) {
-            console.log('Execution stopped: Maximum step limit reached')
-          }
           return
         }
         handleStep().catch(() => {
@@ -612,7 +480,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
 
     // Check if there's a main function to execute
     if (!hasMain) {
-      console.log('Cannot execute step - no main function found')
       return
     }
 
@@ -715,9 +582,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
           }
           customConsole.clear()
           setHasRun(false)
-          if (newStepCount >= maxSteps) {
-            console.log('Execution stopped: Maximum step limit reached')
-          }
         }
       }
     } catch (error) {
@@ -1212,7 +1076,16 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                           : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
                     >
-                      {line}
+                      <div className="flex items-start gap-3">
+                        {/* Line number */}
+                        <div className="flex-shrink-0 w-4 text-right text-muted-foreground text-xs select-none">
+                          {index + 1}
+                        </div>
+                        {/* Assembly code */}
+                        <div className="flex-1 min-w-0">
+                          {line}
+                        </div>
+                      </div>
                     </div>
                   )
                 })
