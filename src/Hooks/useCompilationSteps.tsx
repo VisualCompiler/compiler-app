@@ -417,9 +417,10 @@ export const useCompilationSteps = () => {
 
       // Find the assembly entry that matches the selected function and optimizations
       const assemblyEntry = precomputedData.find((entry: any) => {
-        const matches =
+        const matches = entry.functionName === selectedFunction && 
           JSON.stringify(entry.optimizations) === JSON.stringify(sortedOpts)
         console.log('Checking entry:', {
+          functionName: entry.functionName,
           optimizations: entry.optimizations,
           matches,
         })
@@ -427,7 +428,7 @@ export const useCompilationSteps = () => {
       })
 
       console.log('Found assembly entry:', assemblyEntry)
-      const result = assemblyEntry?.asmCode.code || compilationResult.asmCode
+      const result = assemblyEntry?.asmCode || compilationResult.asmCode
       console.log('Returning assembly with length:', result.length)
       return result
     } catch (error) {

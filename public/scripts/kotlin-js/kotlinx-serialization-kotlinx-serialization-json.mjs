@@ -501,8 +501,8 @@ protoOf(JsonArray).q = function (element) {
     return false;
   return this.y12(element instanceof JsonElement ? element : THROW_CCE());
 };
-protoOf(JsonArray).o = function (index) {
-  return this.x12_1.o(index);
+protoOf(JsonArray).n = function (index) {
+  return this.x12_1.n(index);
 };
 protoOf(JsonArray).z12 = function (element) {
   return this.x12_1.s(element);
@@ -3611,7 +3611,7 @@ protoOf(JsonTreeListDecoder).yx = function (descriptor, index) {
   return index.toString();
 };
 protoOf(JsonTreeListDecoder).u18 = function (tag) {
-  return this.x19_1.o(toInt(tag));
+  return this.x19_1.n(toInt(tag));
 };
 protoOf(JsonTreeListDecoder).pk = function (descriptor) {
   while (this.z19_1 < (this.y19_1 - 1 | 0)) {
@@ -3651,7 +3651,7 @@ protoOf(JsonTreeMapDecoder).s1 = function () {
 };
 protoOf(JsonTreeMapDecoder).yx = function (descriptor, index) {
   var i = index / 2 | 0;
-  return this.r1a_1.o(i);
+  return this.r1a_1.n(i);
 };
 protoOf(JsonTreeMapDecoder).pk = function (descriptor) {
   while (this.t1a_1 < (this.s1a_1 - 1 | 0)) {
