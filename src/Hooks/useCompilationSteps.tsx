@@ -476,7 +476,14 @@ export const useCompilationSteps = () => {
       },
       {
         title: 'Program Execution',
-        description: 'Generate x86-64 assembly code and trace execution | Active optimizations: ' + enabledOptimizations.size,
+        description: (
+          <>
+            Generate x86-64 assembly code and trace execution |{' '}
+            <span className='text-amber-600'>
+              Active optimizations: {enabledOptimizations.size}
+            </span>
+          </>
+        ),
         content: (
           <AssemblyView
             asmCode={currentAssembly}
