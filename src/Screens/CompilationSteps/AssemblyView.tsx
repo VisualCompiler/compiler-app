@@ -3,7 +3,13 @@ import {
   EditorView,
 } from '@codemirror/view'
 import { Button } from '@/components/ui/button'
-import { Play, StepForward, RotateCcw, Pause } from 'lucide-react'
+import { Play, StepForward, RotateCcw, Pause, ChevronDown } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { convertAssemblyToBinary } from '@/lib/assemblyUtils'
 import type { BinaryLine } from '@/lib/assemblyUtils'
 import { Toggle } from '@/components/ui/toggle'
@@ -1196,16 +1202,28 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                 />
                 <div className="flex items-center space-x-1">
                   <span className="text-xs text-muted-foreground">Order:</span>
-                  <select
-                    value={stackSortOrder}
-                    onChange={(e) =>
-                      setStackSortOrder(e.target.value as 'asc' | 'desc')
-                    }
-                    className="px-2 py-1 text-xs font-mono bg-muted/50 border border-border rounded focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    <option value="desc">Desc</option>
-                    <option value="asc">Asc</option>
-                  </select>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-xs font-mono p-2! h-7! rounded-xs!">
+                        {stackSortOrder === 'asc' ? 'Asc' : 'Desc'}
+                        <ChevronDown className="h-3 w-3 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem
+                        onClick={() => setStackSortOrder('desc')}
+                        className={stackSortOrder === 'desc' ? 'bg-accent' : ''}
+                      >
+                        Desc
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setStackSortOrder('asc')}
+                        className={stackSortOrder === 'asc' ? 'bg-accent' : ''}
+                      >
+                        Asc
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             </div>
