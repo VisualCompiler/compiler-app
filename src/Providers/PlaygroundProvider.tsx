@@ -41,7 +41,7 @@ export const PlaygroundContext = createContext<
   PlaygroundContextType | undefined
 >(undefined)
 
-const defaultCodeFibonacci = `int fibonacci(int n) {
+const defaultCodeFibonacciRec = `int fibonacci(int n) {
   if(n < 1) return 0;
   if(n < 3) return 1;
 
@@ -49,8 +49,35 @@ const defaultCodeFibonacci = `int fibonacci(int n) {
 }
 
 int main(void) {
+  int x = 10;
+  return fibonacci(x);
+}`
+
+const defaultCodeFibonacciIter = `int fibonacci(int n) {
+    if (n == 0) {
+        return 0;
+    }
+    if (n == 1) {
+        return 1;
+    }
+
+    int a = 0;
+    int b = 1;
+    int i = 2;
+
+    while (i <= n) {
+        int next = a + b;
+        a = b;
+        b = next;
+        i = i + 1;
+    }
+
+    return b;
+}
+
+  int main(void) {
     int x = 10;
-    int result = fib(x); 
+    int result = fibonacci(x);
     return result;
 }`
 
@@ -100,6 +127,42 @@ const defaultCodePower = `int power(int base, int exp) {
   return result;
 }`
 
+const defaultCodePopCount = `
+int popcount(int n) {
+    int count = 0;
+    while (n > 0) {
+        int rem = n - (n / 2) * 2;   
+        if (rem) {
+            count = count + 1;
+        }
+        n = n / 2;                   
+    }
+    return count;
+}
+
+int parity(int n) {
+    int p = 0;
+    while (n > 0) {
+        int rem = n - (n / 2) * 2;  
+        if (rem) {
+            if (p) {
+                p = 0;
+            } else {
+                p = 1;
+            }
+        }
+        n = n / 2;
+    }
+    return p;
+}
+
+int main(void) {
+    int x = 29;         
+    int c = popcount(x); 
+    int p = parity(c);  
+    return c + p;        
+}`
+
 // preview some initial data (folder, file)
 const initialData = [
   {
@@ -108,8 +171,13 @@ const initialData = [
     files: [
       {
         id: v4(),
-        title: 'Fibonacci',
-        code: defaultCodeFibonacci,
+        title: 'Fibonacci (Recursive)',
+        code: defaultCodeFibonacciRec,
+      },
+      {
+        id: v4(),
+        title: 'Fibonacci (Iterative)',
+        code: defaultCodeFibonacciIter,
       },
       {
         id: v4(),
@@ -135,6 +203,11 @@ const initialData = [
         id: v4(),
         title: 'If Else',
         code: defaultCodeIf ,
+      },
+      {
+        id: v4(),
+        title: 'Pop Count',
+        code: defaultCodePopCount,
       },
     ],
   },
