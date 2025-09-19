@@ -25,6 +25,7 @@ type CFGEdgeData = {
 type CFGData = {
   nodes: CFGNodeData[]
   edges: CFGEdgeData[]
+  instructionCount?: number
 }
 
 // custom node component
@@ -147,6 +148,11 @@ export const CFGVisualization: React.FC<{ cfgData?: CFGData }> = ({ cfgData }) =
       </ReactFlow>
       <div className="absolute top-4 right-4 text-xs px-3 py-1 rounded bg-amber-600/60 dark:bg-amber-900/50 text-slate-800 dark:text-slate-200 shadow">
         {flowNodes.length} nodes • {flowEdges.length} edges
+        {cfgData?.instructionCount !== undefined && (
+          <div className="mt-1">
+            {cfgData.instructionCount} instructions
+          </div>
+        )}
       </div>
     </div>
   )
