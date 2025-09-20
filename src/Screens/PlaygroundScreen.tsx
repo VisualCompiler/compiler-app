@@ -18,6 +18,7 @@ import { usePlayground } from '@/Hooks/usePlayground'
 import { Modal } from '../Providers/Modals/Modal'
 import { modalConstants, ModalContext } from '../Providers/ModalProvider'
 import { useCompilationSteps } from '@/Hooks/useCompilationSteps'
+import { InfoPopUp } from '@/components/InfoPopUp'
 
 const defaultCodeFibonacci = `int fib_next(int n) {
   if(n == 1) {return 1;}
@@ -127,20 +128,21 @@ export const PlaygroundScreen = () => {
           className="text-2xl font-semibold"
           aria-label="Back to Home Screen"
         >
-          <img src="/favicon.svg" alt="logo" className="w-8 mr-2" />
+          <img src="/compiler-app/favicon.svg" alt="logo" className="w-8 mr-2" />
           Visual Compiler
         </Button>
-        <span className="right-12 absolute">
+        <div className="right-4 absolute flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Save File"
+            onClick={handleSave}
+          >
+            <Save className="w-2" />
+          </Button>
           <ModeToggle />
-        </span>
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Save File"
-          onClick={handleSave}
-        >
-          <Save className="w-2" />
-        </Button>
+          <InfoPopUp />
+        </div>
       </Header>
 
       <ResizablePanelGroup direction="vertical" className="p-4">

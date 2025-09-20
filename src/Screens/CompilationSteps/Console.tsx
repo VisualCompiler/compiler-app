@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Terminal, XCircle, CheckCircle, Trash2 } from "lucide-react";
-import type { CompilationError } from "../../../scripts/kotlin-js/CompilerLogic";
+import type { CompilationError } from "../../../public/scripts/kotlin-js/CompilerLogic";
 import { customConsole, type ConsoleMessage } from "@/lib/consoleExtension";
 import { Button } from "@/components/ui/button";
 import "@/lib/consoleExtension"; // Initialize custom console

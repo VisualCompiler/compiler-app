@@ -28,7 +28,7 @@ import {
 } from '@codemirror/commands'
 import { cpp } from '@codemirror/lang-cpp'
 import { useTheme } from 'next-themes'
-import type { CompilationError } from 'scripts/kotlin-js/CompilerLogic'
+import type { CompilationError } from 'public/scripts/kotlin-js/CompilerLogic'
 import type { SourceLocation } from '@/Hooks/useCompilationSteps'
 
 // Custom highlight style that uses CSS classes

@@ -20,6 +20,7 @@ export const modalConstants = {
   CREATE_PLAYGROUND: 'CREATE_PLAYGROUND',
   CREATE_CARD: 'CREATE_PLAYGROUND_CARD',
   SAVE_CARD: 'SAVE_CARD',
+  INFO_CARD: 'INFO_CARD',
 }
 
 export const ModalProvider: React.FC<ModalProviderProps> = ({ children }) => {

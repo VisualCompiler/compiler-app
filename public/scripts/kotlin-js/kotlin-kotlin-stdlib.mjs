@@ -569,46 +569,6 @@ function toBooleanArray(_this__u8e3s4) {
   }
   return result;
 }
-function plus(_this__u8e3s4, elements) {
-  if (isInterface(elements, Collection)) {
-    var result = ArrayList_init_$Create$_0(_this__u8e3s4.m() + elements.m() | 0);
-    result.n(_this__u8e3s4);
-    result.n(elements);
-    return result;
-  } else {
-    var result_0 = ArrayList_init_$Create$_1(_this__u8e3s4);
-    addAll(result_0, elements);
-    return result_0;
-  }
-}
-function lastOrNull(_this__u8e3s4) {
-  return _this__u8e3s4.p() ? null : _this__u8e3s4.o(_this__u8e3s4.m() - 1 | 0);
-}
-function toSet_0(_this__u8e3s4) {
-  if (isInterface(_this__u8e3s4, Collection)) {
-    var tmp;
-    switch (_this__u8e3s4.m()) {
-      case 0:
-        tmp = emptySet();
-        break;
-      case 1:
-        var tmp_0;
-        if (isInterface(_this__u8e3s4, KtList)) {
-          tmp_0 = _this__u8e3s4.o(0);
-        } else {
-          tmp_0 = _this__u8e3s4.j().l();
-        }
-
-        tmp = setOf(tmp_0);
-        break;
-      default:
-        tmp = toCollection_0(_this__u8e3s4, LinkedHashSet_init_$Create$_1(mapCapacity(_this__u8e3s4.m())));
-        break;
-    }
-    return tmp;
-  }
-  return optimizeReadOnlySet(toCollection_0(_this__u8e3s4, LinkedHashSet_init_$Create$()));
-}
 function sorted_0(_this__u8e3s4) {
   if (isInterface(_this__u8e3s4, Collection)) {
     if (_this__u8e3s4.m() <= 1)
@@ -624,6 +584,24 @@ function sorted_0(_this__u8e3s4) {
   var this_1 = toMutableList_1(_this__u8e3s4);
   sort_0(this_1);
   return this_1;
+}
+function plus(_this__u8e3s4, elements) {
+  if (isInterface(elements, Collection)) {
+    var result = ArrayList_init_$Create$_0(_this__u8e3s4.m() + elements.m() | 0);
+    result.n(_this__u8e3s4);
+    result.n(elements);
+    return result;
+  } else {
+    var result_0 = ArrayList_init_$Create$_1(_this__u8e3s4);
+    addAll(result_0, elements);
+    return result_0;
+  }
+}
+function lastOrNull(_this__u8e3s4) {
+  return _this__u8e3s4.p() ? null : _this__u8e3s4.o(_this__u8e3s4.m() - 1 | 0);
+}
+function firstOrNull(_this__u8e3s4) {
+  return _this__u8e3s4.p() ? null : _this__u8e3s4.o(0);
 }
 function toList_0(_this__u8e3s4) {
   if (isInterface(_this__u8e3s4, Collection)) {
@@ -650,14 +628,36 @@ function toList_0(_this__u8e3s4) {
   }
   return optimizeReadOnlyList(toMutableList_1(_this__u8e3s4));
 }
-function firstOrNull(_this__u8e3s4) {
-  return _this__u8e3s4.p() ? null : _this__u8e3s4.o(0);
-}
 function withIndex_0(_this__u8e3s4) {
   return new IndexingIterable(withIndex$lambda_0(_this__u8e3s4));
 }
 function getOrNull(_this__u8e3s4, index) {
   return (0 <= index ? index < _this__u8e3s4.m() : false) ? _this__u8e3s4.o(index) : null;
+}
+function toSet_0(_this__u8e3s4) {
+  if (isInterface(_this__u8e3s4, Collection)) {
+    var tmp;
+    switch (_this__u8e3s4.m()) {
+      case 0:
+        tmp = emptySet();
+        break;
+      case 1:
+        var tmp_0;
+        if (isInterface(_this__u8e3s4, KtList)) {
+          tmp_0 = _this__u8e3s4.o(0);
+        } else {
+          tmp_0 = _this__u8e3s4.j().l();
+        }
+
+        tmp = setOf(tmp_0);
+        break;
+      default:
+        tmp = toCollection_0(_this__u8e3s4, LinkedHashSet_init_$Create$_1(mapCapacity(_this__u8e3s4.m())));
+        break;
+    }
+    return tmp;
+  }
+  return optimizeReadOnlySet(toCollection_0(_this__u8e3s4, LinkedHashSet_init_$Create$()));
 }
 function toMutableList_0(_this__u8e3s4) {
   return ArrayList_init_$Create$_1(_this__u8e3s4);
@@ -3082,11 +3082,11 @@ function mapOf(pair) {
 function mapCapacity(expectedSize) {
   return expectedSize;
 }
-function setOf(element) {
-  return hashSetOf([element]);
-}
 function sort_0(_this__u8e3s4) {
   collectionsSort(_this__u8e3s4, naturalOrder());
+}
+function setOf(element) {
+  return hashSetOf([element]);
 }
 function checkIndexOverflow(index) {
   if (index < 0) {
@@ -6939,9 +6939,6 @@ function hashMapOf(pairs) {
   putAll(this_0, pairs);
   return this_0;
 }
-function removeAll(_this__u8e3s4, predicate) {
-  return filterInPlace(_this__u8e3s4, predicate, true);
-}
 function removeFirst(_this__u8e3s4) {
   var tmp;
   if (_this__u8e3s4.p()) {
@@ -6950,6 +6947,9 @@ function removeFirst(_this__u8e3s4) {
     tmp = _this__u8e3s4.b2(0);
   }
   return tmp;
+}
+function removeAll(_this__u8e3s4, predicate) {
+  return filterInPlace(_this__u8e3s4, predicate, true);
 }
 function addAll(_this__u8e3s4, elements) {
   if (isInterface(elements, Collection))

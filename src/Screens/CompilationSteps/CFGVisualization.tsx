@@ -6,6 +6,7 @@ import ReactFlow, {
   useEdgesState,
   Handle,
   Position,
+  MarkerType,
   type Node,
   type Edge,
 } from 'react-flow-renderer'
@@ -24,6 +25,7 @@ type CFGEdgeData = {
 type CFGData = {
   nodes: CFGNodeData[]
   edges: CFGEdgeData[]
+  instructionCount?: number
 }
 
 // custom node component
@@ -86,6 +88,16 @@ const applyLayout = (cfg: CFGData): { nodes: Node[]; edges: Edge[] } => {
     sourceHandle: 'source',
     targetHandle: 'target',
     animated: false,
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 15,
+      height: 20,
+      color: '#64748b',
+    },
+    style: {
+      strokeWidth: 2,
+      stroke: '#64748b',
+    },
   }))
 
   return { nodes, edges }
@@ -136,6 +148,11 @@ export const CFGVisualization: React.FC<{ cfgData?: CFGData }> = ({ cfgData }) =
       </ReactFlow>
       <div className="absolute top-4 right-4 text-xs px-3 py-1 rounded bg-amber-600/60 dark:bg-amber-900/50 text-slate-800 dark:text-slate-200 shadow">
         {flowNodes.length} nodes • {flowEdges.length} edges
+        {cfgData?.instructionCount !== undefined && (
+          <div className="mt-1">
+            {cfgData.instructionCount} instructions
+          </div>
+        )}
       </div>
     </div>
   )

@@ -3,7 +3,7 @@ import { Separator } from '@/components/ui/separator'
 interface CompilationStepProps {
   index: number
   title: string
-  description: string
+  description: React.ReactNode
   content: React.ReactNode
   children?: React.ReactNode
 }

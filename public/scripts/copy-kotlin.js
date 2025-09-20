@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename)
 
 const sourceDir = path.join(
   __dirname,
-  '../../compiler-logic/build/js/packages/CompilerLogic/kotlin'
+  '../../../compiler-logic/build/js/packages/CompilerLogic/kotlin'
 )
 const targetDir = path.join(__dirname, './kotlin-js')
 

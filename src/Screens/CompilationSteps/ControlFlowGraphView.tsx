@@ -6,7 +6,6 @@ import {
   DropdownMenuItem,
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
@@ -121,30 +120,58 @@ export const ControlFlowGraphView: React.FC<ControlFlowGraphViewProps> = ({
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">Optimizations:</span>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="min-w-[150px] justify-between">
-                {enabledOptimizations.size === 0 
-                  ? 'None selected' 
-                  : `${enabledOptimizations.size} selected`
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="min-w-[150px] justify-between">
+              {enabledOptimizations.size === 0 
+                ? 'None selected' 
+                : `${enabledOptimizations.size} selected`
+              }
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuCheckboxItem
+              checked={enabledOptimizations.size === availableOptimizations.length}
+              data-indeterminate={
+                enabledOptimizations.size > 0 &&
+                enabledOptimizations.size < availableOptimizations.length
+              }
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  // Select all
+                  availableOptimizations.forEach(opt => {
+                    if (!enabledOptimizations.has(opt)) {
+                      onOptimizationToggle?.(opt)
+                    }
+                  })
+                } else {
+                  // Deselect all
+                  enabledOptimizations.forEach(opt => onOptimizationToggle?.(opt))
                 }
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuLabel>Optimization Types</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {availableOptimizations.map((optimization: string) => (
-                
-                  <DropdownMenuCheckboxItem
-                    key={optimization}
-                    checked={enabledOptimizations.has(optimization)}
-                    onCheckedChange={() => onOptimizationToggle?.(optimization)}
-                  >
-                    {optimization.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                  </DropdownMenuCheckboxItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+              }}
+              onSelect={(e) => e.preventDefault()} // keep menu open
+            >
+              Select All
+          </DropdownMenuCheckboxItem>
+    <DropdownMenuSeparator />
+
+    {/* Individual options */}
+    {availableOptimizations.map((optimization: string) => (
+      <DropdownMenuCheckboxItem
+        key={optimization}
+        checked={enabledOptimizations.has(optimization)}
+        onCheckedChange={() => onOptimizationToggle?.(optimization)}
+        onSelect={(e) => e.preventDefault()} // keep menu open
+      >
+        {optimization
+          .replace(/_/g, ' ')
+          .toLowerCase()
+          .replace(/\b\w/g, (l: string) => l.toUpperCase())}
+      </DropdownMenuCheckboxItem>
+    ))}
+  </DropdownMenuContent>
+</DropdownMenu>
+
         </div>
 
         {isOptimizing && (

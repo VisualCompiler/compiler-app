@@ -18,7 +18,8 @@ export interface BinaryLine {
 }
 
 export const convertAssemblyToBinary = async (
-  assemblyCode: string
+  assemblyCode: string,
+  hasMain: boolean
 ): Promise<BinaryLine[]> => {
   let ks: any = null;
   let cs: any = null;
@@ -149,9 +150,8 @@ export const convertAssemblyToBinary = async (
           instIndex < instructions.length
             ? instructions[instIndex].address
             : currentOffset;
-        const labelName = line.slice(0, -1); // Remove trailing colon
         mapping.push({
-          line: labelName, // Store bare label name
+          line: line,
           offset,
           address: `0x${offset.toString(16).padStart(16, "0")}`,
           bytes: [],
@@ -198,12 +198,7 @@ export const convertAssemblyToBinary = async (
       }
     }
 
-    // Check if there's no main function and emit warning
-    const hasMainFunction = mapping.some(
-      (line) => line.type === "label" && line.line === "main"
-    );
-
-    if (!hasMainFunction) {
+    if (!hasMain) {
       // Use custom console to emit warning
       (window as any).console.assemblingWarning(
         "No main function provided. Execution is disabled.",
