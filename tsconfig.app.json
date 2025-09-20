@@ -30,5 +30,5 @@
       ]
     }
   },
-  "include": ["src", "tailwind.config.js"]
+  "include": ["src", "tailwind.config.js", "public/App.tsx", "src/reportWebVitals.tsx", "public/main.tsx", "src/main.tsx", "src/App.tsx"]
 }

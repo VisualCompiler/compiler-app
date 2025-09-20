@@ -1,6 +1,6 @@
 // App.js
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 import { HomeScreen } from './Screens/HomeScreen'
 import { PlaygroundScreen } from './Screens/PlaygroundScreen'
 import { PlaygroundProvider } from './Providers/PlaygroundProvider'
@@ -18,7 +18,7 @@ function App() {
     >
       <ModalProvider>
         <PlaygroundProvider>
-          <BrowserRouter basename="/compiler-app">
+          <HashRouter>
             <Routes>
               <Route path="/" element={<PlaygroundScreen />} />
               <Route
@@ -27,7 +27,7 @@ function App() {
               />
               <Route path="/Home" element={<HomeScreen />} />
             </Routes>
-          </BrowserRouter>
+          </HashRouter>
         </PlaygroundProvider>
       </ModalProvider>
     </ThemeProvider>
