@@ -82,7 +82,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   const [executionSpeed, setExecutionSpeed] = useState(300)
   const [lastExecutedLine, setLastExecutedLine] = useState<number | null>(null)
   const [isStepping, setIsStepping] = useState(false)
-  const [maxSteps] = useState(1000) // Maximum steps to prevent infinite loops
   const [memoryStartAddress, setMemoryStartAddress] = useState(
     EMULATOR_CONFIG.STACK_SEGMENT_START + EMULATOR_CONFIG.STACK_SIZE - 8
   )
@@ -379,6 +378,16 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     try {
       const codeStart = EMULATOR_CONFIG.CODE_SEGMENT_START
 
+      // Check if code size exceeds available memory
+      if (machineCode.length > EMULATOR_CONFIG.CODE_SIZE) {
+        console.emulationError(
+          `Code size (${machineCode.length} bytes) exceeds available memory (${EMULATOR_CONFIG.CODE_SIZE} bytes). Cannot load assembly code.`,
+          undefined,
+          'code-size-exceeded'
+        )
+        return false
+      }
+
       // Clear memory before writing new code
       emulator.writeMemory(codeStart, new Uint8Array(machineCode.length))
       emulator.writeMemory(codeStart, machineCode)
@@ -453,7 +462,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
         if (
           !isPausedRef.current &&
           !hasError &&
-          (currentIP >= programEnd || currentStepCount >= maxSteps)
+          currentIP >= programEnd
         ) {
           clearInterval(runInterval.current!)
           setIsExecuting(false)
@@ -496,6 +505,21 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
 
     // Check if there's a main function to execute
     if (!hasMain) {
+      return
+    }
+
+    // Check for stack overflow by monitoring stack pointer
+    const currentRSP = emulator.getRegister(window.uc.X86_REG_RSP)
+    const stackStart = EMULATOR_CONFIG.STACK_SEGMENT_START
+    const stackEnd = EMULATOR_CONFIG.STACK_SEGMENT_START + EMULATOR_CONFIG.STACK_SIZE
+    
+    if (currentRSP !== null && (currentRSP < stackStart || currentRSP > stackEnd)) {
+      console.emulationError(
+        `Stack overflow: Stack pointer (0x${currentRSP.toString(16)}) is outside valid stack range (0x${stackStart.toString(16)} - 0x${stackEnd.toString(16)}).`,
+        undefined,
+        'stack-overflow-detected'
+      )
+      handleEmulationError()
       return
     }
 
@@ -591,7 +615,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
 
         // Stop execution if we've reached the end of the program
         // or if we're executing a ret instruction in the main function
-        if (currentIP >= programEnd || newStepCount >= maxSteps) {
+        if (currentIP >= programEnd) {
           if (runInterval.current) {
             clearInterval(runInterval.current)
             setIsExecuting(false)
@@ -678,21 +702,14 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
           if (
             !isPausedRef.current &&
             !hasError &&
-            (currentIP >= programEnd ||
-              executionStateRef.current.stepCount >= maxSteps)
+            currentIP >= programEnd
           ) {
             clearInterval(runInterval.current!)
             setIsExecuting(false)
             // Clear console when execution finishes normally
             customConsole.clear()
             setHasRun(false)
-            if (executionStateRef.current.stepCount >= maxSteps) {
-              console.emulationError(
-                'Execution stopped: Maximum step limit reached. Program may be stuck in an infinite loop.',
-                undefined,
-                'maximum-step-limit-reached'
-              )
-            }
+            
             return
           }
           handleStep().catch((err) => {
