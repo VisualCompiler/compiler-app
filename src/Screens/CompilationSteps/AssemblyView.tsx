@@ -457,7 +457,6 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
         const programEnd =
           EMULATOR_CONFIG.CODE_SEGMENT_START + machineCode.length
         const currentIP = emulator.getInstructionPointer()!
-        const currentStepCount = executionStateRef.current.stepCount
 
         if (
           !isPausedRef.current &&
@@ -536,51 +535,28 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     )
 
     try {
-      // Check if we're about to execute a ret instruction in the main function
+      // Check if the instruction at current RIP is a 'ret' instruction
       const currentIP = currentState.currentInstruction
       const currentLine = binaryLines.find(
         (line) => line.offset === currentIP && line.type === 'instruction'
       )
 
-      // If we're about to execute ret, check if we're in the main function
+      // If the instruction at current RIP is 'ret', stop execution
       if (currentLine && currentLine.line?.trim() === 'ret') {
-        // Find the main function label
-        const startFunctionLine = binaryLines.find(
-          (line) =>
-            line.type === 'label' &&
-            (line.line?.includes('main:') ||
-              line.line?.includes('_main:') ||
-              line.line?.includes('main') ||
-              line.line?.trim() === 'main' ||
-              line.line?.trim() === '_main')
-        )
-
-        if (startFunctionLine) {
-          // Check if we're in the main function by seeing if we started from main
-          // and haven't called any other functions
-          const mainStartAddress = startFunctionLine.offset
-          const programEnd =
-            EMULATOR_CONFIG.CODE_SEGMENT_START + machineCode.length
-
-          // If we're executing a ret and we're at or near the end of the program,
-          // and we started from main, treat it as main function return
-          if (currentIP >= mainStartAddress && currentIP <= programEnd) {
-            // Stop execution
-            if (runInterval.current) {
-              clearInterval(runInterval.current)
-              setIsExecuting(false)
-            }
-
-            // Clear console when execution finishes normally
-            customConsole.clear()
-            setHasRun(false)
-
-            // Reset for next run
-            resetExecutionState()
-            resetProgramCounter()
-            return
-          }
+        // Stop execution - we've hit a return instruction
+        if (runInterval.current) {
+          clearInterval(runInterval.current)
+          setIsExecuting(false)
         }
+
+        // Clear console when execution finishes normally
+        customConsole.clear()
+        setHasRun(false)
+
+        // Reset for next run
+        resetExecutionState()
+        resetProgramCounter()
+        return
       }
 
       // Execute one instruction using start with count=1
