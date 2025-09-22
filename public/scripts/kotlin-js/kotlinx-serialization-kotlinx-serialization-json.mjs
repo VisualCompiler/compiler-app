@@ -429,8 +429,8 @@ protoOf(JsonObject).u1 = function (key) {
     return null;
   return this.o12((!(key == null) ? typeof key === 'string' : false) ? key : THROW_CCE());
 };
-protoOf(JsonObject).p = function () {
-  return this.m12_1.p();
+protoOf(JsonObject).o = function () {
+  return this.m12_1.o();
 };
 protoOf(JsonObject).equals = function (other) {
   return equals(this.m12_1, other);
@@ -501,8 +501,8 @@ protoOf(JsonArray).q = function (element) {
     return false;
   return this.r12(element instanceof JsonElement ? element : THROW_CCE());
 };
-protoOf(JsonArray).o = function (index) {
-  return this.q12_1.o(index);
+protoOf(JsonArray).n = function (index) {
+  return this.q12_1.n(index);
 };
 protoOf(JsonArray).s12 = function (element) {
   return this.q12_1.s(element);
@@ -512,8 +512,8 @@ protoOf(JsonArray).s = function (element) {
     return -1;
   return this.s12(element instanceof JsonElement ? element : THROW_CCE());
 };
-protoOf(JsonArray).p = function () {
-  return this.q12_1.p();
+protoOf(JsonArray).o = function () {
+  return this.q12_1.o();
 };
 protoOf(JsonArray).j = function () {
   return this.q12_1.j();
@@ -1439,7 +1439,7 @@ function buildDeserializationNamesMap(_this__u8e3s4, json) {
      while (inductionVariable < last);
   // Inline function 'kotlin.collections.ifEmpty' call
   var tmp_1;
-  if (builder.p()) {
+  if (builder.o()) {
     tmp_1 = emptyMap();
   } else {
     tmp_1 = builder;
@@ -3611,7 +3611,7 @@ protoOf(JsonTreeListDecoder).rx = function (descriptor, index) {
   return index.toString();
 };
 protoOf(JsonTreeListDecoder).n18 = function (tag) {
-  return this.q19_1.o(toInt(tag));
+  return this.q19_1.n(toInt(tag));
 };
 protoOf(JsonTreeListDecoder).ik = function (descriptor) {
   while (this.s19_1 < (this.r19_1 - 1 | 0)) {
@@ -3651,7 +3651,7 @@ protoOf(JsonTreeMapDecoder).s1 = function () {
 };
 protoOf(JsonTreeMapDecoder).rx = function (descriptor, index) {
   var i = index / 2 | 0;
-  return this.k1a_1.o(i);
+  return this.k1a_1.n(i);
 };
 protoOf(JsonTreeMapDecoder).ik = function (descriptor) {
   while (this.m1a_1 < (this.l1a_1 - 1 | 0)) {

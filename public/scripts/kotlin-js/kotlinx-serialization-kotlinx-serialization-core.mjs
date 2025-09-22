@@ -625,7 +625,7 @@ function UnknownFieldException(message) {
   captureStack(this, UnknownFieldException);
 }
 function MissingFieldException_init_$Init$(missingFields, serialName, $this) {
-  MissingFieldException.call($this, missingFields, missingFields.m() === 1 ? "Field '" + missingFields.o(0) + "' is required for type with serial name '" + serialName + "', but it was missing" : 'Fields ' + toString(missingFields) + " are required for type with serial name '" + serialName + "', but they were missing", null);
+  MissingFieldException.call($this, missingFields, missingFields.m() === 1 ? "Field '" + missingFields.n(0) + "' is required for type with serial name '" + serialName + "', but it was missing" : 'Fields ' + toString(missingFields) + " are required for type with serial name '" + serialName + "', but they were missing", null);
   return $this;
 }
 function MissingFieldException_init_$Create$(missingFields, serialName) {
@@ -697,26 +697,26 @@ function serializerOrNull_0(_this__u8e3s4, type) {
 function builtinParametrizedSerializer(_this__u8e3s4, serializers, elementClassifierIfArray) {
   var tmp;
   if (((_this__u8e3s4.equals(getKClass(Collection)) ? true : _this__u8e3s4.equals(getKClass(KtList))) ? true : _this__u8e3s4.equals(getKClass(KtMutableList))) ? true : _this__u8e3s4.equals(getKClass(ArrayList))) {
-    tmp = new ArrayListSerializer(serializers.o(0));
+    tmp = new ArrayListSerializer(serializers.n(0));
   } else if (_this__u8e3s4.equals(getKClass(HashSet))) {
-    tmp = new HashSetSerializer(serializers.o(0));
+    tmp = new HashSetSerializer(serializers.n(0));
   } else if ((_this__u8e3s4.equals(getKClass(KtSet)) ? true : _this__u8e3s4.equals(getKClass(KtMutableSet))) ? true : _this__u8e3s4.equals(getKClass(LinkedHashSet))) {
-    tmp = new LinkedHashSetSerializer(serializers.o(0));
+    tmp = new LinkedHashSetSerializer(serializers.n(0));
   } else if (_this__u8e3s4.equals(getKClass(HashMap))) {
-    tmp = new HashMapSerializer(serializers.o(0), serializers.o(1));
+    tmp = new HashMapSerializer(serializers.n(0), serializers.n(1));
   } else if ((_this__u8e3s4.equals(getKClass(KtMap)) ? true : _this__u8e3s4.equals(getKClass(KtMutableMap))) ? true : _this__u8e3s4.equals(getKClass(LinkedHashMap))) {
-    tmp = new LinkedHashMapSerializer(serializers.o(0), serializers.o(1));
+    tmp = new LinkedHashMapSerializer(serializers.n(0), serializers.n(1));
   } else if (_this__u8e3s4.equals(getKClass(Entry))) {
-    tmp = MapEntrySerializer(serializers.o(0), serializers.o(1));
+    tmp = MapEntrySerializer(serializers.n(0), serializers.n(1));
   } else if (_this__u8e3s4.equals(getKClass(Pair))) {
-    tmp = PairSerializer(serializers.o(0), serializers.o(1));
+    tmp = PairSerializer(serializers.n(0), serializers.n(1));
   } else if (_this__u8e3s4.equals(getKClass(Triple))) {
-    tmp = TripleSerializer(serializers.o(0), serializers.o(1), serializers.o(2));
+    tmp = TripleSerializer(serializers.n(0), serializers.n(1), serializers.n(2));
   } else {
     var tmp_0;
     if (isReferenceArray(_this__u8e3s4)) {
       var tmp_1 = elementClassifierIfArray();
-      tmp_0 = ArraySerializer((!(tmp_1 == null) ? isInterface(tmp_1, KClass) : false) ? tmp_1 : THROW_CCE(), serializers.o(0));
+      tmp_0 = ArraySerializer((!(tmp_1 == null) ? isInterface(tmp_1, KClass) : false) ? tmp_1 : THROW_CCE(), serializers.n(0));
     } else {
       tmp_0 = null;
     }
@@ -756,7 +756,7 @@ function serializerByKTypeImpl(_this__u8e3s4, type, failOnMissingTypeArgSerializ
   }
   var typeArguments = destination;
   var tmp;
-  if (typeArguments.p()) {
+  if (typeArguments.o()) {
     tmp = findCachedSerializer(rootClass, isNullable);
   } else {
     // Inline function 'kotlin.Result.getOrNull' call
@@ -778,7 +778,7 @@ function serializerByKTypeImpl(_this__u8e3s4, type, failOnMissingTypeArgSerializ
     return cachedSerializer;
   }
   var tmp_2;
-  if (typeArguments.p()) {
+  if (typeArguments.o()) {
     tmp_2 = _this__u8e3s4.oh(rootClass);
   } else {
     var tmp1_elvis_lhs = serializersForParameters(_this__u8e3s4, typeArguments, failOnMissingTypeArgSerializer);
@@ -810,7 +810,7 @@ function nullable(_this__u8e3s4, shouldBeNullable) {
 }
 function serializerByKTypeImpl$lambda($typeArguments) {
   return function () {
-    return $typeArguments.o(0).i9();
+    return $typeArguments.n(0).i9();
   };
 }
 function get_SERIALIZERS_CACHE() {
@@ -886,7 +886,7 @@ function PARAMETRIZED_SERIALIZERS_CACHE$lambda(clazz, types) {
 }
 function PARAMETRIZED_SERIALIZERS_CACHE$lambda$lambda($types) {
   return function () {
-    return $types.o(0).i9();
+    return $types.n(0).i9();
   };
 }
 function PARAMETRIZED_SERIALIZERS_CACHE_NULLABLE$lambda(clazz, types) {
@@ -905,7 +905,7 @@ function PARAMETRIZED_SERIALIZERS_CACHE_NULLABLE$lambda(clazz, types) {
 }
 function PARAMETRIZED_SERIALIZERS_CACHE_NULLABLE$lambda$lambda($types) {
   return function () {
-    return $types.o(0).i9();
+    return $types.n(0).i9();
   };
 }
 var properties_initialized_SerializersCache_kt_q8kf25;
@@ -3272,7 +3272,7 @@ function compactArray(_this__u8e3s4) {
   // Inline function 'kotlin.takeUnless' call
   var tmp;
   // Inline function 'kotlin.collections.isNullOrEmpty' call
-  if (!(_this__u8e3s4 == null || _this__u8e3s4.p())) {
+  if (!(_this__u8e3s4 == null || _this__u8e3s4.o())) {
     tmp = _this__u8e3s4;
   } else {
     tmp = null;

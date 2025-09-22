@@ -129,7 +129,7 @@ export const X86_REGISTERS: Register[] = [
 // Emulator settings for x86-64 architecture
 export const EMULATOR_CONFIG = {
   CODE_SIZE: 0x1000_0000,
-  STACK_SIZE: 0x1000,
+  STACK_SIZE: 0x1000_0000,
   CODE_SEGMENT_START: 0x0,
   STACK_SEGMENT_START: 0x3000_0000,
 };
