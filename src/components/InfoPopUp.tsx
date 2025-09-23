@@ -2,7 +2,6 @@ import React, { useContext } from 'react'
 import { Button } from './ui/button'
 import { Info } from 'lucide-react'
 import { ModalContext, modalConstants } from '@/Providers/ModalProvider'
-import { cn } from '@/lib/utils'
 
 interface InfoPopUpProps {
   className?: string
@@ -17,11 +16,11 @@ export const InfoPopUp: React.FC<InfoPopUpProps> = ({ className }) => {
 
   return (
     <Button 
-      variant="ghost" 
+      variant="outline" 
       size="icon" 
       aria-label="Information"
       onClick={handleOpenInfo}
-      className={cn("bg-gradient-to-br from-orange-700/50 via-amber-600/50 to-yellow-500/50 hover:bg-gradient-to-br", className)}
+      className={className}
     >
       <Info className="w-4 h-4" />
     </Button>
