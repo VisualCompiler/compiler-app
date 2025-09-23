@@ -17,6 +17,7 @@ import {
   toString1pkumu07cwy4m as toString,
   hashCodeq5arwsb9dgti as hashCode,
   joinToString1cxrrlmo0chqs as joinToString,
+  lastOrNull1aq5oz189qoe1 as lastOrNull,
   StringBuilder_init_$Create$2qsge4ydj6bin as StringBuilder_init_$Create$,
   _Char___init__impl__6a9atx2js6krycynjoo as _Char___init__impl__6a9atx,
   charSequenceLength3278n89t01tmv as charSequenceLength,
@@ -51,7 +52,6 @@ import {
   getBooleanHashCode1bbj3u6b3v0a7 as getBooleanHashCode,
   charArrayOf27f4r3dozbrk1 as charArrayOf,
   split3d3yeauc4rm2n as split,
-  lastOrNull1aq5oz189qoe1 as lastOrNull,
   KtList3hktaavzmj137 as KtList,
   createInvariantKTypeProjection3sfd0u0y62ozd as createInvariantKTypeProjection,
   KtMutableList1beimitadwkna as KtMutableList,
@@ -443,6 +443,7 @@ initMetadataForClass(TackyToAsm, 'TackyToAsm', TackyToAsm);
 var CompilerStage_LEXER_instance;
 var CompilerStage_PARSER_instance;
 var CompilerStage_TACKY_instance;
+var CompilerStage_OPTIMIZATIONS_instance;
 var CompilerStage_ASSEMBLY_instance;
 var CompilerStage_entriesInitialized;
 function CompilerStage_initEntries() {
@@ -452,7 +453,8 @@ function CompilerStage_initEntries() {
   CompilerStage_LEXER_instance = new CompilerStage('LEXER', 0);
   CompilerStage_PARSER_instance = new CompilerStage('PARSER', 1);
   CompilerStage_TACKY_instance = new CompilerStage('TACKY', 2);
-  CompilerStage_ASSEMBLY_instance = new CompilerStage('ASSEMBLY', 3);
+  CompilerStage_OPTIMIZATIONS_instance = new CompilerStage('OPTIMIZATIONS', 3);
+  CompilerStage_ASSEMBLY_instance = new CompilerStage('ASSEMBLY', 4);
 }
 function CompilerStage(name, ordinal) {
   Enum.call(this, name, ordinal);
@@ -514,7 +516,7 @@ protoOf(Companion).r1c = function (tackyProgram, optimizations) {
       }
       var optimizedBody = cfg.j1d();
       element.w1c_1 = optimizedBody;
-      if (equals(optimizedBody, element.w1c_1) || optimizedBody.p()) {
+      if (equals(optimizedBody, element.w1c_1) || optimizedBody.o()) {
         break $l$loop;
       }
     }
@@ -854,6 +856,8 @@ function emitFunction($this, function_0) {
   var functionName = formatLabel($this, function_0.z1d_1);
   var tmp = function_0.a1e_1;
   var bodyAsm = joinToString(tmp, '\n', VOID, VOID, VOID, VOID, CodeEmitter$emitFunction$lambda($this));
+  var tmp_0 = lastOrNull(function_0.a1e_1);
+  var endsWithRet = tmp_0 instanceof Ret;
   // Inline function 'kotlin.text.buildString' call
   // Inline function 'kotlin.apply' call
   var this_0 = StringBuilder_init_$Create$();
@@ -879,15 +883,17 @@ function emitFunction($this, function_0) {
     // Inline function 'kotlin.text.appendLine' call
     this_0.h7(bodyAsm).i7(_Char___init__impl__6a9atx(10));
   }
-  // Inline function 'kotlin.text.appendLine' call
-  var value_3 = '  mov rsp, rbp';
-  // Inline function 'kotlin.text.appendLine' call
-  this_0.h7(value_3).i7(_Char___init__impl__6a9atx(10));
-  // Inline function 'kotlin.text.appendLine' call
-  var value_4 = '  pop rbp';
-  // Inline function 'kotlin.text.appendLine' call
-  this_0.h7(value_4).i7(_Char___init__impl__6a9atx(10));
-  this_0.h7('  ret');
+  if (!endsWithRet) {
+    // Inline function 'kotlin.text.appendLine' call
+    var value_3 = '  mov rsp, rbp';
+    // Inline function 'kotlin.text.appendLine' call
+    this_0.h7(value_3).i7(_Char___init__impl__6a9atx(10));
+    // Inline function 'kotlin.text.appendLine' call
+    var value_4 = '  pop rbp';
+    // Inline function 'kotlin.text.appendLine' call
+    this_0.h7(value_4).i7(_Char___init__impl__6a9atx(10));
+    this_0.h7('  ret');
+  }
   return this_0.toString();
 }
 function emitFunctionRaw($this, function_0) {
@@ -960,7 +966,7 @@ function emitInstructionRaw($this, instruction) {
                               tmp = new RawInstruction(indent + 'set' + instruction.d1e_1.i1e_1 + ' ' + destOperand, instruction.f1e_1);
                             } else {
                               if (instruction instanceof Ret) {
-                                tmp = new RawInstruction('', instruction.c1e_1);
+                                tmp = new RawInstruction(indent + 'mov rsp, rbp\n' + indent + 'pop rbp\n' + indent + 'ret', instruction.c1e_1);
                               } else {
                                 noWhenBranchMatchedException();
                               }
@@ -1028,7 +1034,7 @@ function emitInstruction($this, instruction) {
                               tmp = indent + 'set' + instruction.d1e_1.i1e_1 + ' ' + destOperand;
                             } else {
                               if (instruction instanceof Ret) {
-                                tmp = '';
+                                tmp = indent + 'mov rsp, rbp\n' + indent + 'pop rbp\n' + indent + 'ret';
                               } else {
                                 noWhenBranchMatchedException();
                               }
@@ -6564,7 +6570,7 @@ function precomputeAllCFGs($this, program) {
   while (_iterator__ex2g4s.k()) {
     var element = _iterator__ex2g4s.l();
     // Inline function 'kotlin.collections.isNotEmpty' call
-    if (!element.w1c_1.p()) {
+    if (!element.w1c_1.o()) {
       destination.e(element);
     }
   }
@@ -6910,7 +6916,7 @@ protoOf(CompilerExport).exportCompilationResults = function (code) {
   } catch ($p) {
     if ($p instanceof CompilationException) {
       var e = $p;
-      var stage = outputs.p() ? CompilerStage_LEXER_getInstance() : outputs.m() === 1 ? CompilerStage_PARSER_getInstance() : outputs.m() === 2 ? CompilerStage_TACKY_getInstance() : CompilerStage_ASSEMBLY_getInstance();
+      var stage = outputs.o() ? CompilerStage_LEXER_getInstance() : outputs.m() === 1 ? CompilerStage_PARSER_getInstance() : outputs.m() === 2 ? CompilerStage_TACKY_getInstance() : CompilerStage_ASSEMBLY_getInstance();
       // Inline function 'kotlin.text.lowercase' call
       // Inline function 'kotlin.js.asDynamic' call
       var tmp_0 = stage.e2_1.toLowerCase();
@@ -6960,7 +6966,7 @@ protoOf(CompilerExport).exportCompilationResults = function (code) {
           var tmp$ret$28 = [error];
           outputs.e(new TackyOutput(VOID, VOID, VOID, VOID, VOID, VOID, VOID, tmp$ret$28, sourceLocationInfo));
           break;
-        case 3:
+        case 4:
           // Inline function 'kotlin.arrayOf' call
 
           // Inline function 'kotlin.js.unsafeCast' call
@@ -6969,6 +6975,9 @@ protoOf(CompilerExport).exportCompilationResults = function (code) {
 
           var tmp$ret$31 = [error];
           outputs.e(new AssemblyOutput(VOID, VOID, VOID, tmp$ret$31, sourceLocationInfo));
+          break;
+        case 3:
+          null;
           break;
         default:
           noWhenBranchMatchedException();
@@ -6997,7 +7006,7 @@ protoOf(CompilerExport).exportCompilationResults = function (code) {
   }
   // Inline function 'kotlin.collections.toTypedArray' call
   var tmp_4 = copyToArray(outputs);
-  var tmp_5 = overallErrors.p();
+  var tmp_5 = overallErrors.o();
   // Inline function 'kotlin.collections.toTypedArray' call
   var tmp$ret$37 = copyToArray(overallErrors);
   var result = new CompilationResult(tmp_4, tmp_5, tmp$ret$37);
@@ -8714,7 +8723,7 @@ function toBasicBlocks($this, instructions) {
     var inst = _iterator__ex2g4s.l();
     if (inst instanceof TackyLabel) {
       // Inline function 'kotlin.collections.isNotEmpty' call
-      if (!current.p()) {
+      if (!current.o()) {
         var _unary__edvuaz = blockId;
         blockId = _unary__edvuaz + 1 | 0;
         // Inline function 'kotlin.collections.plusAssign' call
@@ -8759,7 +8768,7 @@ function toBasicBlocks($this, instructions) {
     }
   }
   // Inline function 'kotlin.collections.isNotEmpty' call
-  if (!current.p()) {
+  if (!current.o()) {
     var _unary__edvuaz_1 = blockId;
     blockId = _unary__edvuaz_1 + 1 | 0;
     // Inline function 'kotlin.collections.plusAssign' call
@@ -8897,7 +8906,7 @@ function findBlockByLabel($this, blocks, label) {
         // Inline function 'kotlin.collections.any' call
         var tmp;
         if (isInterface(tmp0, Collection)) {
-          tmp = tmp0.p();
+          tmp = tmp0.o();
         } else {
           tmp = false;
         }
@@ -9399,7 +9408,7 @@ function meet($this, block, allStaticVariables) {
       tmp = tmp0_elvis_lhs;
     }
     var tmp$ret$2 = tmp;
-    liveVariables.n(tmp$ret$2);
+    liveVariables.p(tmp$ret$2);
   }
   return liveVariables;
 }
@@ -9434,7 +9443,7 @@ protoOf(LivenessAnalysis).b1v = function (cfg) {
   var workList = toMutableList(destination);
   $l$loop_0: while (true) {
     // Inline function 'kotlin.collections.isNotEmpty' call
-    if (!!workList.p()) {
+    if (!!workList.o()) {
       break $l$loop_0;
     }
     var blockId = removeFirst(workList);
@@ -9468,7 +9477,7 @@ protoOf(LivenessAnalysis).b1v = function (cfg) {
       // Inline function 'kotlin.collections.set' call
       var key = block_0.a1s_1;
       tmp0_1.c2(key, newIn);
-      workList.n(block_0.c1s_1);
+      workList.p(block_0.c1s_1);
     }
   }
   return this.z1u_1;
@@ -9514,7 +9523,7 @@ protoOf(OptimizationManager).z1r = function (cfg, enabledOptimizations) {
       currentCfg = optimization.e1d(currentCfg);
     }
     var optimizedInstructions = currentCfg.j1d();
-    if (equals(optimizedInstructions, previousInstructions) || optimizedInstructions.p()) {
+    if (equals(optimizedInstructions, previousInstructions) || optimizedInstructions.o()) {
       break $l$loop_0;
     }
   }
@@ -9556,7 +9565,7 @@ function removeUnreachableBlocks($this, cfg) {
   }
   $l$loop_0: while (true) {
     // Inline function 'kotlin.collections.isNotEmpty' call
-    if (!!worklist.p()) {
+    if (!!worklist.o()) {
       break $l$loop_0;
     }
     var currentNode = worklist.b2(0);
@@ -9618,9 +9627,9 @@ function removeUselessJumps($this, cfg) {
     do {
       var i = inductionVariable;
       inductionVariable = inductionVariable + 1 | 0;
-      var currentBlock = sortedBlocks.o(i);
+      var currentBlock = sortedBlocks.n(i);
       var lastInstruction = lastOrNull(currentBlock.b1s_1);
-      var nextBlock = sortedBlocks.o(i + 1 | 0);
+      var nextBlock = sortedBlocks.n(i + 1 | 0);
       if (lastInstruction instanceof TackyJump) {
         var targetBlock = findBlockByLabel_0($this, cfg.a1d_1, lastInstruction.k1u_1);
         if ((targetBlock == null ? null : targetBlock.a1s_1) === nextBlock.a1s_1) {
@@ -9641,7 +9650,7 @@ function removeUselessJumps($this, cfg) {
             // Inline function 'kotlin.collections.all' call
             var tmp_1;
             if (isInterface(tmp0, Collection)) {
-              tmp_1 = tmp0.p();
+              tmp_1 = tmp0.o();
             } else {
               tmp_1 = false;
             }
@@ -9667,7 +9676,7 @@ function removeUselessJumps($this, cfg) {
       }
     }
      while (inductionVariable < last);
-  if (jumpsToRemove.p()) {
+  if (jumpsToRemove.o()) {
     return cfg;
   }
   // Inline function 'kotlin.collections.map' call
@@ -9704,10 +9713,10 @@ function removeUselessLabels($this, cfg) {
   var sortedBlocks = sortedWith(this_0, tmp$ret$0);
   // Inline function 'kotlin.collections.mutableSetOf' call
   var labelsToRemove = LinkedHashSet_init_$Create$();
-  if (sortedBlocks.p()) {
+  if (sortedBlocks.o()) {
     return cfg;
   }
-  var firstBlock = sortedBlocks.o(0);
+  var firstBlock = sortedBlocks.n(0);
   var firstInstruction = firstOrNull(firstBlock.b1s_1);
   if (firstInstruction instanceof TackyLabel) {
     var tmp0_safe_receiver = cfg.z1c_1;
@@ -9723,8 +9732,8 @@ function removeUselessLabels($this, cfg) {
     do {
       var i = inductionVariable;
       inductionVariable = inductionVariable + 1 | 0;
-      var currentBlock = sortedBlocks.o(i);
-      var previousBlock = sortedBlocks.o(i - 1 | 0);
+      var currentBlock = sortedBlocks.n(i);
+      var previousBlock = sortedBlocks.n(i - 1 | 0);
       var currentFirstInstruction = firstOrNull(currentBlock.b1s_1);
       if (currentFirstInstruction instanceof TackyLabel) {
         if (currentBlock.c1s_1.m() === 1 && currentBlock.c1s_1.q(previousBlock.a1s_1)) {
@@ -9733,7 +9742,7 @@ function removeUselessLabels($this, cfg) {
       }
     }
      while (inductionVariable < last);
-  if (labelsToRemove.p()) {
+  if (labelsToRemove.o()) {
     return cfg;
   }
   // Inline function 'kotlin.collections.map' call
@@ -9769,12 +9778,12 @@ function removeEmptyBlocks($this, cfg) {
   var _iterator__ex2g4s = tmp0.j();
   while (_iterator__ex2g4s.k()) {
     var element = _iterator__ex2g4s.l();
-    if (element.b1s_1.p()) {
+    if (element.b1s_1.o()) {
       destination.e(element);
     }
   }
   var emptyBlocks = destination;
-  if (emptyBlocks.p()) {
+  if (emptyBlocks.o()) {
     return cfg;
   }
   // Inline function 'kotlin.collections.filter' call
@@ -9784,7 +9793,7 @@ function removeEmptyBlocks($this, cfg) {
   var _iterator__ex2g4s_0 = tmp0_0.j();
   while (_iterator__ex2g4s_0.k()) {
     var element_0 = _iterator__ex2g4s_0.l();
-    if (element_0.b1s_1.p() && element_0.d1s_1.m() <= 1) {
+    if (element_0.b1s_1.o() && element_0.d1s_1.m() <= 1) {
       destination_0.e(element_0);
     }
   }
@@ -10902,7 +10911,7 @@ function parseProgram($this, tokens) {
   $l$loop: while (true) {
     var tmp;
     // Inline function 'kotlin.collections.isNotEmpty' call
-    if (!tokens.p()) {
+    if (!tokens.o()) {
       tmp = !equals(first(tokens).t1m_1, EOF_getInstance());
     } else {
       tmp = false;
@@ -10922,32 +10931,35 @@ function parseFunctionDeclaration($this, tokens) {
   expect($this, LEFT_PAREN_getInstance(), tokens);
   // Inline function 'kotlin.collections.mutableListOf' call
   var params = ArrayList_init_$Create$_0();
-  var tmp1_safe_receiver = firstOrNull(tokens);
-  if (!equals(tmp1_safe_receiver == null ? null : tmp1_safe_receiver.t1m_1, KEYWORD_VOID_getInstance())) {
-    $l$1: do {
-      $l$0: do {
-        expect($this, KEYWORD_INT_getInstance(), tokens);
-        params.e(parseIdentifier($this, tokens));
-      }
-       while (false);
-      var tmp;
-      var tmp0_safe_receiver = firstOrNull(tokens);
-      if (equals(tmp0_safe_receiver == null ? null : tmp0_safe_receiver.t1m_1, COMMA_getInstance())) {
-        tmp = equals(removeFirst(tokens).t1m_1, COMMA_getInstance());
-      } else {
-        tmp = false;
-      }
-    }
-     while (tmp);
-  } else {
+  var tmp0_safe_receiver = firstOrNull(tokens);
+  if (equals(tmp0_safe_receiver == null ? null : tmp0_safe_receiver.t1m_1, KEYWORD_VOID_getInstance())) {
     removeFirst(tokens);
+  } else {
+    var tmp2_safe_receiver = firstOrNull(tokens);
+    if (equals(tmp2_safe_receiver == null ? null : tmp2_safe_receiver.t1m_1, KEYWORD_INT_getInstance())) {
+      $l$1: do {
+        $l$0: do {
+          expect($this, KEYWORD_INT_getInstance(), tokens);
+          params.e(parseIdentifier($this, tokens));
+        }
+         while (false);
+        var tmp;
+        var tmp1_safe_receiver = firstOrNull(tokens);
+        if (equals(tmp1_safe_receiver == null ? null : tmp1_safe_receiver.t1m_1, COMMA_getInstance())) {
+          tmp = equals(removeFirst(tokens).t1m_1, COMMA_getInstance());
+        } else {
+          tmp = false;
+        }
+      }
+       while (tmp);
+    }
   }
   var endParan = expect($this, RIGHT_PAREN_getInstance(), tokens);
   var body;
   var endLine;
   var endColumn;
-  var tmp2_safe_receiver = firstOrNull(tokens);
-  if (equals(tmp2_safe_receiver == null ? null : tmp2_safe_receiver.t1m_1, LEFT_BRACK_getInstance())) {
+  var tmp3_safe_receiver = firstOrNull(tokens);
+  if (equals(tmp3_safe_receiver == null ? null : tmp3_safe_receiver.t1m_1, LEFT_BRACK_getInstance())) {
     body = parseBlock($this, tokens);
     endLine = body.y1l_1.w1i_1;
     endColumn = body.y1l_1.x1i_1;
@@ -10963,31 +10975,34 @@ function parseFunctionDeclarationFromBody($this, tokens, name, location) {
   expect($this, LEFT_PAREN_getInstance(), tokens);
   // Inline function 'kotlin.collections.mutableListOf' call
   var params = ArrayList_init_$Create$_0();
-  var tmp1_safe_receiver = firstOrNull(tokens);
-  if (!equals(tmp1_safe_receiver == null ? null : tmp1_safe_receiver.t1m_1, KEYWORD_VOID_getInstance())) {
-    $l$1: do {
-      $l$0: do {
-        expect($this, KEYWORD_INT_getInstance(), tokens);
-        params.e(parseIdentifier($this, tokens));
-      }
-       while (false);
-      var tmp;
-      var tmp0_safe_receiver = firstOrNull(tokens);
-      if (equals(tmp0_safe_receiver == null ? null : tmp0_safe_receiver.t1m_1, COMMA_getInstance())) {
-        tmp = equals(removeFirst(tokens).t1m_1, COMMA_getInstance());
-      } else {
-        tmp = false;
-      }
-    }
-     while (tmp);
-  } else {
+  var tmp0_safe_receiver = firstOrNull(tokens);
+  if (equals(tmp0_safe_receiver == null ? null : tmp0_safe_receiver.t1m_1, KEYWORD_VOID_getInstance())) {
     removeFirst(tokens);
+  } else {
+    var tmp2_safe_receiver = firstOrNull(tokens);
+    if (equals(tmp2_safe_receiver == null ? null : tmp2_safe_receiver.t1m_1, KEYWORD_INT_getInstance())) {
+      $l$1: do {
+        $l$0: do {
+          expect($this, KEYWORD_INT_getInstance(), tokens);
+          params.e(parseIdentifier($this, tokens));
+        }
+         while (false);
+        var tmp;
+        var tmp1_safe_receiver = firstOrNull(tokens);
+        if (equals(tmp1_safe_receiver == null ? null : tmp1_safe_receiver.t1m_1, COMMA_getInstance())) {
+          tmp = equals(removeFirst(tokens).t1m_1, COMMA_getInstance());
+        } else {
+          tmp = false;
+        }
+      }
+       while (tmp);
+    }
   }
   var end = expect($this, RIGHT_PAREN_getInstance(), tokens);
   var body;
   var finalLocation;
-  var tmp2_safe_receiver = firstOrNull(tokens);
-  if (equals(tmp2_safe_receiver == null ? null : tmp2_safe_receiver.t1m_1, LEFT_BRACK_getInstance())) {
+  var tmp3_safe_receiver = firstOrNull(tokens);
+  if (equals(tmp3_safe_receiver == null ? null : tmp3_safe_receiver.t1m_1, LEFT_BRACK_getInstance())) {
     body = parseBlock($this, tokens);
     finalLocation = new SourceLocation(location.u1i_1, location.v1i_1, body.y1l_1.w1i_1, body.y1l_1.x1i_1);
   } else {
@@ -11048,7 +11063,7 @@ function parseVariableDeclaration($this, tokens, name, location) {
   return new VariableDeclaration(name, init, finalLocation);
 }
 function expect($this, expected, tokens) {
-  if (tokens.p()) {
+  if (tokens.o()) {
     throw new UnexpectedEndOfFileException();
   }
   var token = removeFirst(tokens);
@@ -11073,7 +11088,7 @@ function parseStatement($this, tokens) {
     tmp = tmp0_elvis_lhs;
   }
   var firstToken = tmp;
-  var secondToken = tokens.m() > 1 ? tokens.o(1) : null;
+  var secondToken = tokens.m() > 1 ? tokens.n(1) : null;
   var tmp1_subject = firstToken.t1m_1;
   if (equals(tmp1_subject, IF_getInstance())) {
     var ifToken = expect($this, IF_getInstance(), tokens);
@@ -11169,7 +11184,7 @@ function parseExpression($this, minPrec, tokens) {
   var left = parseFactor($this, tokens);
   $l$loop_1: while (true) {
     // Inline function 'kotlin.collections.isNotEmpty' call
-    if (!!tokens.p()) {
+    if (!!tokens.o()) {
       break $l$loop_1;
     }
     var nextType = first(tokens).t1m_1;
@@ -11277,7 +11292,7 @@ protoOf(Parser).e1c = function (tokens) {
   var tokenSet = toMutableList(tokens);
   var ast = parseProgram(this, tokenSet);
   expect(this, EOF_getInstance(), tokenSet);
-  if (!tokenSet.p()) {
+  if (!tokenSet.o()) {
     throw new UnexpectedEndOfFileException();
   }
   return ast;
@@ -11390,7 +11405,7 @@ protoOf(IdentifierResolution).h1c = function (program) {
   var result = tmp instanceof SimpleProgram ? tmp : THROW_CCE();
   leaveScope(this);
   // Inline function 'kotlin.collections.isNotEmpty' call
-  if (!this.g1c_1.p()) {
+  if (!this.g1c_1.o()) {
     throw IllegalStateException_init_$Create$('Scope stack was not empty after analysis.');
   }
   return result;
@@ -13161,7 +13176,7 @@ function TackyBinaryOP_initEntries() {
   TackyBinaryOP_GREATER_instance = new TackyBinaryOP('GREATER', 6, '>');
   TackyBinaryOP_LESS_EQUAL_instance = new TackyBinaryOP('LESS_EQUAL', 7, '<=');
   TackyBinaryOP_GREATER_EQUAL_instance = new TackyBinaryOP('GREATER_EQUAL', 8, '>=');
-  TackyBinaryOP_EQUAL_instance = new TackyBinaryOP('EQUAL', 9, '=');
+  TackyBinaryOP_EQUAL_instance = new TackyBinaryOP('EQUAL', 9, '==');
   TackyBinaryOP_NOT_EQUAL_instance = new TackyBinaryOP('NOT_EQUAL', 10, '!=');
 }
 function TackyBinaryOP(name, ordinal, text) {
@@ -15423,7 +15438,7 @@ function generateParamSetup($this, params, sourceId) {
     index = _unary__edvuaz + 1 | 0;
     var index_0 = checkIndexOverflow(_unary__edvuaz);
     if (index_0 < argRegisters.m()) {
-      var srcReg = new Register(argRegisters.o(index_0));
+      var srcReg = new Register(argRegisters.n(index_0));
       var destPseudo = new Pseudo(item);
       instructions.e(new Mov(srcReg, destPseudo, sourceId));
     } else {
@@ -15541,28 +15556,28 @@ function convertInstruction($this, tackyInstr) {
                     if (stackPadding > 0) {
                       instructions.e(new AllocateStack(stackPadding, tackyInstr.t1u_1));
                     }
-                    // Inline function 'kotlin.collections.forEach' call
-                    var _iterator__ex2g4s = asReversed_0(stackArgs).j();
-                    while (_iterator__ex2g4s.k()) {
-                      var element = _iterator__ex2g4s.l();
-                      var asmArg = convertVal($this, element);
-                      if (asmArg instanceof Stack) {
-                        instructions.e(new Mov(asmArg, new Register(HardwareRegister_EAX_getInstance()), tackyInstr.t1u_1));
-                        instructions.e(new Push(new Register(HardwareRegister_EAX_getInstance()), tackyInstr.t1u_1));
-                      } else {
-                        instructions.e(new Push(asmArg, tackyInstr.t1u_1));
-                      }
-                    }
                     // Inline function 'kotlin.collections.forEachIndexed' call
                     var index = 0;
-                    var _iterator__ex2g4s_0 = registerArgs.j();
-                    while (_iterator__ex2g4s_0.k()) {
-                      var item = _iterator__ex2g4s_0.l();
+                    var _iterator__ex2g4s = registerArgs.j();
+                    while (_iterator__ex2g4s.k()) {
+                      var item = _iterator__ex2g4s.l();
                       var _unary__edvuaz = index;
                       index = _unary__edvuaz + 1 | 0;
                       var index_0 = checkIndexOverflow(_unary__edvuaz);
-                      var asmArg_0 = convertVal($this, item);
-                      instructions.e(new Mov(asmArg_0, new Register(argRegisters.o(index_0)), tackyInstr.t1u_1));
+                      var asmArg = convertVal($this, item);
+                      instructions.e(new Mov(asmArg, new Register(argRegisters.n(index_0)), tackyInstr.t1u_1));
+                    }
+                    // Inline function 'kotlin.collections.forEach' call
+                    var _iterator__ex2g4s_0 = asReversed_0(stackArgs).j();
+                    while (_iterator__ex2g4s_0.k()) {
+                      var element = _iterator__ex2g4s_0.l();
+                      var asmArg_0 = convertVal($this, element);
+                      if (asmArg_0 instanceof Stack) {
+                        instructions.e(new Mov(asmArg_0, new Register(HardwareRegister_EAX_getInstance()), tackyInstr.t1u_1));
+                        instructions.e(new Push(new Register(HardwareRegister_EAX_getInstance()), tackyInstr.t1u_1));
+                      } else {
+                        instructions.e(new Push(asmArg_0, tackyInstr.t1u_1));
+                      }
                     }
                     instructions.e(new Call(tackyInstr.q1u_1, tackyInstr.t1u_1));
                     var bytesToRemove = imul(stackArgs.m(), 8) + stackPadding | 0;
