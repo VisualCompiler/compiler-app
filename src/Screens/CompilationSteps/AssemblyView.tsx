@@ -577,7 +577,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
           if (finalIP !== null) {
             updateExecutionState({
               currentInstruction: finalIP,
-              stepCount: getInstructionLines().length,
+              stepCount: 0,
               registers: executionStateRef.current.registers,
               memory: executionStateRef.current.memory,
             })
