@@ -80,6 +80,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
   )
 
   const [executionSpeed, setExecutionSpeed] = useState(300)
+  const [instantExecution, setInstantExecution] = useState(false)
   const [lastExecutedLine, setLastExecutedLine] = useState<number | null>(null)
   const [isStepping, setIsStepping] = useState(false)
   const [memoryStartAddress, setMemoryStartAddress] = useState(
@@ -140,6 +141,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     clearExecutionState()
     
     if (emulator) {
+      emulator.stop()
       resetAllRegisters()
     }
     
@@ -559,7 +561,49 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
         }
       }
 
-      // Execute one instruction using start with count=1
+      // Handle instant execution differently
+      if (instantExecution) {
+        try {
+          const startAddress = currentState.currentInstruction || 0
+          const programEnd = EMULATOR_CONFIG.CODE_SEGMENT_START + machineCode.length-1
+          
+          // Execute all instructions at once
+          emulator.start(startAddress, programEnd, 0)
+          
+          // Update registers and execution state after completion
+          updateRegisters(emulator)
+          const finalIP = emulator.getInstructionPointer()
+          
+          if (finalIP !== null) {
+            updateExecutionState({
+              currentInstruction: finalIP,
+              stepCount: getInstructionLines().length,
+              registers: executionStateRef.current.registers,
+              memory: executionStateRef.current.memory,
+            })
+          }
+          
+          // Mark execution as complete
+          if (runInterval.current) {
+            clearInterval(runInterval.current)
+            setIsExecuting(false)
+          }
+          customConsole.clear()
+          setHasRun(false)
+          return
+          
+        } catch (error) {
+          console.emulationError(
+            `Instant execution failed: ${error instanceof Error ? error.message : String(error)}`,
+            error,
+            'instant-execution-failed'
+          )
+          handleEmulationError()
+          return
+        }
+      }
+
+      // Execute one instruction at a time
       emulator.start(
         currentState.currentInstruction || 0,
         EMULATOR_CONFIG.CODE_SEGMENT_START + machineCode.length,
@@ -766,13 +810,24 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                 min="200"
                 max="1000"
                 step="50"
+                value={executionSpeed}
                 className="w-20 h-2 bg-foreground/20 rounded-lg appearance-none cursor-pointer"
                 onChange={(e) => setExecutionSpeed(parseInt(e.target.value))}
                 title="Execution Speed (ms)"
+                disabled={instantExecution}
               />
               <span className="text-xs text-muted-foreground w-12">
-                {executionSpeed}ms
+                {instantExecution ? 'Instant' : `${executionSpeed}ms`}
               </span>
+              <label className="flex items-center space-x-1 text-xs">
+                <input
+                  type="checkbox"
+                  checked={instantExecution}
+                  onChange={(e) => setInstantExecution(e.target.checked)}
+                  className="rounded border-border"
+                />
+                <span className="text-muted-foreground">Instant</span>
+              </label>
             </div>
             <Button
               variant="outline"
@@ -799,7 +854,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                 handleStep(true)
               }}
               disabled={
-                isExecuting || isStepping || !binaryLines.length || !hasMain
+                isExecuting || isStepping || !binaryLines.length || !hasMain || instantExecution
               }
             >
               <StepForward className="h-4 w-4" />
@@ -813,7 +868,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                   : 'border-red-600! bg-red-600/20!'
               }`}
               onClick={handleStopResume}
-              disabled={!isExecuting && !isPaused}
+              disabled={(!isExecuting && !isPaused) || instantExecution}
             >
               {isPaused ? (
                 <>
