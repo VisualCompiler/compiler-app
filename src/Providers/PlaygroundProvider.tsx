@@ -107,6 +107,10 @@ const defaultCodeGCD = `int gcd(int a, int b) {
     b = temp;
   }
   return a;
+}
+
+int main(void) {
+  return gcd(10, 5);
 }`
 
 const defaultCodePrime = `int is_prime(int n) {
@@ -115,6 +119,10 @@ const defaultCodePrime = `int is_prime(int n) {
     if (n % i == 0) return 0;
   }
   return 1;
+}
+
+int main(void) {
+  return is_prime(11);
 }`
 
 const defaultCodePower = `int power(int base, int exp) {
@@ -125,10 +133,13 @@ const defaultCodePower = `int power(int base, int exp) {
     exp = exp / 2;
   }
   return result;
+}
+
+int main(void) {
+  return power(2, 3);
 }`
 
-const defaultCodePopCount = `
-int popcount(int n) {
+const defaultCodePopCount = `int popcount(int n) {
     int count = 0;
     while (n > 0) {
         int rem = n - (n / 2) * 2;   
@@ -206,7 +217,7 @@ const initialData = [
       },
       {
         id: v4(),
-        title: 'Pop Count',
+        title: 'Pop Count & Parity',
         code: defaultCodePopCount,
       },
     ],

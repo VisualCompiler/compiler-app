@@ -802,8 +802,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                 </span>
               </div>
             )}
-          </div>
-          <div className="flex items-center space-x-2">
+          <div className="bg-muted p-1 rounded-sm  flex items-center space-x-2">
             <div className="flex items-center space-x-2">
               <input
                 type="range"
@@ -844,6 +843,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
               <Play className="h-4 w-4" />
               {isExecuting ? 'Running...' : 'Run'}
             </Button>
+            </div>
             <Button
               variant="outline"
               className="px-6 border-yellow-600! bg-yellow-600/20! transition-colors"
