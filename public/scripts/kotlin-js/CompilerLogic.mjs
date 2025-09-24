@@ -224,7 +224,7 @@ initMetadataForClass(AsmProgram, 'AsmProgram', VOID, Program, VOID, VOID, VOID, 
 initMetadataForClass(PseudoEliminator, 'PseudoEliminator', PseudoEliminator);
 initMetadataForCompanion(Companion_28);
 initMetadataForClass(CompilationException, 'CompilationException', VOID, Exception);
-initMetadataForClass(LexicalException, 'LexicalException', VOID, CompilationException);
+initMetadataForClass(InvalidCharacterException, 'InvalidCharacterException', VOID, CompilationException);
 initMetadataForClass(UnexpectedTokenException, 'UnexpectedTokenException', VOID, CompilationException);
 initMetadataForClass(UnexpectedEndOfFileException, 'UnexpectedEndOfFileException', UnexpectedEndOfFileException, CompilationException);
 initMetadataForClass(DuplicateVariableDeclaration, 'DuplicateVariableDeclaration', DuplicateVariableDeclaration, CompilationException);
@@ -233,7 +233,6 @@ initMetadataForClass(UndeclaredLabelException, 'UndeclaredLabelException', VOID,
 initMetadataForClass(DuplicateLabelException, 'DuplicateLabelException', VOID, CompilationException);
 initMetadataForClass(InvalidLValueException, 'InvalidLValueException', InvalidLValueException, CompilationException);
 initMetadataForClass(InvalidStatementException, 'InvalidStatementException', VOID, CompilationException);
-initMetadataForClass(TackyException, 'TackyException', VOID, CompilationException);
 initMetadataForClass(NestedFunctionException, 'NestedFunctionException', NestedFunctionException, CompilationException);
 initMetadataForClass(ReDeclarationFunctionException, 'ReDeclarationFunctionException', VOID, CompilationException);
 initMetadataForClass(IncompatibleFuncDeclarationException, 'IncompatibleFuncDeclarationException', VOID, CompilationException);
@@ -241,6 +240,7 @@ initMetadataForClass(NotFunctionException, 'NotFunctionException', VOID, Compila
 initMetadataForClass(NotVariableException, 'NotVariableException', VOID, CompilationException);
 initMetadataForClass(ArgumentCountException, 'ArgumentCountException', VOID, CompilationException);
 initMetadataForClass(IllegalStateException, 'IllegalStateException', VOID, CompilationException);
+initMetadataForClass(TackyException, 'TackyException', VOID, CompilationException);
 initMetadataForClass(NodeType, 'NodeType', VOID, Enum);
 initMetadataForClass(ASTExport, 'ASTExport', ASTExport);
 initMetadataForCompanion(Companion_29, VOID, [SerializerFactory]);
@@ -4399,11 +4399,11 @@ function CompilationException(message, line, column) {
   this.m1i_1 = line;
   this.n1i_1 = column;
 }
-function LexicalException(character, line, column) {
+function InvalidCharacterException(character, line, column) {
   line = line === VOID ? null : line;
   column = column === VOID ? null : column;
-  CompilationException.call(this, "LexicalException(Invalid character '" + toString_0(character) + "')", line, column);
-  captureStack(this, LexicalException);
+  CompilationException.call(this, "InvalidCharacterException('" + toString_0(character) + "' is not a valid character)", line, column);
+  captureStack(this, InvalidCharacterException);
 }
 function UnexpectedTokenException(expected, actual, line, column) {
   line = line === VOID ? null : line;
@@ -4455,12 +4455,6 @@ function InvalidStatementException(message, line, column) {
   CompilationException.call(this, 'InvalidStatementException(' + message + ')', line, column);
   captureStack(this, InvalidStatementException);
 }
-function TackyException(operator, line, column) {
-  line = line === VOID ? null : line;
-  column = column === VOID ? null : column;
-  CompilationException.call(this, 'TackyException(Invalid operator: ' + operator + ')', line, column);
-  captureStack(this, TackyException);
-}
 function NestedFunctionException(line, column) {
   line = line === VOID ? null : line;
   column = column === VOID ? null : column;
@@ -4502,6 +4496,12 @@ function IllegalStateException(name, line, column) {
   column = column === VOID ? null : column;
   CompilationException.call(this, "Internal error: Variable '" + name + "' should have been caught by IdentifierResolution.");
   captureStack(this, IllegalStateException);
+}
+function TackyException(operator, line, column) {
+  line = line === VOID ? null : line;
+  column = column === VOID ? null : column;
+  CompilationException.call(this, 'TackyException(Invalid operator: ' + operator + ')', line, column);
+  captureStack(this, TackyException);
 }
 var NodeType_Program_instance;
 var NodeType_Statement_instance;
@@ -8230,10 +8230,14 @@ function scanToken($this) {
   } else if (char === _Char___init__impl__6a9atx(38)) {
     if (match($this, _Char___init__impl__6a9atx(38))) {
       addToken($this, AND_getInstance());
+    } else {
+      throw new UnexpectedTokenException(toString_0(char), '&', $this.y1b_1, $this.w1b_1 - $this.z1b_1 | 0);
     }
   } else if (char === _Char___init__impl__6a9atx(124)) {
     if (match($this, _Char___init__impl__6a9atx(124))) {
       addToken($this, OR_getInstance());
+    } else {
+      throw new UnexpectedTokenException(toString_0(char), '|', $this.y1b_1, $this.w1b_1 - $this.z1b_1 | 0);
     }
   } else if (char === _Char___init__impl__6a9atx(61)) {
     if (match($this, _Char___init__impl__6a9atx(61))) {
@@ -8269,7 +8273,7 @@ function scanToken($this) {
       } else if (isAlphabetic($this, char)) {
         identifier($this);
       } else {
-        throw new LexicalException(char, $this.y1b_1, $this.w1b_1 - $this.z1b_1 | 0);
+        throw new InvalidCharacterException(char, $this.y1b_1, $this.w1b_1 - $this.z1b_1 | 0);
       }
     }
 }
@@ -12583,7 +12587,7 @@ protoOf(TypeChecker).i1v = function (node) {
     }
     isAlreadyDefined = existingSymbol.m1w_1;
     if (isAlreadyDefined && hasBody) {
-      throw new ReDeclarationFunctionException("Function '" + node.f1j_1 + "' cannot be defined more than once.");
+      throw new ReDeclarationFunctionException(node.f1j_1);
     }
   }
   var newSymbol = new Symbol(funType, isAlreadyDefined || hasBody);
@@ -12595,7 +12599,7 @@ protoOf(TypeChecker).i1v = function (node) {
       var element = _iterator__ex2g4s.l();
       SymbolTable_getInstance().o1w(element, new Symbol(IntType_getInstance(), true));
     }
-    ensureNotNull(node.h1j_1).q1c(this);
+    node.h1j_1.q1c(this);
   }
 };
 protoOf(TypeChecker).u1l = function (node) {
