@@ -41,26 +41,56 @@ export const PlaygroundContext = createContext<
   PlaygroundContextType | undefined
 >(undefined)
 
-const defaultCodeFibonacci = `int fib_next(int n) {
-  if(n == 1) {return 1;}
-  if(n == 2) {return 1;}
+const defaultCodeFibonacciRec = `int fibonacci(int n) {
+  if(n < 1) return 0;
+  if(n < 3) return 1;
 
-  int t1 = 1; int t2 = 1;
-  int next = t1 + t2;
-  for (int i = 3; i <= n; i = i+1) {
-    t1 = t2;
-    t2 = next;
-    next = t1 + t2;
-  }
-
-  return next;
+  return fibonacci(n-1) + fibonacci(n-2);
 }
 
 int main(void) {
-  return fib_next(5);
+  int x = 10;
+  return fibonacci(x);
 }`
 
-const defaultCodeVariablesAndIf = `int main(void) {
+const defaultCodeFibonacciIter = `int fibonacci(int n) {
+    if (n == 0) {
+        return 0;
+    }
+    if (n == 1) {
+        return 1;
+    }
+
+    int a = 0;
+    int b = 1;
+    int i = 2;
+
+    while (i <= n) {
+        int next = a + b;
+        a = b;
+        b = next;
+        i = i + 1;
+    }
+
+    return b;
+}
+
+  int main(void) {
+    int x = 10;
+    int result = fibonacci(x);
+    return result;
+}`
+
+const defaultCodeFactorial = `int factorial(int n) {
+  if(n < 1) return 1;
+  return n * factorial(n-1);
+}
+
+int main(void) {
+  return factorial(5);
+}`
+
+const defaultCodeIf  = `int main(void) {
   int a = 10;
   int b = 0;
   if (a > 5)
@@ -69,6 +99,81 @@ const defaultCodeVariablesAndIf = `int main(void) {
     b = 5 - a;
   return b;
 }`
+
+const defaultCodeGCD = `int gcd(int a, int b) {
+  while (b != 0) {
+    int temp = a % b;
+    a = b;
+    b = temp;
+  }
+  return a;
+}
+
+int main(void) {
+  return gcd(10, 5);
+}`
+
+const defaultCodePrime = `int is_prime(int n) {
+  if (n <= 1) return 0;
+  for (int i = 2; i * i <= n; i = i + 1) {
+    if (n % i == 0) return 0;
+  }
+  return 1;
+}
+
+int main(void) {
+  return is_prime(11);
+}`
+
+const defaultCodePower = `int power(int base, int exp) {
+  int result = 1;
+  while (exp > 0) {
+    if (exp % 2 == 1) result = result * base;
+    base = base * base;
+    exp = exp / 2;
+  }
+  return result;
+}
+
+int main(void) {
+  return power(2, 3);
+}`
+
+const defaultCodePopCount = `int popcount(int n) {
+    int count = 0;
+    while (n > 0) {
+        int rem = n - (n / 2) * 2;   
+        if (rem) {
+            count = count + 1;
+        }
+        n = n / 2;                   
+    }
+    return count;
+}
+
+int parity(int n) {
+    int p = 0;
+    while (n > 0) {
+        int rem = n - (n / 2) * 2;  
+        if (rem) {
+            if (p) {
+                p = 0;
+            } else {
+                p = 1;
+            }
+        }
+        n = n / 2;
+    }
+    return p;
+}
+
+int main(void) {
+    int x = 29;         
+    int c = popcount(x); 
+    int p = parity(c);  
+    return c + p;        
+}`
+
 // preview some initial data (folder, file)
 const initialData = [
   {
@@ -77,13 +182,43 @@ const initialData = [
     files: [
       {
         id: v4(),
-        title: 'Fibonacci',
-        code: defaultCodeFibonacci,
+        title: 'Fibonacci (Recursive)',
+        code: defaultCodeFibonacciRec,
       },
       {
         id: v4(),
-        title: 'VariablesAndIf',
-        code: defaultCodeVariablesAndIf,
+        title: 'Fibonacci (Iterative)',
+        code: defaultCodeFibonacciIter,
+      },
+      {
+        id: v4(),
+        title: 'Factorial',
+        code: defaultCodeFactorial,
+      },
+      {
+        id: v4(),
+        title: 'Greatest Common Divisor',
+        code: defaultCodeGCD,
+      },
+      {
+        id: v4(),
+        title: 'Prime Check',
+        code: defaultCodePrime,
+      },
+      {
+        id: v4(),
+        title: 'Power',
+        code: defaultCodePower,
+      },
+      {
+        id: v4(),
+        title: 'If Else',
+        code: defaultCodeIf ,
+      },
+      {
+        id: v4(),
+        title: 'Pop Count & Parity',
+        code: defaultCodePopCount,
       },
     ],
   },

@@ -112,16 +112,17 @@ export declare namespace ParserOutput {
     }
 }
 export declare class TackyOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: string | undefined, tacky: Nullable<string> | undefined, tackyPretty: Nullable<string> | undefined, precomputedCFGs: string | undefined, optimizations: Array<Nullable<string>> | undefined, functionNames: Array<Nullable<string>> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
+    constructor(stage: string | undefined, tacky: Nullable<string> | undefined, tackyPretty: Nullable<string> | undefined, precomputedCFGs: string | undefined, precomputedAssembly: string | undefined, optimizations: Array<Nullable<string>> | undefined, functionNames: Array<Nullable<string>> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
     get stage(): string;
     get tacky(): Nullable<string>;
     get tackyPretty(): Nullable<string>;
     get precomputedCFGs(): string;
+    get precomputedAssembly(): string;
     get optimizations(): Array<Nullable<string>>;
     get functionNames(): Array<Nullable<string>>;
     get errors(): Array<CompilationError>;
     get sourceLocation(): Nullable<SourceLocationInfo>;
-    copy(stage?: string, tacky?: Nullable<string>, tackyPretty?: Nullable<string>, precomputedCFGs?: string, optimizations?: Array<Nullable<string>>, functionNames?: Array<Nullable<string>>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): TackyOutput;
+    copy(stage?: string, tacky?: Nullable<string>, tackyPretty?: Nullable<string>, precomputedCFGs?: string, precomputedAssembly?: string, optimizations?: Array<Nullable<string>>, functionNames?: Array<Nullable<string>>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): TackyOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
