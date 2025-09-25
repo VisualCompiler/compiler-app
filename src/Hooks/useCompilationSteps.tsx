@@ -122,6 +122,55 @@ const parseInstructions = (raw: string | object) => {
   return raw
 }
 
+const stripComments = (sourceCode: string): string => {
+  let result = sourceCode
+  let inString = false
+  let inChar = false
+  let i = 0
+
+  while (i < result.length) {
+    const char = result[i]
+    const nextChar = result[i + 1]
+
+    if (char === '"' && (i === 0 || result[i - 1] !== '\\')) {
+      inString = !inString
+      i++
+      continue
+    }
+
+    // Only process comments when not inside strings or character literals
+    if (!inString && !inChar) {
+      // Handle line comments
+      if (char === '/' && nextChar === '/') {
+        let endOfLine = result.indexOf('\n', i)
+        if (endOfLine === -1) {
+          endOfLine = result.length
+        }
+        // Remove comment and preserve line numbers
+        result = result.slice(0, i) + result.slice(endOfLine)
+        i = endOfLine
+        continue
+      }
+
+      // Handle block comments
+      if (char === '/' && nextChar === '*') {
+        // Find the closing */
+        let commentEnd = result.indexOf('*/', i + 2)
+        if (commentEnd !== -1) {
+          result = result.slice(0, i) + result.slice(commentEnd + 2)
+          i = commentEnd + 2
+          continue
+        }
+        // If no closing comment found just skip this
+      }
+    }
+
+    i++
+  }
+
+  return result
+}
+
 export const useCompilationSteps = () => {
   const [activeLocation, setActiveLocation] = useState<SourceLocation | null>(
     null
@@ -189,8 +238,11 @@ export const useCompilationSteps = () => {
       return
     }
 
+    // Strip comments before compilation
+    const cleanedSourceCode = stripComments(sourceCode)
+    
     const compilerExport = new window.CompilerLogic.CompilerExport()
-    const resultJson = compilerExport.exportCompilationResults(sourceCode)
+    const resultJson = compilerExport.exportCompilationResults(cleanedSourceCode)
     const result: CompilationResult = JSON.parse(resultJson)
 
     // Extract data from each stage
