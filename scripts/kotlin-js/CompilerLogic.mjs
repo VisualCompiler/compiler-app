@@ -236,8 +236,8 @@ initMetadataForClass(InvalidStatementException, 'InvalidStatementException', VOI
 initMetadataForClass(NestedFunctionException, 'NestedFunctionException', NestedFunctionException, CompilationException);
 initMetadataForClass(ReDeclarationFunctionException, 'ReDeclarationFunctionException', VOID, CompilationException);
 initMetadataForClass(IncompatibleFuncDeclarationException, 'IncompatibleFuncDeclarationException', VOID, CompilationException);
-initMetadataForClass(NotFunctionException, 'NotFunctionException', VOID, CompilationException);
-initMetadataForClass(NotVariableException, 'NotVariableException', VOID, CompilationException);
+initMetadataForClass(NotAFunctionException, 'NotAFunctionException', VOID, CompilationException);
+initMetadataForClass(NotAVariableException, 'NotAVariableException', VOID, CompilationException);
 initMetadataForClass(ArgumentCountException, 'ArgumentCountException', VOID, CompilationException);
 initMetadataForClass(IllegalStateException, 'IllegalStateException', VOID, CompilationException);
 initMetadataForClass(TackyException, 'TackyException', VOID, CompilationException);
@@ -504,11 +504,11 @@ protoOf(Companion).r1c = function (tackyProgram, optimizations) {
       var _iterator__ex2g4s_0 = sorted(optimizations).j();
       while (_iterator__ex2g4s_0.k()) {
         var optimization = _iterator__ex2g4s_0.l();
-        if (optimization.equals(OptimizationType_CONSTANT_FOLDING_getInstance())) {
+        if (optimization.equals(OptimizationType_B_CONSTANT_FOLDING_getInstance())) {
           cfg = Companion_getInstance().p1b_1.e1d(cfg);
-        } else if (optimization.equals(OptimizationType_DEAD_STORE_ELIMINATION_getInstance())) {
+        } else if (optimization.equals(OptimizationType_D_DEAD_STORE_ELIMINATION_getInstance())) {
           cfg = Companion_getInstance().q1b_1.e1d(cfg);
-        } else if (optimization.equals(OptimizationType_COPY_PROPAGATION_getInstance())) {
+        } else if (optimization.equals(OptimizationType_A_COPY_PROPAGATION_getInstance())) {
           cfg = Companion_getInstance().r1b_1.e1d(cfg);
         } else {
           cfg = Companion_getInstance().s1b_1.e1d(cfg);
@@ -4470,31 +4470,31 @@ function ReDeclarationFunctionException(name, line, column) {
 function IncompatibleFuncDeclarationException(name, line, column) {
   line = line === VOID ? null : line;
   column = column === VOID ? null : column;
-  CompilationException.call(this, "Function '" + name + "' redeclared with a different number of parameters.", line, column);
+  CompilationException.call(this, "IncompatibleFuncDeclarationException(Function '" + name + "' redeclared with a different number of parameters.)", line, column);
   captureStack(this, IncompatibleFuncDeclarationException);
 }
-function NotFunctionException(name, line, column) {
+function NotAFunctionException(name, line, column) {
   line = line === VOID ? null : line;
   column = column === VOID ? null : column;
-  CompilationException.call(this, "Cannot call '" + name + "' because it is not a function.", line, column);
-  captureStack(this, NotFunctionException);
+  CompilationException.call(this, "NotAFunctionException(Cannot call '" + name + "' because it is not a function.)", line, column);
+  captureStack(this, NotAFunctionException);
 }
-function NotVariableException(name, line, column) {
+function NotAVariableException(name, line, column) {
   line = line === VOID ? null : line;
   column = column === VOID ? null : column;
-  CompilationException.call(this, "Cannot use function '" + name + "' as a variable.", line, column);
-  captureStack(this, NotVariableException);
+  CompilationException.call(this, "NotAVariableException(Cannot use function '" + name + "' as a variable.)", line, column);
+  captureStack(this, NotAVariableException);
 }
 function ArgumentCountException(name, expected, actual, line, column) {
   line = line === VOID ? null : line;
   column = column === VOID ? null : column;
-  CompilationException.call(this, "Wrong number of arguments for function '" + name + "'. Expected " + expected + ', got ' + actual + '.', line, column);
+  CompilationException.call(this, "ArgumentCountException(Wrong number of arguments for function '" + name + "'. Expected " + expected + ', got ' + actual + '.)', line, column);
   captureStack(this, ArgumentCountException);
 }
 function IllegalStateException(name, line, column) {
   line = line === VOID ? null : line;
   column = column === VOID ? null : column;
-  CompilationException.call(this, "Internal error: Variable '" + name + "' should have been caught by IdentifierResolution.");
+  CompilationException.call(this, "IllegalStateException(Internal error: Variable '" + name + "' should have been caught by IdentifierResolution.)");
   captureStack(this, IllegalStateException);
 }
 function TackyException(operator, line, column) {
@@ -6849,7 +6849,7 @@ function CompilerExport$exportControlFlowGraph$lambda(it) {
   return it.g1s(0);
 }
 function CompilerExport() {
-  this.x1r_1 = mapOf([to('CONSTANT_FOLDING', OptimizationType_CONSTANT_FOLDING_getInstance()), to('DEAD_STORE_ELIMINATION', OptimizationType_DEAD_STORE_ELIMINATION_getInstance()), to('COPY_PROPAGATION', OptimizationType_COPY_PROPAGATION_getInstance()), to('UNREACHABLE_CODE_ELIMINATION', OptimizationType_UNREACHABLE_CODE_ELIMINATION_getInstance())]);
+  this.x1r_1 = mapOf([to('CONSTANT_FOLDING', OptimizationType_B_CONSTANT_FOLDING_getInstance()), to('DEAD_STORE_ELIMINATION', OptimizationType_D_DEAD_STORE_ELIMINATION_getInstance()), to('COPY_PROPAGATION', OptimizationType_A_COPY_PROPAGATION_getInstance()), to('UNREACHABLE_CODE_ELIMINATION', OptimizationType_C_UNREACHABLE_CODE_ELIMINATION_getInstance())]);
 }
 protoOf(CompilerExport).exportCompilationResults = function (code) {
   // Inline function 'kotlin.collections.mutableListOf' call
@@ -6906,7 +6906,7 @@ protoOf(CompilerExport).exportCompilationResults = function (code) {
     var tmp$ret$13 = isInterface(this_5, KSerializer) ? this_5 : THROW_CCE();
     var tmp7_tacky = this_3.p10(tmp$ret$13, tackyProgram);
     outputs.e(new TackyOutput(VOID, tmp7_tacky, tmp2_tackyPretty, tmp4_precomputedCFGs, tmp5_precomputedAssembly, VOID, tmp3_functionNames, tmp6_errors, sourceLocationInfo));
-    var optimizedTacky = Companion_getInstance().r1c(tacky, listOf_0([OptimizationType_CONSTANT_FOLDING_getInstance(), OptimizationType_DEAD_STORE_ELIMINATION_getInstance(), OptimizationType_COPY_PROPAGATION_getInstance(), OptimizationType_UNREACHABLE_CODE_ELIMINATION_getInstance()]));
+    var optimizedTacky = Companion_getInstance().r1c(tacky, listOf_0([OptimizationType_B_CONSTANT_FOLDING_getInstance(), OptimizationType_D_DEAD_STORE_ELIMINATION_getInstance(), OptimizationType_A_COPY_PROPAGATION_getInstance(), OptimizationType_C_UNREACHABLE_CODE_ELIMINATION_getInstance()]));
     var asm = Companion_getInstance().k1d(optimizedTacky);
     var finalAssemblyString = codeEmitter.e1g(asm instanceof AsmProgram ? asm : THROW_CCE());
     var rawAssembly = codeEmitter.g1g(asm);
@@ -8494,7 +8494,7 @@ function foldJump($this, condition, expectZero, target) {
 }
 function ConstantFolding() {
   Optimization.call(this);
-  this.i1d_1 = OptimizationType_CONSTANT_FOLDING_getInstance();
+  this.i1d_1 = OptimizationType_B_CONSTANT_FOLDING_getInstance();
 }
 protoOf(ConstantFolding).e1d = function (cfg) {
   // Inline function 'kotlin.collections.map' call
@@ -9036,7 +9036,7 @@ function CopyPropagation() {
   var tmp = this;
   // Inline function 'kotlin.collections.mutableMapOf' call
   tmp.f1d_1 = LinkedHashMap_init_$Create$();
-  this.g1d_1 = OptimizationType_COPY_PROPAGATION_getInstance();
+  this.g1d_1 = OptimizationType_A_COPY_PROPAGATION_getInstance();
 }
 protoOf(CopyPropagation).e1d = function (cfg) {
   // Inline function 'kotlin.collections.map' call
@@ -9227,7 +9227,7 @@ protoOf(CopyPropagation).e1d = function (cfg) {
 };
 function DeadStoreElimination() {
   Optimization.call(this);
-  this.h1d_1 = OptimizationType_DEAD_STORE_ELIMINATION_getInstance();
+  this.h1d_1 = OptimizationType_D_DEAD_STORE_ELIMINATION_getInstance();
 }
 protoOf(DeadStoreElimination).e1d = function (cfg) {
   var liveness = new LivenessAnalysis();
@@ -9486,19 +9486,19 @@ protoOf(LivenessAnalysis).b1v = function (cfg) {
   }
   return this.z1u_1;
 };
-var OptimizationType_CONSTANT_FOLDING_instance;
-var OptimizationType_DEAD_STORE_ELIMINATION_instance;
-var OptimizationType_UNREACHABLE_CODE_ELIMINATION_instance;
-var OptimizationType_COPY_PROPAGATION_instance;
+var OptimizationType_B_CONSTANT_FOLDING_instance;
+var OptimizationType_D_DEAD_STORE_ELIMINATION_instance;
+var OptimizationType_C_UNREACHABLE_CODE_ELIMINATION_instance;
+var OptimizationType_A_COPY_PROPAGATION_instance;
 var OptimizationType_entriesInitialized;
 function OptimizationType_initEntries() {
   if (OptimizationType_entriesInitialized)
     return Unit_instance;
   OptimizationType_entriesInitialized = true;
-  OptimizationType_CONSTANT_FOLDING_instance = new OptimizationType('CONSTANT_FOLDING', 0);
-  OptimizationType_DEAD_STORE_ELIMINATION_instance = new OptimizationType('DEAD_STORE_ELIMINATION', 1);
-  OptimizationType_UNREACHABLE_CODE_ELIMINATION_instance = new OptimizationType('UNREACHABLE_CODE_ELIMINATION', 2);
-  OptimizationType_COPY_PROPAGATION_instance = new OptimizationType('COPY_PROPAGATION', 3);
+  OptimizationType_B_CONSTANT_FOLDING_instance = new OptimizationType('B_CONSTANT_FOLDING', 0);
+  OptimizationType_D_DEAD_STORE_ELIMINATION_instance = new OptimizationType('D_DEAD_STORE_ELIMINATION', 1);
+  OptimizationType_C_UNREACHABLE_CODE_ELIMINATION_instance = new OptimizationType('C_UNREACHABLE_CODE_ELIMINATION', 2);
+  OptimizationType_A_COPY_PROPAGATION_instance = new OptimizationType('A_COPY_PROPAGATION', 3);
 }
 function OptimizationType(name, ordinal) {
   Enum.call(this, name, ordinal);
@@ -9507,7 +9507,7 @@ function Optimization() {
 }
 function OptimizationManager() {
   OptimizationManager_instance = this;
-  this.y1r_1 = mapOf([to(OptimizationType_CONSTANT_FOLDING_getInstance(), new ConstantFolding()), to(OptimizationType_DEAD_STORE_ELIMINATION_getInstance(), new DeadStoreElimination()), to(OptimizationType_UNREACHABLE_CODE_ELIMINATION_getInstance(), new UnreachableCodeElimination()), to(OptimizationType_COPY_PROPAGATION_getInstance(), new CopyPropagation())]);
+  this.y1r_1 = mapOf([to(OptimizationType_B_CONSTANT_FOLDING_getInstance(), new ConstantFolding()), to(OptimizationType_D_DEAD_STORE_ELIMINATION_getInstance(), new DeadStoreElimination()), to(OptimizationType_C_UNREACHABLE_CODE_ELIMINATION_getInstance(), new UnreachableCodeElimination()), to(OptimizationType_A_COPY_PROPAGATION_getInstance(), new CopyPropagation())]);
 }
 protoOf(OptimizationManager).z1r = function (cfg, enabledOptimizations) {
   var currentCfg = cfg;
@@ -9539,21 +9539,21 @@ function OptimizationManager_getInstance() {
     new OptimizationManager();
   return OptimizationManager_instance;
 }
-function OptimizationType_CONSTANT_FOLDING_getInstance() {
+function OptimizationType_B_CONSTANT_FOLDING_getInstance() {
   OptimizationType_initEntries();
-  return OptimizationType_CONSTANT_FOLDING_instance;
+  return OptimizationType_B_CONSTANT_FOLDING_instance;
 }
-function OptimizationType_DEAD_STORE_ELIMINATION_getInstance() {
+function OptimizationType_D_DEAD_STORE_ELIMINATION_getInstance() {
   OptimizationType_initEntries();
-  return OptimizationType_DEAD_STORE_ELIMINATION_instance;
+  return OptimizationType_D_DEAD_STORE_ELIMINATION_instance;
 }
-function OptimizationType_UNREACHABLE_CODE_ELIMINATION_getInstance() {
+function OptimizationType_C_UNREACHABLE_CODE_ELIMINATION_getInstance() {
   OptimizationType_initEntries();
-  return OptimizationType_UNREACHABLE_CODE_ELIMINATION_instance;
+  return OptimizationType_C_UNREACHABLE_CODE_ELIMINATION_instance;
 }
-function OptimizationType_COPY_PROPAGATION_getInstance() {
+function OptimizationType_A_COPY_PROPAGATION_getInstance() {
   OptimizationType_initEntries();
-  return OptimizationType_COPY_PROPAGATION_instance;
+  return OptimizationType_A_COPY_PROPAGATION_instance;
 }
 function removeUnreachableBlocks($this, cfg) {
   // Inline function 'kotlin.collections.mutableSetOf' call
@@ -10011,7 +10011,7 @@ function UnreachableCodeElimination$removeEmptyBlocks$lambda_0($blocksToRemove) 
 }
 function UnreachableCodeElimination() {
   Optimization.call(this);
-  this.d1d_1 = OptimizationType_UNREACHABLE_CODE_ELIMINATION_getInstance();
+  this.d1d_1 = OptimizationType_C_UNREACHABLE_CODE_ELIMINATION_getInstance();
 }
 protoOf(UnreachableCodeElimination).e1d = function (cfg) {
   var currentCfg = removeUnreachableBlocks(this, cfg);
@@ -12230,19 +12230,27 @@ protoOf(LoopLabeling).p1k = function (node) {
 };
 protoOf(LoopLabeling).d1w = function (node) {
   this.k1c_1 = newLabel(this);
-  node.d1l_1 = ensureNotNull(this.k1c_1);
+  var tmp = node;
+  var tmp0_elvis_lhs = this.k1c_1;
+  var tmp_0;
+  if (tmp0_elvis_lhs == null) {
+    return Unit_instance;
+  } else {
+    tmp_0 = tmp0_elvis_lhs;
+  }
+  tmp.d1l_1 = tmp_0;
   node.c1l_1.q1c(this);
   this.k1c_1 = null;
-  var tmp0_safe_receiver = node.b1l_1;
-  if (tmp0_safe_receiver == null)
-    null;
-  else
-    tmp0_safe_receiver.q1c(this);
-  var tmp1_safe_receiver = node.a1l_1;
+  var tmp1_safe_receiver = node.b1l_1;
   if (tmp1_safe_receiver == null)
     null;
   else
     tmp1_safe_receiver.q1c(this);
+  var tmp2_safe_receiver = node.a1l_1;
+  if (tmp2_safe_receiver == null)
+    null;
+  else
+    tmp2_safe_receiver.q1c(this);
   node.z1k_1.q1c(this);
 };
 protoOf(LoopLabeling).w1k = function (node) {
@@ -12617,7 +12625,7 @@ protoOf(TypeChecker).l1v = function (node) {
   var symbol = tmp;
   var tmp_0 = symbol.l1w_1;
   if (!(tmp_0 instanceof IntType)) {
-    throw new NotVariableException(node.l1m_1);
+    throw new NotAVariableException(node.l1m_1);
   }
 };
 protoOf(TypeChecker).i1m = function (node) {
@@ -12757,7 +12765,7 @@ protoOf(TypeChecker).i1w = function (node) {
   var symbol = tmp;
   var type = symbol.l1w_1;
   if (type instanceof IntType)
-    throw new NotFunctionException(node.i1p_1);
+    throw new NotAFunctionException(node.i1p_1);
   else {
     if (type instanceof FunType) {
       if (!(type.k1w_1 === node.j1p_1.m())) {
