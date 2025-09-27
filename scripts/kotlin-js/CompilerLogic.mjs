@@ -8593,24 +8593,57 @@ protoOf(ConstantFolding).e1d = function (cfg) {
             tmp$ret$7 = null;
           }
           var nextBlock = tmp$ret$7;
+          var tmp_2;
+          if (element instanceof JumpIfZero) {
+            tmp_2 = element.m1t_1;
+          } else {
+            if (element instanceof JumpIfNotZero) {
+              tmp_2 = element.j1t_1;
+            } else {
+              tmp_2 = null;
+            }
+          }
+          var target_0 = tmp_2;
+          // Inline function 'kotlin.collections.find' call
+          var tmp0_3 = cfg.a1d_1;
+          var tmp$ret$10;
+          $l$block_2: {
+            // Inline function 'kotlin.collections.firstOrNull' call
+            var _iterator__ex2g4s_4 = tmp0_3.j();
+            while (_iterator__ex2g4s_4.k()) {
+              var element_3 = _iterator__ex2g4s_4.l();
+              if (equals(first(element_3.a1s_1), target_0)) {
+                tmp$ret$10 = element_3;
+                break $l$block_2;
+              }
+            }
+            tmp$ret$10 = null;
+          }
+          var labelBlock_0 = tmp$ret$10;
+          var tmp_3;
           if (!(nextBlock == null)) {
+            tmp_3 = !(nextBlock.z1r_1 === (labelBlock_0 == null ? null : labelBlock_0.z1r_1));
+          } else {
+            tmp_3 = false;
+          }
+          if (tmp_3) {
             item.c1s_1.x1(item.z1r_1 + 1 | 0);
             // Inline function 'kotlin.collections.find' call
-            var tmp0_3 = cfg.b1d_1;
-            var tmp$ret$10;
-            $l$block_2: {
+            var tmp0_4 = cfg.b1d_1;
+            var tmp$ret$13;
+            $l$block_3: {
               // Inline function 'kotlin.collections.firstOrNull' call
-              var _iterator__ex2g4s_4 = tmp0_3.j();
-              while (_iterator__ex2g4s_4.k()) {
-                var element_3 = _iterator__ex2g4s_4.l();
-                if (element_3.d1s_1.i1j() === item.z1r_1 && element_3.e1s_1.i1j() === (item.z1r_1 + 1 | 0)) {
-                  tmp$ret$10 = element_3;
-                  break $l$block_2;
+              var _iterator__ex2g4s_5 = tmp0_4.j();
+              while (_iterator__ex2g4s_5.k()) {
+                var element_4 = _iterator__ex2g4s_5.l();
+                if (element_4.d1s_1.i1j() === item.z1r_1 && element_4.e1s_1.i1j() === (item.z1r_1 + 1 | 0)) {
+                  tmp$ret$13 = element_4;
+                  break $l$block_3;
                 }
               }
-              tmp$ret$10 = null;
+              tmp$ret$13 = null;
             }
-            var edgeToRemove_0 = tmp$ret$10;
+            var edgeToRemove_0 = tmp$ret$13;
             if (!(edgeToRemove_0 == null)) {
               cfg.b1d_1.x1(edgeToRemove_0);
             }
@@ -8625,8 +8658,8 @@ protoOf(ConstantFolding).e1d = function (cfg) {
       }
     }
     var optimizedInstructions = destination_0;
-    var tmp$ret$19 = item.y1t(VOID, optimizedInstructions);
-    destination.e(tmp$ret$19);
+    var tmp$ret$22 = item.y1t(VOID, optimizedInstructions);
+    destination.e(tmp$ret$22);
   }
   var optimizedBlocks = destination;
   return cfg.z1t(VOID, VOID, optimizedBlocks);
