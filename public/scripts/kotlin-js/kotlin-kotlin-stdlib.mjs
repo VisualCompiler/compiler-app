@@ -600,6 +600,11 @@ function plus(_this__u8e3s4, elements) {
     return result_0;
   }
 }
+function first(_this__u8e3s4) {
+  if (_this__u8e3s4.o())
+    throw NoSuchElementException_init_$Create$_0('List is empty.');
+  return _this__u8e3s4.n(0);
+}
 function firstOrNull(_this__u8e3s4) {
   return _this__u8e3s4.o() ? null : _this__u8e3s4.n(0);
 }
@@ -634,31 +639,6 @@ function withIndex_0(_this__u8e3s4) {
 function getOrNull(_this__u8e3s4, index) {
   return (0 <= index ? index < _this__u8e3s4.m() : false) ? _this__u8e3s4.n(index) : null;
 }
-function toSet_0(_this__u8e3s4) {
-  if (isInterface(_this__u8e3s4, Collection)) {
-    var tmp;
-    switch (_this__u8e3s4.m()) {
-      case 0:
-        tmp = emptySet();
-        break;
-      case 1:
-        var tmp_0;
-        if (isInterface(_this__u8e3s4, KtList)) {
-          tmp_0 = _this__u8e3s4.n(0);
-        } else {
-          tmp_0 = _this__u8e3s4.j().l();
-        }
-
-        tmp = setOf(tmp_0);
-        break;
-      default:
-        tmp = toCollection_0(_this__u8e3s4, LinkedHashSet_init_$Create$_1(mapCapacity(_this__u8e3s4.m())));
-        break;
-    }
-    return tmp;
-  }
-  return optimizeReadOnlySet(toCollection_0(_this__u8e3s4, LinkedHashSet_init_$Create$()));
-}
 function toMutableList_0(_this__u8e3s4) {
   return ArrayList_init_$Create$_1(_this__u8e3s4);
 }
@@ -684,6 +664,31 @@ function reversed(_this__u8e3s4) {
   reverse(list);
   return list;
 }
+function toSet_0(_this__u8e3s4) {
+  if (isInterface(_this__u8e3s4, Collection)) {
+    var tmp;
+    switch (_this__u8e3s4.m()) {
+      case 0:
+        tmp = emptySet();
+        break;
+      case 1:
+        var tmp_0;
+        if (isInterface(_this__u8e3s4, KtList)) {
+          tmp_0 = _this__u8e3s4.n(0);
+        } else {
+          tmp_0 = _this__u8e3s4.j().l();
+        }
+
+        tmp = setOf(tmp_0);
+        break;
+      default:
+        tmp = toCollection_0(_this__u8e3s4, LinkedHashSet_init_$Create$_1(mapCapacity(_this__u8e3s4.m())));
+        break;
+    }
+    return tmp;
+  }
+  return optimizeReadOnlySet(toCollection_0(_this__u8e3s4, LinkedHashSet_init_$Create$()));
+}
 function contains_5(_this__u8e3s4, element) {
   if (isInterface(_this__u8e3s4, Collection))
     return _this__u8e3s4.q(element);
@@ -691,11 +696,6 @@ function contains_5(_this__u8e3s4, element) {
 }
 function distinct(_this__u8e3s4) {
   return toList_0(toMutableSet(_this__u8e3s4));
-}
-function first(_this__u8e3s4) {
-  if (_this__u8e3s4.o())
-    throw NoSuchElementException_init_$Create$_0('List is empty.');
-  return _this__u8e3s4.n(0);
 }
 function last(_this__u8e3s4) {
   if (_this__u8e3s4.o())

@@ -774,6 +774,7 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
     <div className="flex h-full w-full flex-col overflow-clip">
       <div className="border-b border-border bg-muted/50">
         <div className="flex items-center m-1 justify-between">
+          {/* Left side - Controls and Status */}
           <div className="flex items-center space-x-2">
             <Toggle
               variant="default"
@@ -802,8 +803,10 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                 </span>
               </div>
             )}
-          <div className="bg-muted p-1 rounded-sm  flex items-center space-x-2">
-            <div className="flex items-center space-x-2">
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <div className="bg-muted p-2 rounded-sm flex items-center space-x-2">
               <input
                 type="range"
                 min="200"
@@ -828,69 +831,72 @@ export const AssemblyView: React.FC<AssemblyViewProps> = ({
                 <span className="text-muted-foreground">Instant</span>
               </label>
             </div>
-            <Button
-              variant="outline"
-              className="px-6 border-emerald-700! bg-emerald-700/20! transition-colors"
-              onClick={handleRun}
-              disabled={
-                isExecuting ||
-                isStepping ||
-                !binaryLines.length ||
-                !hasMain ||
-                hasRun
-              }
-            >
-              <Play className="h-4 w-4" />
-              {isExecuting ? 'Running...' : 'Run'}
-            </Button>
-            </div>
-            <Button
-              variant="outline"
-              className="px-6 border-yellow-600! bg-yellow-600/20! transition-colors"
-              onClick={async () => {
-                if (executionState.stepCount === 0) {
-                  await performFullReset()
+
+            {/* Execution Buttons */}
+            <div className="flex items-center space-x-1">
+              <Button
+                variant="outline"
+                className="px-6 border-emerald-700! bg-emerald-700/20! transition-colors"
+                onClick={handleRun}
+                disabled={
+                  isExecuting ||
+                  isStepping ||
+                  !binaryLines.length ||
+                  !hasMain ||
+                  hasRun
                 }
-                handleStep(true)
-              }}
-              disabled={
-                isExecuting || isStepping || !binaryLines.length || !hasMain || instantExecution
-              }
-            >
-              <StepForward className="h-4 w-4" />
-              {isStepping ? 'Stepping...' : 'Step'}
-            </Button>
-            <Button
-              variant="outline"
-              className={`px-6 transition-colors ${
-                isPaused
-                  ? 'border-green-600! bg-green-600/20!'
-                  : 'border-red-600! bg-red-600/20!'
-              }`}
-              onClick={handleStopResume}
-              disabled={(!isExecuting && !isPaused) || instantExecution}
-            >
-              {isPaused ? (
-                <>
-                  <Play className="h-4 w-4" />
-                  Resume
-                </>
-              ) : (
-                <>
-                  <Pause className="h-4 w-4" />
-                  Pause
-                </>
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              className="px-6 border-blue-600! bg-blue-600/20! transition-colors"
-              onClick={handleReset}
-              disabled={!executionState}
-            >
-              <RotateCcw className="h-4 w-4" />
-              Reset
-            </Button>
+              >
+                <Play className="h-4 w-4" />
+                {isExecuting ? 'Running...' : 'Run'}
+              </Button>
+              <Button
+                variant="outline"
+                className="px-6 border-yellow-600! bg-yellow-600/20! transition-colors"
+                onClick={async () => {
+                  if (executionState.stepCount === 0) {
+                    await performFullReset()
+                  }
+                  handleStep(true)
+                }}
+                disabled={
+                  isExecuting || isStepping || !binaryLines.length || !hasMain || instantExecution
+                }
+              >
+                <StepForward className="h-4 w-4" />
+                {isStepping ? 'Stepping...' : 'Step'}
+              </Button>
+              <Button
+                variant="outline"
+                className={`px-6 transition-colors ${
+                  isPaused
+                    ? 'border-green-600! bg-green-600/20!'
+                    : 'border-red-600! bg-red-600/20!'
+                }`}
+                onClick={handleStopResume}
+                disabled={(!isExecuting && !isPaused) || instantExecution}
+              >
+                {isPaused ? (
+                  <>
+                    <Play className="h-4 w-4" />
+                    Resume
+                  </>
+                ) : (
+                  <>
+                    <Pause className="h-4 w-4" />
+                    Pause
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                className="px-6 border-blue-600! bg-blue-600/20! transition-colors"
+                onClick={handleReset}
+                disabled={!executionState}
+              >
+                <RotateCcw className="h-4 w-4" />
+                Reset
+              </Button>
+            </div>
           </div>
         </div>
       </div>
