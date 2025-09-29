@@ -127,10 +127,10 @@ export const X86_REGISTERS: Register[] = [
 ];
 
 // Emulator settings for x86-64 architecture
-export const EMULATOR_CONFIG = {
+export const EMULATOR_CONFIG = { 
   CODE_SIZE: 0x1000_0000,
   STACK_SIZE: 0x1000_0000,
-  CODE_SEGMENT_START: 0x0,
+  CODE_SEGMENT_START: 0x0, 
   STACK_SEGMENT_START: 0x3000_0000,
 };
 
@@ -159,6 +159,10 @@ export class UnicornEmulator {
       this.setRegister(
         window.uc.X86_REG_RSP,
         EMULATOR_CONFIG.STACK_SEGMENT_START + EMULATOR_CONFIG.STACK_SIZE - 8
+      );
+      this.setRegister(
+        window.uc.X86_REG_RIP,
+        EMULATOR_CONFIG.CODE_SEGMENT_START
       );
       const layoutMapped = this.mapDefaultLayout();
       return layoutMapped;
