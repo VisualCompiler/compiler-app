@@ -251,6 +251,9 @@ export const useCompilationSteps = () => {
     const parserOutput = result.outputs.find((o) => o.stage === 'parser')
 
     const tackyOutput = result.outputs.find((o) => o.stage === 'tacky')
+
+    const cfgOutput = result.outputs.find((o) => o.stage === 'optimizations')
+
     const codeGenOutput = result.outputs.find((o) => o.stage === 'assembly')
 
     const tokens = (lexerOutput as any)?.tokens
@@ -362,11 +365,11 @@ export const useCompilationSteps = () => {
       }
     }
 
-    const functionNames = (tackyOutput as any)?.functionNames || []
+    const functionNames = (cfgOutput as any)?.functionNames || []
     const hasMain = functionNames.includes('main')
-    const precomputedCFGs = (tackyOutput as any)?.precomputedCFGs || null
+    const precomputedCFGs = (cfgOutput as any)?.precomputedCFGs || null
     const precomputedAssembly =
-      (tackyOutput as any)?.precomputedAssembly || null
+      (codeGenOutput as any)?.precomputedAssembly || null
 
     if (precomputedAssembly) {
       try {
@@ -378,10 +381,7 @@ export const useCompilationSteps = () => {
         console.error('ERROR PARSING PRECOMPUTED ASSEMBLY:', e)
       }
     }
-    const availableOptimizations = (tackyOutput as any)?.optimizations || [
-      'CONSTANT_FOLDING',
-      'DEAD_STORE_ELIMINATION',
-    ]
+    const availableOptimizations = (cfgOutput as any)?.optimizations
     const asmCode = (codeGenOutput as any)?.assembly || ''
 
     setCompilationResult({
