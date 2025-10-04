@@ -494,9 +494,9 @@ protoOf(JsonArray).m = function () {
   return this.q12_1.m();
 };
 protoOf(JsonArray).r12 = function (element) {
-  return this.q12_1.q(element);
+  return this.q12_1.r(element);
 };
-protoOf(JsonArray).q = function (element) {
+protoOf(JsonArray).r = function (element) {
   if (!(element instanceof JsonElement))
     return false;
   return this.r12(element instanceof JsonElement ? element : THROW_CCE());
@@ -518,8 +518,8 @@ protoOf(JsonArray).o = function () {
 protoOf(JsonArray).j = function () {
   return this.q12_1.j();
 };
-protoOf(JsonArray).r = function (index) {
-  return this.q12_1.r(index);
+protoOf(JsonArray).q = function (index) {
+  return this.q12_1.q(index);
 };
 protoOf(JsonArray).equals = function (other) {
   return equals(this.q12_1, other);
@@ -1931,7 +1931,7 @@ function throwSerializerNotFound(type, jsonTree) {
 function validateIfSealed(serializer, actualSerializer, classDiscriminator) {
   if (!(serializer instanceof SealedClassSerializer))
     return Unit_instance;
-  if (jsonCachedSerialNames(actualSerializer.jg()).q(classDiscriminator)) {
+  if (jsonCachedSerialNames(actualSerializer.jg()).r(classDiscriminator)) {
     var baseName = serializer.jg().kh();
     var actualName = actualSerializer.jg().kh();
     // Inline function 'kotlin.error' call
@@ -2834,7 +2834,7 @@ protoOf(StreamingJsonEncoder).wk = function (enumDescriptor, index) {
 };
 function get_isUnsignedNumber(_this__u8e3s4) {
   _init_properties_StreamingJsonEncoder_kt__pn1bsi();
-  return _this__u8e3s4.xh() && get_unsignedNumberDescriptors().q(_this__u8e3s4);
+  return _this__u8e3s4.xh() && get_unsignedNumberDescriptors().r(_this__u8e3s4);
 }
 function get_isUnquotedLiteral(_this__u8e3s4) {
   _init_properties_StreamingJsonEncoder_kt__pn1bsi();
@@ -3520,7 +3520,7 @@ protoOf(JsonTreeDecoder).rx = function (descriptor, index) {
   if (strategy == null) {
     if (!this.l18_1.h12_1)
       return baseName;
-    if (this.s1().v1().q(baseName))
+    if (this.s1().v1().r(baseName))
       return baseName;
   }
   var deserializationNamesMap_0 = deserializationNamesMap(this.k12(), descriptor);
@@ -3593,7 +3593,7 @@ protoOf(JsonTreeDecoder).sj = function (descriptor) {
   var tmp1_iterator = this.s1().v1().j();
   while (tmp1_iterator.k()) {
     var key = tmp1_iterator.l();
-    if (!names.q(key) && !(key === this.h19_1)) {
+    if (!names.r(key) && !(key === this.h19_1)) {
       throw UnknownKeyException(key, this.s1().toString());
     }
   }

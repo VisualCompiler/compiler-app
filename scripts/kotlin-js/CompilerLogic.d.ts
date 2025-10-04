@@ -112,17 +112,13 @@ export declare namespace ParserOutput {
     }
 }
 export declare class TackyOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: string | undefined, tacky: Nullable<string> | undefined, tackyPretty: Nullable<string> | undefined, precomputedCFGs: string | undefined, precomputedAssembly: string | undefined, optimizations: Array<Nullable<string>> | undefined, functionNames: Array<Nullable<string>> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
+    constructor(stage: string | undefined, tacky: Nullable<string> | undefined, tackyPretty: Nullable<string> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
     get stage(): string;
     get tacky(): Nullable<string>;
     get tackyPretty(): Nullable<string>;
-    get precomputedCFGs(): string;
-    get precomputedAssembly(): string;
-    get optimizations(): Array<Nullable<string>>;
-    get functionNames(): Array<Nullable<string>>;
     get errors(): Array<CompilationError>;
     get sourceLocation(): Nullable<SourceLocationInfo>;
-    copy(stage?: string, tacky?: Nullable<string>, tackyPretty?: Nullable<string>, precomputedCFGs?: string, precomputedAssembly?: string, optimizations?: Array<Nullable<string>>, functionNames?: Array<Nullable<string>>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): TackyOutput;
+    copy(stage?: string, tacky?: Nullable<string>, tackyPretty?: Nullable<string>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): TackyOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;
@@ -142,14 +138,43 @@ export declare namespace TackyOutput {
         }
     }
 }
+export declare class OptimizationOutput extends CompilationOutput.$metadata$.constructor {
+    constructor(stage: string | undefined, precomputedCFGs: string | undefined, optimizations: Array<Nullable<string>> | undefined, functionNames: Array<Nullable<string>> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
+    get stage(): string;
+    get precomputedCFGs(): string;
+    get optimizations(): Array<Nullable<string>>;
+    get functionNames(): Array<Nullable<string>>;
+    get errors(): Array<CompilationError>;
+    get sourceLocation(): Nullable<SourceLocationInfo>;
+    copy(stage?: string, precomputedCFGs?: string, optimizations?: Array<Nullable<string>>, functionNames?: Array<Nullable<string>>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): OptimizationOutput;
+    toString(): string;
+    hashCode(): number;
+    equals(other: Nullable<any>): boolean;
+}
+/** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+export declare namespace OptimizationOutput.$metadata$ {
+    const constructor: abstract new () => OptimizationOutput;
+}
+export declare namespace OptimizationOutput {
+    abstract class Companion extends KtSingleton<Companion.$metadata$.constructor>() {
+        private constructor();
+    }
+    /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+    namespace Companion.$metadata$ {
+        abstract class constructor {
+            private constructor();
+        }
+    }
+}
 export declare class AssemblyOutput extends CompilationOutput.$metadata$.constructor {
-    constructor(stage: string | undefined, assembly: Nullable<string> | undefined, rawAssembly: Nullable<string> | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
+    constructor(stage: string | undefined, assembly: Nullable<string> | undefined, rawAssembly: Nullable<string> | undefined, precomputedAssembly: string | undefined, errors: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>);
     get stage(): string;
     get assembly(): Nullable<string>;
     get rawAssembly(): Nullable<string>;
+    get precomputedAssembly(): string;
     get errors(): Array<CompilationError>;
     get sourceLocation(): Nullable<SourceLocationInfo>;
-    copy(stage?: string, assembly?: Nullable<string>, rawAssembly?: Nullable<string>, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): AssemblyOutput;
+    copy(stage?: string, assembly?: Nullable<string>, rawAssembly?: Nullable<string>, precomputedAssembly?: string, errors?: Array<CompilationError>, sourceLocation?: Nullable<SourceLocationInfo>): AssemblyOutput;
     toString(): string;
     hashCode(): number;
     equals(other: Nullable<any>): boolean;

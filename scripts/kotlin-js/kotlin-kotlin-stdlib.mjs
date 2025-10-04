@@ -73,8 +73,8 @@ initMetadataForInterface(KtSet, 'Set', VOID, VOID, [Collection]);
 initMetadataForInterface(Entry, 'Entry');
 initMetadataForInterface(KtMap, 'Map');
 initMetadataForInterface(MutableIterable, 'MutableIterable');
-initMetadataForInterface(KtMutableList, 'MutableList', VOID, VOID, [KtList, Collection, MutableIterable]);
-initMetadataForInterface(KtMutableSet, 'MutableSet', VOID, VOID, [KtSet, Collection, MutableIterable]);
+initMetadataForInterface(KtMutableList, 'MutableList', VOID, VOID, [KtList, MutableIterable, Collection]);
+initMetadataForInterface(KtMutableSet, 'MutableSet', VOID, VOID, [KtSet, MutableIterable, Collection]);
 initMetadataForInterface(KtMutableMap, 'MutableMap', VOID, VOID, [KtMap]);
 initMetadataForCompanion(Companion_0);
 initMetadataForClass(Enum, 'Enum', VOID, VOID, [Comparable]);
@@ -95,7 +95,7 @@ initMetadataForObject(OtherLowercase, 'OtherLowercase');
 initMetadataForInterface(Comparator, 'Comparator');
 initMetadataForObject(Unit, 'Unit');
 initMetadataForClass(AbstractCollection, 'AbstractCollection', VOID, VOID, [Collection]);
-initMetadataForClass(AbstractMutableCollection, 'AbstractMutableCollection', VOID, AbstractCollection, [AbstractCollection, Collection, MutableIterable]);
+initMetadataForClass(AbstractMutableCollection, 'AbstractMutableCollection', VOID, AbstractCollection, [AbstractCollection, MutableIterable, Collection]);
 initMetadataForClass(IteratorImpl, 'IteratorImpl');
 initMetadataForClass(ListIteratorImpl, 'ListIteratorImpl', VOID, IteratorImpl);
 initMetadataForClass(AbstractMutableList, 'AbstractMutableList', VOID, AbstractMutableCollection, [AbstractMutableCollection, KtMutableList]);
@@ -206,10 +206,10 @@ initMetadataForClass(IndexingIterator, 'IndexingIterator');
 initMetadataForInterface(MapWithDefault, 'MapWithDefault', VOID, VOID, [KtMap]);
 initMetadataForObject(EmptyMap, 'EmptyMap', VOID, VOID, [KtMap]);
 initMetadataForClass(IntIterator, 'IntIterator');
-initMetadataForClass(ReversedList$listIterator$1);
-initMetadataForClass(ReversedList, 'ReversedList', VOID, AbstractMutableList);
 initMetadataForClass(ReversedListReadOnly$listIterator$1);
 initMetadataForClass(ReversedListReadOnly, 'ReversedListReadOnly', VOID, AbstractList);
+initMetadataForClass(ReversedList$listIterator$1);
+initMetadataForClass(ReversedList, 'ReversedList', VOID, AbstractMutableList);
 initMetadataForObject(EmptySet, 'EmptySet', VOID, VOID, [KtSet]);
 initMetadataForObject(NaturalOrderComparator, 'NaturalOrderComparator', VOID, VOID, [Comparator]);
 initMetadataForObject(Key, 'Key');
@@ -600,6 +600,84 @@ function plus(_this__u8e3s4, elements) {
     return result_0;
   }
 }
+function take(_this__u8e3s4, n) {
+  // Inline function 'kotlin.require' call
+  if (!(n >= 0)) {
+    var message = 'Requested element count ' + n + ' is less than zero.';
+    throw IllegalArgumentException_init_$Create$_0(toString_1(message));
+  }
+  if (n === 0)
+    return emptyList();
+  if (isInterface(_this__u8e3s4, Collection)) {
+    if (n >= _this__u8e3s4.m())
+      return toList_0(_this__u8e3s4);
+    if (n === 1)
+      return listOf(first_0(_this__u8e3s4));
+  }
+  var count = 0;
+  var list = ArrayList_init_$Create$_0(n);
+  var _iterator__ex2g4s = _this__u8e3s4.j();
+  $l$loop: while (_iterator__ex2g4s.k()) {
+    var item = _iterator__ex2g4s.l();
+    list.e(item);
+    count = count + 1 | 0;
+    if (count === n)
+      break $l$loop;
+  }
+  return optimizeReadOnlyList(list);
+}
+function drop(_this__u8e3s4, n) {
+  // Inline function 'kotlin.require' call
+  if (!(n >= 0)) {
+    var message = 'Requested element count ' + n + ' is less than zero.';
+    throw IllegalArgumentException_init_$Create$_0(toString_1(message));
+  }
+  if (n === 0)
+    return toList_0(_this__u8e3s4);
+  var list;
+  if (isInterface(_this__u8e3s4, Collection)) {
+    var resultSize = _this__u8e3s4.m() - n | 0;
+    if (resultSize <= 0)
+      return emptyList();
+    if (resultSize === 1)
+      return listOf(last_0(_this__u8e3s4));
+    list = ArrayList_init_$Create$_0(resultSize);
+    if (isInterface(_this__u8e3s4, KtList)) {
+      if (isInterface(_this__u8e3s4, RandomAccess)) {
+        var inductionVariable = n;
+        var last = _this__u8e3s4.m();
+        if (inductionVariable < last)
+          do {
+            var index = inductionVariable;
+            inductionVariable = inductionVariable + 1 | 0;
+            list.e(_this__u8e3s4.n(index));
+          }
+           while (inductionVariable < last);
+      } else {
+        // Inline function 'kotlin.collections.iterator' call
+        var _iterator__ex2g4s = _this__u8e3s4.q(n);
+        while (_iterator__ex2g4s.k()) {
+          var item = _iterator__ex2g4s.l();
+          list.e(item);
+        }
+      }
+      return list;
+    }
+  } else {
+    list = ArrayList_init_$Create$();
+  }
+  var count = 0;
+  var _iterator__ex2g4s_0 = _this__u8e3s4.j();
+  while (_iterator__ex2g4s_0.k()) {
+    var item_0 = _iterator__ex2g4s_0.l();
+    if (count >= n)
+      list.e(item_0);
+    else {
+      count = count + 1 | 0;
+    }
+  }
+  return optimizeReadOnlyList(list);
+}
 function first(_this__u8e3s4) {
   if (_this__u8e3s4.o())
     throw NoSuchElementException_init_$Create$_0('List is empty.');
@@ -691,7 +769,7 @@ function toSet_0(_this__u8e3s4) {
 }
 function contains_5(_this__u8e3s4, element) {
   if (isInterface(_this__u8e3s4, Collection))
-    return _this__u8e3s4.q(element);
+    return _this__u8e3s4.r(element);
   return indexOf_4(_this__u8e3s4, element) >= 0;
 }
 function distinct(_this__u8e3s4) {
@@ -701,84 +779,6 @@ function last(_this__u8e3s4) {
   if (_this__u8e3s4.o())
     throw NoSuchElementException_init_$Create$_0('List is empty.');
   return _this__u8e3s4.n(get_lastIndex_2(_this__u8e3s4));
-}
-function take(_this__u8e3s4, n) {
-  // Inline function 'kotlin.require' call
-  if (!(n >= 0)) {
-    var message = 'Requested element count ' + n + ' is less than zero.';
-    throw IllegalArgumentException_init_$Create$_0(toString_1(message));
-  }
-  if (n === 0)
-    return emptyList();
-  if (isInterface(_this__u8e3s4, Collection)) {
-    if (n >= _this__u8e3s4.m())
-      return toList_0(_this__u8e3s4);
-    if (n === 1)
-      return listOf(first_0(_this__u8e3s4));
-  }
-  var count = 0;
-  var list = ArrayList_init_$Create$_0(n);
-  var _iterator__ex2g4s = _this__u8e3s4.j();
-  $l$loop: while (_iterator__ex2g4s.k()) {
-    var item = _iterator__ex2g4s.l();
-    list.e(item);
-    count = count + 1 | 0;
-    if (count === n)
-      break $l$loop;
-  }
-  return optimizeReadOnlyList(list);
-}
-function drop(_this__u8e3s4, n) {
-  // Inline function 'kotlin.require' call
-  if (!(n >= 0)) {
-    var message = 'Requested element count ' + n + ' is less than zero.';
-    throw IllegalArgumentException_init_$Create$_0(toString_1(message));
-  }
-  if (n === 0)
-    return toList_0(_this__u8e3s4);
-  var list;
-  if (isInterface(_this__u8e3s4, Collection)) {
-    var resultSize = _this__u8e3s4.m() - n | 0;
-    if (resultSize <= 0)
-      return emptyList();
-    if (resultSize === 1)
-      return listOf(last_0(_this__u8e3s4));
-    list = ArrayList_init_$Create$_0(resultSize);
-    if (isInterface(_this__u8e3s4, KtList)) {
-      if (isInterface(_this__u8e3s4, RandomAccess)) {
-        var inductionVariable = n;
-        var last = _this__u8e3s4.m();
-        if (inductionVariable < last)
-          do {
-            var index = inductionVariable;
-            inductionVariable = inductionVariable + 1 | 0;
-            list.e(_this__u8e3s4.n(index));
-          }
-           while (inductionVariable < last);
-      } else {
-        // Inline function 'kotlin.collections.iterator' call
-        var _iterator__ex2g4s = _this__u8e3s4.r(n);
-        while (_iterator__ex2g4s.k()) {
-          var item = _iterator__ex2g4s.l();
-          list.e(item);
-        }
-      }
-      return list;
-    }
-  } else {
-    list = ArrayList_init_$Create$();
-  }
-  var count = 0;
-  var _iterator__ex2g4s_0 = _this__u8e3s4.j();
-  while (_iterator__ex2g4s_0.k()) {
-    var item_0 = _iterator__ex2g4s_0.l();
-    if (count >= n)
-      list.e(item_0);
-    else {
-      count = count + 1 | 0;
-    }
-  }
-  return optimizeReadOnlyList(list);
 }
 function toCollection_0(_this__u8e3s4, destination) {
   var _iterator__ex2g4s = _this__u8e3s4.j();
@@ -792,6 +792,29 @@ function toMutableList_1(_this__u8e3s4) {
   if (isInterface(_this__u8e3s4, Collection))
     return toMutableList_0(_this__u8e3s4);
   return toCollection_0(_this__u8e3s4, ArrayList_init_$Create$());
+}
+function first_0(_this__u8e3s4) {
+  if (isInterface(_this__u8e3s4, KtList))
+    return first(_this__u8e3s4);
+  else {
+    var iterator = _this__u8e3s4.j();
+    if (!iterator.k())
+      throw NoSuchElementException_init_$Create$_0('Collection is empty.');
+    return iterator.l();
+  }
+}
+function last_0(_this__u8e3s4) {
+  if (isInterface(_this__u8e3s4, KtList))
+    return last(_this__u8e3s4);
+  else {
+    var iterator = _this__u8e3s4.j();
+    if (!iterator.k())
+      throw NoSuchElementException_init_$Create$_0('Collection is empty.');
+    var last_0 = iterator.l();
+    while (iterator.k())
+      last_0 = iterator.l();
+    return last_0;
+  }
 }
 function sortedWith(_this__u8e3s4, comparator) {
   if (isInterface(_this__u8e3s4, Collection)) {
@@ -822,29 +845,6 @@ function indexOf_4(_this__u8e3s4, element) {
     index = index + 1 | 0;
   }
   return -1;
-}
-function first_0(_this__u8e3s4) {
-  if (isInterface(_this__u8e3s4, KtList))
-    return first(_this__u8e3s4);
-  else {
-    var iterator = _this__u8e3s4.j();
-    if (!iterator.k())
-      throw NoSuchElementException_init_$Create$_0('Collection is empty.');
-    return iterator.l();
-  }
-}
-function last_0(_this__u8e3s4) {
-  if (isInterface(_this__u8e3s4, KtList))
-    return last(_this__u8e3s4);
-  else {
-    var iterator = _this__u8e3s4.j();
-    if (!iterator.k())
-      throw NoSuchElementException_init_$Create$_0('Collection is empty.');
-    var last_0 = iterator.l();
-    while (iterator.k())
-      last_0 = iterator.l();
-    return last_0;
-  }
 }
 function singleOrNull(_this__u8e3s4) {
   return _this__u8e3s4.m() === 1 ? _this__u8e3s4.n(0) : null;
@@ -3085,14 +3085,14 @@ function mapCapacity(expectedSize) {
 function sort_0(_this__u8e3s4) {
   collectionsSort(_this__u8e3s4, naturalOrder());
 }
-function setOf(element) {
-  return hashSetOf([element]);
-}
 function checkIndexOverflow(index) {
   if (index < 0) {
     throwIndexOverflow();
   }
   return index;
+}
+function setOf(element) {
+  return hashSetOf([element]);
 }
 function sortWith_0(_this__u8e3s4, comparator) {
   collectionsSort(_this__u8e3s4, comparator);
@@ -3224,7 +3224,7 @@ protoOf(AbstractMutableList).y1 = function () {
 protoOf(AbstractMutableList).j = function () {
   return new IteratorImpl(this);
 };
-protoOf(AbstractMutableList).q = function (element) {
+protoOf(AbstractMutableList).r = function (element) {
   return this.s(element) >= 0;
 };
 protoOf(AbstractMutableList).s = function (element) {
@@ -3245,11 +3245,11 @@ protoOf(AbstractMutableList).s = function (element) {
   }
   return tmp$ret$1;
 };
-protoOf(AbstractMutableList).r = function (index) {
+protoOf(AbstractMutableList).q = function (index) {
   return new ListIteratorImpl(this, index);
 };
 protoOf(AbstractMutableList).h4 = function (fromIndex, toIndex) {
-  var iterator = this.r(fromIndex);
+  var iterator = this.q(fromIndex);
   // Inline function 'kotlin.repeat' call
   var times = toIndex - fromIndex | 0;
   var inductionVariable = 0;
@@ -3733,7 +3733,7 @@ protoOf(HashMapKeys).m = function () {
 protoOf(HashMapKeys).o = function () {
   return this.f5_1.m() === 0;
 };
-protoOf(HashMapKeys).q = function (element) {
+protoOf(HashMapKeys).r = function (element) {
   return this.f5_1.e5(element);
 };
 protoOf(HashMapKeys).y1 = function () {
@@ -3773,7 +3773,7 @@ protoOf(HashMapEntrySetBase).o = function () {
 protoOf(HashMapEntrySetBase).m5 = function (element) {
   return this.k5_1.p5(element);
 };
-protoOf(HashMapEntrySetBase).q = function (element) {
+protoOf(HashMapEntrySetBase).r = function (element) {
   if (!(!(element == null) ? isInterface(element, Entry) : false))
     return false;
   return this.m5((!(element == null) ? isInterface(element, Entry) : false) ? element : THROW_CCE());
@@ -3832,7 +3832,7 @@ protoOf(HashMapKeysDefault).y1 = function () {
 protoOf(HashMapKeysDefault).e5 = function (element) {
   return this.t5_1.t1(element);
 };
-protoOf(HashMapKeysDefault).q = function (element) {
+protoOf(HashMapKeysDefault).r = function (element) {
   if (!(element == null ? true : !(element == null)))
     return false;
   return this.e5((element == null ? true : !(element == null)) ? element : THROW_CCE());
@@ -3902,7 +3902,7 @@ protoOf(HashSet).e = function (element) {
 protoOf(HashSet).y1 = function () {
   this.v5_1.y1();
 };
-protoOf(HashSet).q = function (element) {
+protoOf(HashSet).r = function (element) {
   return this.v5_1.e5(element);
 };
 protoOf(HashSet).o = function () {
@@ -6172,7 +6172,7 @@ function AbstractCollection$toString$lambda(this$0) {
 }
 function AbstractCollection() {
 }
-protoOf(AbstractCollection).q = function (element) {
+protoOf(AbstractCollection).r = function (element) {
   var tmp$ret$0;
   $l$block_0: {
     // Inline function 'kotlin.collections.any' call
@@ -6215,7 +6215,7 @@ protoOf(AbstractCollection).q1 = function (elements) {
     var _iterator__ex2g4s = elements.j();
     while (_iterator__ex2g4s.k()) {
       var element = _iterator__ex2g4s.l();
-      if (!this.q(element)) {
+      if (!this.r(element)) {
         tmp$ret$0 = false;
         break $l$block_0;
       }
@@ -6344,7 +6344,7 @@ protoOf(AbstractList).s = function (element) {
   }
   return tmp$ret$1;
 };
-protoOf(AbstractList).r = function (index) {
+protoOf(AbstractList).q = function (index) {
   return new ListIteratorImpl_0(this, index);
 };
 protoOf(AbstractList).equals = function (other) {
@@ -6402,7 +6402,7 @@ function AbstractMap$keys$1(this$0) {
 protoOf(AbstractMap$keys$1).e5 = function (element) {
   return this.ya_1.t1(element);
 };
-protoOf(AbstractMap$keys$1).q = function (element) {
+protoOf(AbstractMap$keys$1).r = function (element) {
   if (!(element == null ? true : !(element == null)))
     return false;
   return this.e5((element == null ? true : !(element == null)) ? element : THROW_CCE());
@@ -6609,7 +6609,7 @@ protoOf(EmptyList).o = function () {
 protoOf(EmptyList).ab = function (element) {
   return false;
 };
-protoOf(EmptyList).q = function (element) {
+protoOf(EmptyList).r = function (element) {
   if (!false)
     return false;
   var tmp;
@@ -6640,7 +6640,7 @@ protoOf(EmptyList).s = function (element) {
 protoOf(EmptyList).j = function () {
   return EmptyIterator_instance;
 };
-protoOf(EmptyList).r = function (index) {
+protoOf(EmptyList).q = function (index) {
   if (!(index === 0))
     throw IndexOutOfBoundsException_init_$Create$_0('Index: ' + index);
   return EmptyIterator_instance;
@@ -6700,7 +6700,7 @@ protoOf(ArrayAsCollection).o = function () {
 protoOf(ArrayAsCollection).eb = function (element) {
   return contains_4(this.cb_1, element);
 };
-protoOf(ArrayAsCollection).q = function (element) {
+protoOf(ArrayAsCollection).r = function (element) {
   if (!(element == null ? true : !(element == null)))
     return false;
   return this.eb((element == null ? true : !(element == null)) ? element : THROW_CCE());
@@ -7026,95 +7026,95 @@ protoOf(IntIterator).l = function () {
   return this.sb();
 };
 function asReversed(_this__u8e3s4) {
-  return new ReversedList(_this__u8e3s4);
-}
-function asReversed_0(_this__u8e3s4) {
   return new ReversedListReadOnly(_this__u8e3s4);
 }
-function ReversedList$listIterator$1(this$0, $index) {
-  this.ub_1 = this$0;
-  this.tb_1 = this$0.wb_1.r(reversePositionIndex(this$0, $index));
+function asReversed_0(_this__u8e3s4) {
+  return new ReversedList(_this__u8e3s4);
 }
-protoOf(ReversedList$listIterator$1).k = function () {
-  return this.tb_1.f4();
-};
-protoOf(ReversedList$listIterator$1).f4 = function () {
-  return this.tb_1.k();
-};
-protoOf(ReversedList$listIterator$1).l = function () {
-  return this.tb_1.g4();
-};
-protoOf(ReversedList$listIterator$1).g4 = function () {
-  return this.tb_1.l();
-};
-protoOf(ReversedList$listIterator$1).u3 = function () {
-  return this.tb_1.u3();
-};
-function ReversedList(delegate) {
-  AbstractMutableList.call(this);
-  this.wb_1 = delegate;
-}
-protoOf(ReversedList).m = function () {
-  return this.wb_1.m();
-};
-protoOf(ReversedList).n = function (index) {
-  return this.wb_1.n(reverseElementIndex(this, index));
-};
-protoOf(ReversedList).y1 = function () {
-  return this.wb_1.y1();
-};
-protoOf(ReversedList).b2 = function (index) {
-  return this.wb_1.b2(reverseElementIndex(this, index));
-};
-protoOf(ReversedList).xb = function (index, element) {
-  return this.wb_1.z1(reverseElementIndex(this, index), element);
-};
-protoOf(ReversedList).z1 = function (index, element) {
-  return this.xb(index, (element == null ? true : !(element == null)) ? element : THROW_CCE());
-};
-protoOf(ReversedList).yb = function (index, element) {
-  this.wb_1.a2(reversePositionIndex(this, index), element);
-};
-protoOf(ReversedList).a2 = function (index, element) {
-  return this.yb(index, (element == null ? true : !(element == null)) ? element : THROW_CCE());
-};
-protoOf(ReversedList).j = function () {
-  return this.r(0);
-};
-protoOf(ReversedList).r = function (index) {
-  return new ReversedList$listIterator$1(this, index);
-};
 function ReversedListReadOnly$listIterator$1(this$0, $index) {
-  this.ac_1 = this$0;
-  this.zb_1 = this$0.bc_1.r(reversePositionIndex(this$0, $index));
+  this.ub_1 = this$0;
+  this.tb_1 = this$0.vb_1.q(reversePositionIndex(this$0, $index));
 }
 protoOf(ReversedListReadOnly$listIterator$1).k = function () {
-  return this.zb_1.f4();
+  return this.tb_1.f4();
 };
 protoOf(ReversedListReadOnly$listIterator$1).f4 = function () {
-  return this.zb_1.k();
+  return this.tb_1.k();
 };
 protoOf(ReversedListReadOnly$listIterator$1).l = function () {
-  return this.zb_1.g4();
+  return this.tb_1.g4();
 };
 protoOf(ReversedListReadOnly$listIterator$1).g4 = function () {
-  return this.zb_1.l();
+  return this.tb_1.l();
 };
 function ReversedListReadOnly(delegate) {
   AbstractList.call(this);
-  this.bc_1 = delegate;
+  this.vb_1 = delegate;
 }
 protoOf(ReversedListReadOnly).m = function () {
-  return this.bc_1.m();
+  return this.vb_1.m();
 };
 protoOf(ReversedListReadOnly).n = function (index) {
-  return this.bc_1.n(reverseElementIndex(this, index));
+  return this.vb_1.n(reverseElementIndex(this, index));
 };
 protoOf(ReversedListReadOnly).j = function () {
-  return this.r(0);
+  return this.q(0);
 };
-protoOf(ReversedListReadOnly).r = function (index) {
+protoOf(ReversedListReadOnly).q = function (index) {
   return new ReversedListReadOnly$listIterator$1(this, index);
+};
+function ReversedList$listIterator$1(this$0, $index) {
+  this.xb_1 = this$0;
+  this.wb_1 = this$0.zb_1.q(reversePositionIndex(this$0, $index));
+}
+protoOf(ReversedList$listIterator$1).k = function () {
+  return this.wb_1.f4();
+};
+protoOf(ReversedList$listIterator$1).f4 = function () {
+  return this.wb_1.k();
+};
+protoOf(ReversedList$listIterator$1).l = function () {
+  return this.wb_1.g4();
+};
+protoOf(ReversedList$listIterator$1).g4 = function () {
+  return this.wb_1.l();
+};
+protoOf(ReversedList$listIterator$1).u3 = function () {
+  return this.wb_1.u3();
+};
+function ReversedList(delegate) {
+  AbstractMutableList.call(this);
+  this.zb_1 = delegate;
+}
+protoOf(ReversedList).m = function () {
+  return this.zb_1.m();
+};
+protoOf(ReversedList).n = function (index) {
+  return this.zb_1.n(reverseElementIndex(this, index));
+};
+protoOf(ReversedList).y1 = function () {
+  return this.zb_1.y1();
+};
+protoOf(ReversedList).b2 = function (index) {
+  return this.zb_1.b2(reverseElementIndex(this, index));
+};
+protoOf(ReversedList).ac = function (index, element) {
+  return this.zb_1.z1(reverseElementIndex(this, index), element);
+};
+protoOf(ReversedList).z1 = function (index, element) {
+  return this.ac(index, (element == null ? true : !(element == null)) ? element : THROW_CCE());
+};
+protoOf(ReversedList).bc = function (index, element) {
+  this.zb_1.a2(reversePositionIndex(this, index), element);
+};
+protoOf(ReversedList).a2 = function (index, element) {
+  return this.bc(index, (element == null ? true : !(element == null)) ? element : THROW_CCE());
+};
+protoOf(ReversedList).j = function () {
+  return this.q(0);
+};
+protoOf(ReversedList).q = function (index) {
+  return new ReversedList$listIterator$1(this, index);
 };
 function reverseElementIndex(_this__u8e3s4, index) {
   var tmp;
@@ -7168,7 +7168,7 @@ protoOf(EmptySet).o = function () {
 protoOf(EmptySet).ab = function (element) {
   return false;
 };
-protoOf(EmptySet).q = function (element) {
+protoOf(EmptySet).r = function (element) {
   if (!false)
     return false;
   var tmp;
@@ -9460,7 +9460,7 @@ protoOf(UByteArray).j = function () {
 protoOf(UByteArray).bf = function (element) {
   return UByteArray__contains_impl_njh19q(this.af_1, element);
 };
-protoOf(UByteArray).q = function (element) {
+protoOf(UByteArray).r = function (element) {
   return UByteArray__contains_impl_njh19q_0(this, element);
 };
 protoOf(UByteArray).o = function () {
@@ -9623,7 +9623,7 @@ protoOf(UIntArray).j = function () {
 protoOf(UIntArray).mf = function (element) {
   return UIntArray__contains_impl_b16rzj(this.lf_1, element);
 };
-protoOf(UIntArray).q = function (element) {
+protoOf(UIntArray).r = function (element) {
   return UIntArray__contains_impl_b16rzj_0(this, element);
 };
 protoOf(UIntArray).o = function () {
@@ -9786,7 +9786,7 @@ protoOf(ULongArray).j = function () {
 protoOf(ULongArray).xf = function (element) {
   return ULongArray__contains_impl_v9bgai(this.wf_1, element);
 };
-protoOf(ULongArray).q = function (element) {
+protoOf(ULongArray).r = function (element) {
   return ULongArray__contains_impl_v9bgai_0(this, element);
 };
 protoOf(ULongArray).o = function () {
@@ -9951,7 +9951,7 @@ protoOf(UShortArray).j = function () {
 protoOf(UShortArray).ig = function (element) {
   return UShortArray__contains_impl_vo7k3g(this.hg_1, element);
 };
-protoOf(UShortArray).q = function (element) {
+protoOf(UShortArray).r = function (element) {
   return UShortArray__contains_impl_vo7k3g_0(this, element);
 };
 protoOf(UShortArray).o = function () {
@@ -10335,8 +10335,8 @@ export {
   KtSet as KtSetjrjc7fhfd6b9,
   addAll as addAll1k27qatfgp3k5,
   asList as asList2ho2pewtsfvv,
-  asReversed as asReversed2y2qzr7vrqd5,
-  asReversed_0 as asReversed308kw52j6ls1u,
+  asReversed_0 as asReversed2y2qzr7vrqd5,
+  asReversed as asReversed308kw52j6ls1u,
   checkIndexOverflow as checkIndexOverflow3frtmheghr0th,
   collectionSizeOrDefault as collectionSizeOrDefault36dulx8yinfqm,
   contains_5 as contains2gm06f5aa19ov,
